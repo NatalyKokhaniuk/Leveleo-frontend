@@ -1,0 +1,219 @@
+<header
+  class="fixed top-0 m-4 left-0 w-[calc(100vw-20px)] sm:w-[calc(100vw-40px)] z-50 text-secondary-neutral-white rounded-[40px] font-inter p-5 transition-all duration-300 leading-none"
+  id="mainHeader"
+  [ngClass]="{
+    'bg-transparent': !isFloating() && !isHidden(),
+    'bg-on-primary shadow-lg': isFloating(),
+    '-translate-y-full opacity-0 pointer-events-none': isHidden(),
+  }"
+>
+  <div class="flex items-center justify-between w-full gap-2">
+    <!-- Логотип -->
+    <div
+      class="ml-4 cursor-pointer hover:text-primary-orange flex items-center gap-2"
+      (click)="home()"
+      (keydown)="home()"
+      tabindex="0"
+    >
+      @if (currentTheme() === 'dark') {
+        <img class="h-12.5" src="/assets/images/Logo_dark.png" alt="logo" />
+      } @else {
+        <img class="h-12.5" src="/assets/images/Logo_light.png" alt="logo" />
+      }
+    </div>
+
+    <div class="flex flex-row justify-items-start gap-4">
+      <!-- Search -->
+      <div class="flex flex-row gap-3">
+        <button matIconButton class="text-primary" (click)="openSearch()">
+          <mat-icon class="text-primary">search</mat-icon>
+        </button>
+      </div>
+      <!-- Desktop Nav -->
+      <nav class="hidden xl:flex gap-6 text-secondary-neutral-white self-center">
+        @for (menuItemKey of menuItemKeys; track menuItemKey) {
+          <a
+            routerLink="{{ menuItemKey }}"
+            routerLinkActive="underline  font-semibold"
+            class="hover:text-primary-orange transition hover:underline flex items-center justify-center h-10"
+          >
+            {{ menuItems[menuItemKey] | translate | uppercase }}
+          </a>
+        }
+      </nav>
+
+      <div class="hidden sm:flex sm:flex-row gap-3">
+        <!-- balance -->
+        <button matIconButton (click)="openComparison()">
+          <mat-icon class="text-primary">balance</mat-icon>
+        </button>
+
+        <!-- Heart -->
+        <button matIconButton (click)="openFavourite()">
+          <mat-icon class="text-primary">favorite</mat-icon>
+        </button>
+      </div>
+      <!-- Mobile Menu  -->
+      <div #menuWrapper class="relative xl:hidden">
+        <button matIconButton class="text-primary" (click)="isMenuOpen = !isMenuOpen">
+          <mat-icon class="text-primary text-[200px]">menu</mat-icon>
+        </button>
+        <!-- Burger Button -->
+        @if (isMenuOpen) {
+          <ul class="absolute right-0 mt-3 w-48 bg-primary text-on-primary rounded shadow-lg z-10">
+            @for (menuItemKey of menuItemKeys; track menuItemKey) {
+              <li>
+                <a
+                  routerLink="{{ menuItemKey }}"
+                  (click)="isMenuOpen = false"
+                  class="block px-4 py-2 hover:underline transition"
+                >
+                  {{ menuItems[menuItemKey] | translate }}
+                </a>
+              </li>
+            }
+            <div class="block sm:hidden">
+              <li class="border-t my-2"></li>
+
+              <!-- Balance -->
+              <li
+                class="flex gap-2 items-center justify-start px-4"
+                tabindex="0"
+                (click)="openComparison(); isMenuOpen = false"
+                (keydown)="openComparison(); isMenuOpen = false"
+              >
+                <button
+                  matIconButton
+                  class="text-primary"
+                  (click)="openComparison(); isMenuOpen = false"
+                >
+                  <mat-icon class="text-on-primary">balance</mat-icon>
+                </button>
+                <span
+                  class="text-secondary-neutral-white cursor-pointer hover:text-primary-orange hover:underline transition"
+                  (click)="openComparison(); isMenuOpen = false"
+                  (keydown)="openComparison(); isMenuOpen = false"
+                  tabindex="0"
+                  >{{ 'HEADER.COMPARISON' | translate }}</span
+                >
+              </li>
+              <!-- Heart -->
+              <li
+                class="flex gap-2 items-center justify-start px-4"
+                tabindex="0"
+                (click)="openFavourite(); isMenuOpen = false"
+                (keydown)="openFavourite(); isMenuOpen = false"
+              >
+                <button matIconButton class="text-primary" (click)="isMenuOpen = false">
+                  <mat-icon class="text-on-primary">favorite</mat-icon></button
+                ><span
+                  class="text-secondary-neutral-white cursor-pointer hover:text-primary-orange hover:underline transition"
+                  (click)="openFavourite(); isMenuOpen = false"
+                  (keydown)="openFavourite(); isMenuOpen = false"
+                  tabindex="0"
+                  >{{ 'HEADER.FAVOURITES' | translate }}</span
+                >
+              </li>
+              <li class="border-t my-2"></li>
+              <li class="flex gap-2 items-start justify-start mb-2 px-4" tabindex="0">
+                <!-- Тумблер теми -->
+                <mat-slide-toggle
+                  [checked]="isDark"
+                  (change)="toggleTheme()"
+                  matTooltip="{{ (isDark ? 'HEADER.LIGHT_MODE' : 'HEADER.DARK_MODE') | translate }}"
+                  color="primary"
+                >
+                  <mat-icon>{{ isDark ? 'dark_mode' : 'light_mode' }}</mat-icon>
+                </mat-slide-toggle>
+              </li>
+              <li class="flex gap-2 items-start justify-start px-2" tabindex="0">
+                <!-- Кнопки мови -->
+                <mat-button-toggle-group
+                  [hideSingleSelectionIndicator]="true"
+                  name="changeLanguage"
+                  aria-label="change language"
+                  class="flex mx-2"
+                >
+                  <mat-button-toggle value="bold" (click)="switchLang('en')">EN</mat-button-toggle>
+                  <mat-button-toggle value="italic" (click)="switchLang('uk')"
+                    >UA</mat-button-toggle
+                  >
+                </mat-button-toggle-group>
+              </li>
+              <li class="border-t my-2"></li>
+              <li class="block px-4 pt-2 pb-4">
+                <!-- Login/Logout -->
+                <!-- @if (isAuthenticated()) {
+                  <app-user-menu (logout)="logout()"></app-user-menu>
+                } @else {
+                  <app-auth-buttons></app-auth-buttons>
+                } -->
+              </li>
+            </div>
+          </ul>
+        }
+      </div>
+    </div>
+    <!-- Рядок пошуку -->
+    <div
+      #searchInput
+      class="fixed top-25.5 m-4 left-0 w-[calc(100vw-20px)] sm:w-[calc(100vw-40px)] z-50 rounded-[40px] font-inter p-3.75 bg-on-primary text-primary transition-all duration-300 shadow-md"
+      [class.opacity-0]="!isSearchOpen()"
+      [class.pointer-events-none]="!isSearchOpen()"
+    >
+      <div class="flex justify-between items-center">
+        <form
+          #formRef
+          [formGroup]="searchForm"
+          (ngSubmit)="onSubmitSearchButton()"
+          class="group w-full flex justify-between items-center"
+        >
+          <!-- searchString -->
+          <div class="flex flex-1 w-full">
+            <input
+              #searchLineInput
+              id="searchString"
+              type="text"
+              formControlName="searchString"
+              (keydown.enter)="onEnterPress()"
+              [placeholder]=""
+              class="rounded-[40px] h-10 focus:outline-none mr-2 w-full text-center bg-transparent"
+            />
+          </div>
+          <!-- Submit -->
+          <button
+            matButton="filled"
+            class="text-white"
+            [disabled]="isSearchButtonDisabled()"
+            (pressButton)="onSubmitSearchButton()"
+          >
+            {{ 'HEADER.SEARCH' | translate }}
+          </button>
+        </form>
+      </div>
+    </div>
+    <!-- Контроли: тема + мова -->
+    <div class="hidden xl:flex gap-2 items-center">
+      <!-- Тумблер теми -->
+      <mat-slide-toggle
+        [checked]="isDark"
+        (change)="toggleTheme()"
+        matTooltip="{{ (isDark ? 'HEADER.LIGHT_MODE' : 'HEADER.DARK_MODE') | translate }}"
+        color="primary"
+      >
+        <mat-icon>{{ isDark ? 'dark_mode' : 'light_mode' }}</mat-icon>
+      </mat-slide-toggle>
+
+      <!-- Кнопки мови -->
+      <mat-button-toggle-group
+        [hideSingleSelectionIndicator]="true"
+        name="changeLanguage"
+        aria-label="change language"
+        class="flex mx-2"
+      >
+        <mat-button-toggle value="bold" (click)="switchLang('en')">EN</mat-button-toggle>
+        <mat-button-toggle value="italic" (click)="switchLang('uk')">UA</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+  </div>
+</header>

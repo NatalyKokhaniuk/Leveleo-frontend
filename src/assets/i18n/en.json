@@ -1,0 +1,18 @@
+{
+  "HEADER": {
+    "ABOUT": "About",
+    "HOME": "Home",
+    "CONTACTS": "Contact",
+    "PROMOTIONS": "Promotions",
+    "PRODUCTS": "Products",
+    "DARK_MODE": "Switch to dark mode",
+    "LIGHT_MODE": "Switch to light mode",
+    "SEARCH": "Search",
+    "FAVOURITES": "Favourites",
+    "COMPARISON": "Comparison"
+  },
+  "HOME": {
+    "WELCOME": "Welcome",
+    "DESCRIPTION": "A clean foundation for your Angular project."
+  }
+}

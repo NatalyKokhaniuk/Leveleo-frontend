@@ -1,0 +1,191 @@
+@use 'sass:map';
+@use '@angular/material' as mat;
+@use '../_theme-colors.scss' as my-theme;
+
+html {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: light,
+        primary: my-theme.$primary-palette,
+        tertiary: my-theme.$tertiary-palette,
+      ),
+      typography: Inter,
+      density: 0,
+    )
+  );
+}
+
+[data-theme='dark'] {
+  @include mat.theme(
+    (
+      color: (
+        theme-type: dark,
+        primary: my-theme.$primary-palette,
+        tertiary: my-theme.$tertiary-palette,
+      ),
+    )
+  );
+}
+
+:root {
+  --color-leo: rgb(246 161 55);
+  --color-leo-container: rgb(255 221 187);
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-unbounded: 'Unbounded', system-ui, sans-serif;
+  @each $tone in (10, 20, 30, 40, 50, 60, 70, 80, 90, 95, 99) {
+    --color-primary-#{$tone}: #{map.get(my-theme.$primary-palette, $tone)};
+    --color-secondary-#{$tone}: #{map.get(my-theme.$secondary-palette, $tone)};
+    --color-tertiary-#{$tone}: #{map.get(my-theme.$tertiary-palette, $tone)};
+  }
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background-color: var(--mat-sys-background);
+  color: var(--mat-sys-on-background);
+  transition:
+    background-color 250ms ease,
+    color 250ms ease;
+  min-height: 100vh;
+}
+@font-face {
+  font-family: 'Fixel Display';
+  src: url('/assets/fonts/FixelDisplay-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Fixel Display';
+  src: url('/assets/fonts/FixelDisplay-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+.mat-tertiary-button {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-tertiary),
+      filled-label-text-color: var(--mat-sys-on-tertiary),
+      outlined-label-text-color: var(--mat-sys-tertiary),
+      tonal-container-color: var(--mat-sys-tertiary-container),
+      tonal-label-text-color: var(--mat-sys-on-tertiary-container),
+    )
+  );
+}
+.mat-secondary-button {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-secondary),
+      filled-label-text-color: var(--mat-sys-on-secondary),
+      outlined-label-text-color: var(--mat-sys-secondary),
+      tonal-container-color: var(--mat-sys-secondary-container),
+      tonal-label-text-color: var(--mat-sys-on-secondary-container),
+    )
+  );
+}
+.mat-primary-button {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-primary),
+      filled-label-text-color: var(--mat-sys-on-primary),
+      outlined-label-text-color: var(--mat-sys-primary),
+      tonal-container-color: var(--mat-sys-primary-container),
+      tonal-label-text-color: var(--mat-sys-on-primary-container),
+    )
+  );
+}
+// Фони
+.bg-primary {
+  background-color: var(--mat-sys-primary);
+}
+.bg-secondary {
+  background-color: var(--mat-sys-secondary);
+}
+.bg-tertiary {
+  background-color: var(--mat-sys-tertiary);
+}
+.bg-surface {
+  background-color: var(--mat-sys-surface);
+}
+.bg-surface-container {
+  background-color: var(--mat-sys-surface-container);
+}
+.bg-surface-container-high {
+  background-color: var(--mat-sys-surface-container-high);
+}
+.bg-primary-container {
+  background-color: var(--mat-sys-primary-container);
+}
+.bg-tertiary-container {
+  background-color: var(--mat-sys-tertiary-container);
+}
+
+// Текст
+.text-primary {
+  color: var(--mat-sys-primary);
+}
+.text-secondary {
+  color: var(--mat-sys-secondary);
+}
+.text-tertiary {
+  color: var(--mat-sys-tertiary);
+}
+.text-on-primary {
+  color: var(--mat-sys-on-primary);
+}
+.text-on-surface {
+  color: var(--mat-sys-on-surface);
+}
+.text-on-tertiary {
+  color: var(--mat-sys-on-tertiary);
+}
+
+// Бордери
+.border-outline {
+  border-color: var(--mat-sys-outline);
+}
+.border-outline-variant {
+  border-color: var(--mat-sys-outline-variant);
+}
+
+// Жовтий лев
+.bg-leo {
+  background-color: var(--color-leo);
+}
+.bg-leo-container {
+  background-color: var(--color-leo-container);
+}
+.mat-error {
+  @include mat.button-overrides(
+    (
+      filled-container-color: var(--mat-sys-error),
+      filled-label-text-color: var(--mat-sys-on-error),
+    )
+  );
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@layer utilities {
+  .bg-primary-container {
+    background-color: var(--mat-sys-primary-container);
+  }
+  .bg-secondary-container {
+    background-color: var(--mat-sys-secondary-container);
+  }
+  .bg-tertiary-container {
+    background-color: var(--mat-sys-tertiary-container);
+  }
+  .text-on-primary-container {
+    color: var(--mat-sys-on-primary-container);
+  }
+  .text-on-secondary-container {
+    color: var(--mat-sys-on-secondary-container);
+  }
+  .text-on-tertiary-container {
+    color: var(--mat-sys-on-tertiary-container);
+  }
+}

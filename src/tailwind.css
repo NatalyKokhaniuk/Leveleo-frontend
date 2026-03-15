@@ -1,0 +1,138 @@
+@import 'tailwindcss';
+@theme {
+  --font-inter: 'Inter', system-ui, sans-serif;
+  --font-fixel: 'Fixel Display', system-ui, sans-serif;
+  /* Кольори — тягнуться з Material теми автоматично */
+  /* primary */
+  --color-primary: var(--mat-sys-primary);
+  --color-on-primary: var(--mat-sys-on-primary);
+  --color-primary-container: var(--mat-sys-primary-container);
+  --color-on-primary-container: var(--mat-sys-on-primary-container);
+
+  --color-primary-10: var(--color-primary-10);
+  --color-primary-20: var(--color-primary-20);
+  --color-primary-25: var(--color-primary-25);
+  --color-primary-30: var(--color-primary-30);
+  --color-primary-40: var(--color-primary-40);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-60: var(--color-primary-60);
+  --color-primary-70: var(--color-primary-70);
+  --color-primary-80: var(--color-primary-80);
+  --color-primary-90: var(--color-primary-90);
+  /* secondary */
+  --color-secondary: var(--mat-sys-secondary);
+  --color-on-secondary: var(--mat-sys-on-secondary);
+	  --color-secondary-container: var(--mat-sys-secondary-container);
+  --color-on-secondary-container: var(--mat-sys-on-secondary-container);
+
+  --color-secondary-10: var(--color-secondary-10);
+  --color-secondary-20: var(--color-secondary-20);
+  --color-secondary-25: var(--color-secondary-25);
+  --color-secondary-30: var(--color-secondary-30);
+  --color-secondary-40: var(--color-secondary-40);
+  --color-secondary-50: var(--color-secondary-50);
+  --color-secondary-60: var(--color-secondary-60);
+  --color-secondary-70: var(--color-secondary-70);
+  --color-secondary-80: var(--color-secondary-80);
+  --color-secondary-90: var(--color-secondary-90);
+
+  /* tertiary */
+  --color-tertiary: var(--mat-sys-tertiary);
+  --color-on-tertiary: var(--mat-sys-on-tertiary);
+  --color-tertiary-container: var(--mat-sys-tertiary-container);
+  --color-on-tertiary-container: var(--mat-sys-on-tertiary-container);
+
+  --color-tertiary-10: var(--color-tertiary-10);
+  --color-tertiary-20: var(--color-tertiary-20);
+  --color-tertiary-25: var(--color-tertiary-25);
+  --color-tertiary-30: var(--color-tertiary-30);
+  --color-tertiary-40: var(--color-tertiary-40);
+  --color-tertiary-50: var(--color-tertiary-50);
+  --color-tertiary-60: var(--color-tertiary-60);
+  --color-tertiary-70: var(--color-tertiary-70);
+  --color-tertiary-80: var(--color-tertiary-80);
+  --color-tertiary-90: var(--color-tertiary-90);
+
+
+  --color-surface: var(--mat-sys-surface);
+  --color-on-surface: var(--mat-sys-on-surface);
+  --color-surface-container: var(--mat-sys-surface-container);
+  --color-surface-container-high: var(--mat-sys-surface-container-high);
+  --color-background: var(--mat-sys-background);
+  --color-on-background: var(--mat-sys-on-background);
+  --color-outline: var(--mat-sys-outline);
+  --color-outline-variant: var(--mat-sys-outline-variant);
+  --color-error: var(--mat-sys-error);
+  --color-on-error: var(--mat-sys-on-error);
+
+  /* Жовтий лев — статичний */
+  --color-leo: rgb(246 161 55);
+  --color-leo-container: rgb(255 221 187);
+
+  /* Анімації */
+  --animate-fade-in: fadeIn 0.5s ease-in-out;
+  --animate-slide-up: slideUp 0.5s ease-in-out;
+  --animate-slide-left: slideLeft 0.5s ease-in-out;
+  --animate-scale-in: scaleIn 0.5s ease-in-out;
+  --animate-pulse-slow: pulseSlow 6s ease-in-out infinite;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes slideUp {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes slideLeft {
+  0% {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes scaleIn {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes pulseSlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 20px 10px rgba(255, 165, 0, 0.5);
+  }
+}
+
+@layer base {
+  body {
+    @apply font-inter;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-fixel;
+  }
+}

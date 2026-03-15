@@ -1,0 +1,18 @@
+{
+  "HEADER": {
+    "ABOUT": "Про нас",
+    "HOME": "Головна",
+    "CONTACTS": "Контакти",
+    "PROMOTIONS": "Акції",
+    "PRODUCTS": "Товари",
+    "DARK_MODE": "Увімкнути темну тему",
+    "LIGHT_MODE": "Увімкнути світлу тему",
+    "SEARCH": "Пошук",
+    "FAVOURITES": "Обране",
+    "COMPARISON": "Порівняння"
+  },
+  "HOME": {
+    "WELCOME": "Ласкаво просимо",
+    "DESCRIPTION": "Чистий каркас для вашого Angular-проєкту."
+  }
+}
