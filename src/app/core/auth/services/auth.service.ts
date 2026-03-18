@@ -79,6 +79,7 @@ export class AuthService {
   }
 
   resendConfirmation(data: ResendConfirmationRequest): Observable<{ message: string }> {
+    console.log('resendConfirmation - auth servive');
     return this.api.post<{ message: string }>('/auth/resend-confirmation', data);
   }
 

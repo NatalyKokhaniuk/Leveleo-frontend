@@ -95,6 +95,13 @@ body {
     )
   );
 }
+.mdc-text-field input {
+  all: unset;
+}
+.mdc-text-field input {
+  font: inherit;
+  color: inherit;
+}
 // Фони
 .bg-primary {
   background-color: var(--mat-sys-primary);
@@ -168,7 +175,14 @@ a {
   color: inherit;
   text-decoration: none;
 }
-
+.mat-dialog-content {
+  max-height: none !important;
+}
+::ng-deep .mat-dialog-container {
+  max-height: none !important;
+  height: auto !important;
+  overflow: visible !important;
+}
 @layer utilities {
   .bg-primary-container {
     background-color: var(--mat-sys-primary-container);

@@ -1,0 +1,10 @@
+<div class="flex sm:hidden">
+  <button matIconButton (click)="openAuth('login')">
+    <mat-icon class="text-primary">person_outline</mat-icon>
+  </button>
+</div>
+<div class="hidden sm:flex">
+  <button matButton="elevated" class="text-primary w-full" (click)="openAuth('login')">
+    <mat-icon class="text-primary">person_outline</mat-icon>{{ 'HEADER.LOGIN' | translate }}
+  </button>
+</div>

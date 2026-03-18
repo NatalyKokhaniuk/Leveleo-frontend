@@ -53,6 +53,11 @@
           <mat-icon class="text-primary">favorite</mat-icon>
         </button>
       </div>
+      @if (authService.isAuthenticated()) {
+        <app-user-menu></app-user-menu>
+      } @else {
+        <app-auth-buttons></app-auth-buttons>
+      }
       <!-- Mobile Menu  -->
       <div #menuWrapper class="relative xl:hidden">
         <button matIconButton class="text-primary" (click)="isMenuOpen = !isMenuOpen">

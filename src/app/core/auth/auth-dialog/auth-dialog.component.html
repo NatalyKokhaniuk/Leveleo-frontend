@@ -1,0 +1,146 @@
+<div class="w-[calc(100vw-20px)] md:w-200 max-w-full p-6 max-h-full">
+  <mat-tab-group
+    [selectedIndex]="activeTab() === 'register' ? 1 : 0"
+    (selectedIndexChange)="activeTab.set($event === 0 ? 'login' : 'register')"
+  >
+    <!-- LOGIN -->
+
+    <mat-tab class="text-primary" label="{{ 'AUTH.LOGIN' | translate }}">
+      <div class="space-y-5 mt-5 text-primary">
+        <form [formGroup]="loginForm" (ngSubmit)="onLogin()">
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="email"
+              type="email"
+              placeholder="example@email.com"
+              autocomplete="username"
+            />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+            <input
+              matInput
+              formControlName="password"
+              type="password"
+              autocomplete="current-password"
+            />
+          </mat-form-field>
+          @if (loginError(); as loginError) {
+            <div class="text-error">
+              {{ loginError | translate }}
+            </div>
+          }
+          <button
+            matButton="filled"
+            color="primary"
+            class="w-full"
+            type="submit"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'AUTH.LOGIN' | translate }}
+            }
+          </button>
+        </form>
+
+        <!-- SOCIAL -->
+        <p class="mt-3 w-full flex justify-center text-primary">
+          {{ 'AUTH.OR' | translate | uppercase }}
+        </p>
+        <div class="flex flex-col lg:flex-row justify-center gap-2 w-full items-center mt-2">
+          <button color="primary" (click)="loginWithGoogle()">
+            <app-icon [name]="'google'" class="cursor-pointer"></app-icon>
+          </button>
+          <button color="primary" (click)="loginWithFacebook()">
+            <app-icon [name]="'facebook'" class="cursor-pointer"></app-icon>
+          </button>
+        </div>
+
+        <!-- 2FA -->
+
+        @if (twoFaRequired()) {
+          <form [formGroup]="twoFaForm" (ngSubmit)="onVerify2FA()" class="mt-4">
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'AUTH.2FA_CODE' | translate }}</mat-label>
+              <input matInput formControlName="code" />
+            </mat-form-field>
+
+            <button mat-raised-button color="primary" class="w-full">Verify</button>
+          </form>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- REGISTER -->
+
+    <mat-tab class="text-primary" label="{{ 'AUTH.REGISTER' | translate }}">
+      <div class="space-y-5 mt-5">
+        <form [formGroup]="registerForm" (ngSubmit)="onRegister()">
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+            <input matInput formControlName="email" autocomplete="username" />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="password"
+              autocomplete="new-password"
+            />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.CONFIRM_PASSWORD' | translate }}</mat-label>
+            <input
+              matInput
+              type="password"
+              formControlName="confirmPassword"
+              autocomplete="new-password"
+            />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.FIRST_NAME' | translate }}</mat-label>
+            <input matInput formControlName="firstName" />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.LAST_NAME' | translate }}</mat-label>
+            <input matInput formControlName="lastName" />
+          </mat-form-field>
+          @if (loginError(); as loginError) {
+            <div class="text-error">
+              {{ loginError | translate }}
+            </div>
+          }
+          <button
+            matButton="filled"
+            color="primary"
+            class="w-full"
+            type="submit"
+            [disabled]="isLoading()"
+          >
+            @if (isLoading()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'AUTH.REGISTER' | translate }}
+            }
+          </button>
+          @if (registerSuccess(); as registerSuccess) {
+            <div class="text-secondary">
+              {{ registerSuccess | translate }}
+            </div>
+          }
+        </form>
+      </div>
+      <div class="mt-1"></div>
+    </mat-tab>
+  </mat-tab-group>
+</div>

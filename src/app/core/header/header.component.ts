@@ -20,7 +20,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { filter, fromEvent, take } from 'rxjs';
+import { AuthService } from '../auth/services/auth.service';
 import { ThemeService } from '../services/theme.service';
+import { AuthButtonsComponent } from './auth-buttons/auth-buttons.component';
+import { UserMenuComponent } from './user-menu/user-menu.component';
 
 @Component({
   selector: 'app-header',
@@ -37,6 +40,8 @@ import { ThemeService } from '../services/theme.service';
     MatTooltipModule,
     CommonModule,
     ReactiveFormsModule,
+    UserMenuComponent,
+    AuthButtonsComponent,
   ],
   templateUrl: './header.component.html',
 })
@@ -44,7 +49,7 @@ export class HeaderComponent {
   themeService = inject(ThemeService);
   translate = inject(TranslateService);
   router = inject(Router);
-  //private authService = inject(AuthService);
+  authService = inject(AuthService);
   private elementRef = inject(ElementRef);
   private platformId = inject(PLATFORM_ID);
   private el = inject(ElementRef);
