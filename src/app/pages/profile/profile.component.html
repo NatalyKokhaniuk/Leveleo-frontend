@@ -1,0 +1,251 @@
+<main class="pt-37.5 pb-12 px-4 min-h-screen">
+  @if (currentUser(); as user) {
+    <div class="max-w-2xl mx-auto">
+      <!-- ── ШАПКА ── -->
+      <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8">
+        <!-- Аватар -->
+        <div class="flex flex-col items-center gap-2 shrink-0">
+          <div
+            class="relative w-24 h-24 rounded-full cursor-pointer overflow-hidden group"
+            (click)="onAvatarClick()"
+          >
+            @if (isUploadingAvatar()) {
+              <div
+                class="w-full h-full flex items-center justify-center"
+                style="background: var(--color-surface-hover)"
+              >
+                <mat-spinner diameter="32"></mat-spinner>
+              </div>
+            } @else if (user.avatarUrl) {
+              <img [src]="user.avatarUrl" [alt]="fullName()" class="w-full h-full object-cover" />
+            } @else {
+              <div
+                class="w-full h-full flex items-center justify-center text-3xl font-semibold"
+                style="
+                  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+                  color: var(--color-primary);
+                "
+              >
+                {{ avatarInitials() }}
+              </div>
+            }
+            <!-- Overlay -->
+            <div
+              class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              style="background: rgba(0, 0, 0, 0.45); color: white"
+            >
+              <mat-icon>photo_camera</mat-icon>
+            </div>
+          </div>
+
+          <input
+            id="avatar-input"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            (change)="onAvatarSelected($event)"
+          />
+
+          @if (user.avatarUrl) {
+            <button
+              matButton
+              type="button"
+              (click)="removeAvatar()"
+              class="text-xs flex items-center gap-1"
+              style="color: var(--color-text-tertiary)"
+            >
+              <mat-icon class="text-base leading-none">delete</mat-icon>
+              {{ 'PROFILE.REMOVE_AVATAR' | translate }}
+            </button>
+          }
+        </div>
+
+        <!-- Ім'я та ролі -->
+        <div class="text-center sm:text-left">
+          <h1 class="text-2xl font-bold" style="color: var(--color-text)">
+            {{ fullName() }}
+          </h1>
+          <p class="text-sm mb-3" style="color: var(--color-text-secondary)">
+            {{ user.email }}
+          </p>
+          <div class="flex flex-wrap justify-center sm:justify-start gap-2">
+            @for (role of user.roles; track role) {
+              <span
+                class="px-3 py-0.5 rounded-full text-xs font-medium"
+                style="
+                  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+                  color: var(--color-primary);
+                "
+              >
+                {{ role }}
+              </span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <!-- ── ОСОБИСТА ІНФОРМАЦІЯ ── -->
+      <section class="mt-6 mb-8">
+        <h2 class="text-lg font-semibold mb-5" style="color: var(--color-text)">
+          {{ 'PROFILE.PERSONAL_INFO' | translate }}
+        </h2>
+
+        <form [formGroup]="form" (ngSubmit)="onSave()" class="flex flex-col gap-2">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'AUTH.FIRST_NAME' | translate }}</mat-label>
+              <input matInput formControlName="firstName" />
+            </mat-form-field>
+
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'AUTH.LAST_NAME' | translate }}</mat-label>
+              <input matInput formControlName="lastName" />
+            </mat-form-field>
+          </div>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'PROFILE.PHONE' | translate }}</mat-label>
+            <input matInput formControlName="phoneNumber" type="tel" />
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'PROFILE.LANGUAGE' | translate }}</mat-label>
+            <mat-select formControlName="language">
+              @for (lang of languages; track lang.value) {
+                <mat-option [value]="lang.value">{{ lang.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+            <input matInput [value]="user.email" disabled />
+            <mat-hint>{{ 'PROFILE.EMAIL_READONLY' | translate }}</mat-hint>
+          </mat-form-field>
+
+          @if (saveError(); as err) {
+            <div class="flex items-center gap-2 text-sm" style="color: var(--color-error)">
+              <mat-icon class="text-base">error_outline</mat-icon>
+              <span>{{ err | translate }}</span>
+            </div>
+          }
+
+          <button
+            matButton="filled"
+            color="primary"
+            type="submit"
+            [disabled]="isSaving()"
+            class="self-start mt-2"
+          >
+            @if (isSaving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'PROFILE.SAVE' | translate }}
+            }
+          </button>
+        </form>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- ── БЕЗПЕКА ── -->
+      <section class="mt-6 mb-8">
+        <h2 class="text-lg font-semibold mb-5" style="color: var(--color-text)">
+          {{ 'PROFILE.SECURITY' | translate }}
+        </h2>
+
+        <div class="flex flex-col gap-3">
+          <!-- Пароль -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border"
+            style="border-color: var(--color-border)"
+          >
+            <div>
+              <p class="font-medium text-sm" style="color: var(--color-text)">
+                {{ 'AUTH.CHANGE_PASSWORD' | translate }}
+              </p>
+              <p class="text-sm" style="color: var(--color-text-secondary)">
+                {{ 'PROFILE.CHANGE_PASSWORD_DESC' | translate }}
+              </p>
+            </div>
+            <button
+              matButton="outlined"
+              color="primary"
+              type="button"
+              class="shrink-0"
+              (click)="changePassword()"
+            >
+              {{ 'AUTH.CHANGE_PASSWORD' | translate }}
+            </button>
+          </div>
+
+          <!-- 2FA -->
+          <div
+            class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg border"
+            style="border-color: var(--color-border)"
+          >
+            <div>
+              <p class="font-medium text-sm" style="color: var(--color-text)">
+                {{ 'AUTH.2FA_SETUP' | translate }}
+              </p>
+              <p class="text-sm">
+                @if (user.twoFactorEnabled) {
+                  <span class="flex items-center gap-1" style="color: var(--color-success)">
+                    <mat-icon class="text-base leading-none">check_circle</mat-icon>
+                    {{ 'PROFILE.2FA_ENABLED' | translate }} ({{ user.twoFactorMethod }})
+                  </span>
+                } @else {
+                  <span style="color: var(--color-text-secondary)">
+                    {{ 'PROFILE.2FA_DISABLED' | translate }}
+                  </span>
+                }
+              </p>
+            </div>
+            <button
+              matButton="outlined"
+              color="primary"
+              type="button"
+              class="shrink-0"
+              disabled
+              [matTooltip]="'PROFILE.2FA_COMING_SOON' | translate"
+            >
+              {{
+                user.twoFactorEnabled
+                  ? ('PROFILE.2FA_MANAGE' | translate)
+                  : ('PROFILE.2FA_ENABLE' | translate)
+              }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <mat-divider></mat-divider>
+
+      <!-- ── НЕБЕЗПЕЧНА ЗОНА ── -->
+      <div class="mt-6 p-5 rounded-lg border text-secondary">
+        <h2 class="text-lg font-semibold mb-2">
+          {{ 'PROFILE.DANGER_ZONE' | translate }}
+        </h2>
+        <p class="text-sm mb-4" style="color: var(--color-text-secondary)">
+          {{ 'PROFILE.DELETE_ACCOUNT_DESC' | translate }}
+        </p>
+        <button matButton="tonal" class="shrink" (click)="deleteAccount()">
+          <mat-icon>delete_forever</mat-icon>
+          {{ 'AUTH.DELETE_ACCOUNT' | translate }}
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="flex flex-col items-center justify-center gap-4 pt-20">
+      <mat-icon
+        style="font-size: 3rem; width: 3rem; height: 3rem; color: var(--color-text-secondary)"
+        >account_circle</mat-icon
+      >
+      <p style="color: var(--color-text-secondary)">
+        {{ 'PROFILE.NOT_LOGGED_IN' | translate }}
+      </p>
+    </div>
+  }
+</main>

@@ -29,7 +29,8 @@ export interface UserResponse {
   firstName: string;
   lastName: string;
   language: string;
-  avatarUrl?: string;
+  avatarUrl?: string; // тимчасовий pre-signed URL (приходить з бекенду)
+  avatarKey?: string; // ключ в S3 (для оновлення)
   phoneNumber?: string;
   roles: string[];
   twoFactorEnabled: boolean;
@@ -95,8 +96,6 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-
-
 // Social
 export interface SocialLoginRequest {
   provider: 'google' | 'facebook';
@@ -109,4 +108,22 @@ export interface TempTokenExchangeRequest {
 
 export interface SocialRedirectResponse {
   redirectUrl: string;
+}
+
+// ─── User profile update ──────────────────────────────────────────
+
+export interface UpdateMyProfileRequest {
+  firstName?: string | null;
+  lastName?: string | null;
+  avatarKey?: string | null;
+  pendingPhoneNumber?: string | null;
+  language?: string | null;
+}
+
+// ─── Media ───────────────────────────────────────────────────────
+
+export interface MediaUploadResponse {
+  fileName: string;
+  key: string;
+  url: string;
 }

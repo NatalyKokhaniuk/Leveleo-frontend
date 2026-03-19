@@ -1,0 +1,46 @@
+<div class="auth-modal-container">
+  <div class="icon-wrapper icon-warning">
+    <mat-icon class="status-icon">vpn_key</mat-icon>
+  </div>
+
+  <h2 class="modal-title">{{ 'AUTH.BACKUP_LOGIN_TITLE' | translate }}</h2>
+  <p class="modal-desc">{{ 'AUTH.BACKUP_LOGIN_DESC' | translate }}</p>
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()" class="w-full">
+    <mat-form-field class="w-full">
+      <mat-label>{{ 'AUTH.BACKUP_CODE' | translate }}</mat-label>
+      <input
+        matInput
+        formControlName="backupCode"
+        autocomplete="one-time-code"
+        placeholder="xxxxxxxx-xxxx"
+      />
+    </mat-form-field>
+
+    @if (error(); as err) {
+      <div class="error-banner">
+        <mat-icon>error_outline</mat-icon>
+        <span>{{ err | translate }}</span>
+      </div>
+    }
+
+    <div class="modal-actions">
+      <button
+        matButton="filled"
+        color="primary"
+        class="w-full"
+        type="submit"
+        [disabled]="isLoading()"
+      >
+        @if (isLoading()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          {{ 'AUTH.LOGIN' | translate }}
+        }
+      </button>
+      <button matButton class="w-full" type="button" (click)="cancel()">
+        {{ 'AUTH.CANCEL' | translate }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -42,17 +43,31 @@ import { UserMenuComponent } from './user-menu/user-menu.component';
     ReactiveFormsModule,
     UserMenuComponent,
     AuthButtonsComponent,
+    MatBadgeModule,
   ],
   templateUrl: './header.component.html',
 })
 export class HeaderComponent {
+  cartItemsCount = signal(5); //для прикладу, потім реалізувати
+  openShoppingCart() {
+    throw new Error('Method not implemented.');
+  }
   themeService = inject(ThemeService);
   translate = inject(TranslateService);
   router = inject(Router);
-  authService = inject(AuthService);
+  private authService = inject(AuthService);
   private elementRef = inject(ElementRef);
   private platformId = inject(PLATFORM_ID);
   private el = inject(ElementRef);
+  private ngZone = inject(NgZone);
+
+  // ── Локальний computed сигнал — Angular гарантовано відстежить зміни ──
+  // Пряме звернення до authService.isAuthenticated() у шаблоні може не
+  // спрацювати коли значення приходить асинхронно (tryRestoreSession).
+  // Computed у самому компоненті вирішує це.
+  isAuthenticated = this.authService.isAuthenticated;
+  currentUser = this.authService.currentUser;
+
   isMenuOpen = false;
   isHidden = signal(false);
   isFloating = signal(false);
@@ -62,28 +77,31 @@ export class HeaderComponent {
   accumulatedDelta = 0;
   currentLang = signal<string>('uk');
   currentTheme = this.themeService.theme;
+
   menuItems: Record<string, string> = {
     '/about': 'HEADER.ABOUT',
     '/products': 'HEADER.PRODUCTS',
     '/promotions': 'HEADER.PROMOTIONS',
     '/contacts': 'HEADER.CONTACTS',
   };
+
+  fb = new FormBuilder();
+  searchForm = this.fb.group({
+    searchString: ['', [Validators.required, Validators.minLength(3)]],
+  });
+
+  @ViewChild('searchLineInput') searchInputRef!: ElementRef<HTMLInputElement>;
+
+  get isDark(): boolean {
+    return this.themeService.theme() === 'dark';
+  }
+
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
       this.translate.onLangChange.subscribe((e) => {
         this.currentLang.set(e.lang);
       });
     }
-  }
-  fb = new FormBuilder();
-  searchForm = this.fb.group({
-    searchString: ['', [Validators.required, Validators.minLength(3)]],
-  });
-  @ViewChild('searchLineInput') searchInputRef!: ElementRef<HTMLInputElement>;
-  private ngZone = inject(NgZone);
-
-  get isDark(): boolean {
-    return this.themeService.theme() === 'dark';
   }
 
   toggleTheme(): void {
@@ -97,6 +115,7 @@ export class HeaderComponent {
   home() {
     this.router.navigate(['/']);
   }
+
   onEnterPress() {
     const query = this.searchForm.get('searchString')?.value;
     if (query && query.length >= 3) {
@@ -105,6 +124,7 @@ export class HeaderComponent {
       });
     }
   }
+
   onSubmitSearchButton() {
     this.router.navigate(['search-results'], {
       queryParams: this.searchForm.value,
@@ -112,16 +132,17 @@ export class HeaderComponent {
     this.isSearchOpen.set(false);
     this.searchForm.reset();
   }
+
   openFavourite() {
     this.router.navigate(['/favorites']);
   }
+
   openComparison() {
     this.router.navigate(['/comparison']);
   }
 
   openSearch() {
     this.isSearchOpen.set(!this.isSearchOpen());
-
     this.searchForm.reset();
     if (isPlatformBrowser(this.platformId)) {
       this.ngZone.onStable
@@ -132,9 +153,11 @@ export class HeaderComponent {
         });
     }
   }
+
   get menuItemKeys(): string[] {
     return Object.keys(this.menuItems);
   }
+
   @HostListener('window:scroll', [])
   onWindowScroll() {
     const currentScrollTop = window.pageYOffset || document.documentElement.scrollTop;
@@ -158,15 +181,13 @@ export class HeaderComponent {
     this.isSearchOpen.set(false);
   }
 
-  // logout() {
-  //   this.authService.logout();
-  // }
   constructor() {
     effect(() => {
       this.searchForm.valueChanges.subscribe(() => {
         this.isSearchButtonDisabled.set(!this.searchForm.valid);
       });
     });
+
     if (isPlatformBrowser(this.platformId)) {
       this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
         window.scrollTo({ top: 0, behavior: 'auto' });
@@ -185,6 +206,7 @@ export class HeaderComponent {
           }),
         )
         .subscribe(() => (this.isMenuOpen = false));
+
       fromEvent<MouseEvent>(document, 'click')
         .pipe(
           takeUntilDestroyed(),

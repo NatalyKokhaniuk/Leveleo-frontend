@@ -1,6 +1,7 @@
 import { Component, computed, inject, NgZone, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../services/auth.service';
@@ -11,9 +12,9 @@ import { AuthService } from '../services/auth.service';
   imports: [
     MatDialogModule,
     MatButtonModule,
+    MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
-    MatProgressSpinnerModule,
   ],
   templateUrl: './email-unconfirmed-dialog.component.html',
   styleUrl: './email-unconfirmed-dialog.component.scss',
@@ -32,12 +33,10 @@ export class EmailUnconfirmedDialogComponent implements OnInit {
 
   resendEmail() {
     if (!this.canResend()) return;
-    console.log('resendEmail');
     this.countdown.set(30);
     this.startCountdown();
     this.isLoading.set(true);
 
-    // Виклик сервісу повторної відправки
     this.auth.resendConfirmation({ email: this.email }).subscribe({
       next: () => {
         this.isLoading.set(false);
@@ -57,7 +56,6 @@ export class EmailUnconfirmedDialogComponent implements OnInit {
 
     this.intervalId = setInterval(() => {
       this.zone.run(() => {
-        // <--- додали NgZone
         const current = this.countdown();
         if (current > 0) {
           this.countdown.set(current - 1);
@@ -72,6 +70,7 @@ export class EmailUnconfirmedDialogComponent implements OnInit {
   close() {
     this.dialogRef.close();
   }
+
   ngOnInit() {
     this.startCountdown();
   }

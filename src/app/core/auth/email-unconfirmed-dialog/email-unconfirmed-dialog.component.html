@@ -1,37 +1,41 @@
-<div
-  class="w-[calc(100vw-20px)] md:w-200 max-w-full p-6 max-h-full text-center flex flex-col gap-2"
->
-  <h2 class="text-lg font-semibold text-primary">
-    {{ 'AUTH.EMAIL_UNCONFIRMED' | translate }}
-  </h2>
+<div class="auth-modal-container">
+  <div class="icon-wrapper icon-warning">
+    <mat-icon class="status-icon">mark_email_unread</mat-icon>
+  </div>
 
-  <p class="text-sm text-gray-600">
-    {{ 'AUTH.EMAIL_UNCONFIRMED_DESC' | translate }}
-  </p>
+  <h2 class="modal-title">{{ 'AUTH.EMAIL_UNCONFIRMED' | translate }}</h2>
+  <p class="modal-desc">{{ 'AUTH.EMAIL_UNCONFIRMED_DESC' | translate }}</p>
 
-  <button
-    matButton="filled"
-    color="primary"
-    class="w-full"
-    [disabled]="!canResend() || isLoading()"
-    (click)="resendEmail()"
-  >
-    @if (isLoading()) {
-      <mat-spinner diameter="20"></mat-spinner>
-    } @else {
-      {{ 'AUTH.RESEND_EMAIL' | translate }}
-    }
-  </button>
-
-  @if (!canResend()) {
-    <p class="text-sm text-gray-500">
-      {{ 'AUTH.RESEND_AVAILABLE_IN' | translate }}&nbsp;{{ countdown() }}&nbsp;{{
-        'AUTH.SECONDS' | translate
-      }}
-    </p>
+  @if (email) {
+    <p class="text-sm font-semibold" style="color: var(--color-text)">{{ email }}</p>
   }
 
-  <button mat-button class="mt-2 w-full" (click)="close()">
-    {{ 'AUTH.CLOSE' | translate }}
-  </button>
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() | translate }}</span>
+    </div>
+  }
+
+  <div class="modal-actions">
+    <button
+      matButton="filled"
+      color="primary"
+      class="w-full"
+      [disabled]="!canResend() || isLoading()"
+      (click)="resendEmail()"
+    >
+      @if (isLoading()) {
+        <mat-spinner diameter="20"></mat-spinner>
+      } @else {
+        {{ 'AUTH.RESEND_EMAIL' | translate }}
+        @if (!canResend()) {
+          &nbsp;({{ countdown() }}s)
+        }
+      }
+    </button>
+    <button matButton class="w-full" (click)="close()">
+      {{ 'AUTH.CLOSE' | translate }}
+    </button>
+  </div>
 </div>

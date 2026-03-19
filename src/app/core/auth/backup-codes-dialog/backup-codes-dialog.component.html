@@ -1,0 +1,24 @@
+<div class="auth-modal-container">
+  <div class="icon-wrapper icon-warning">
+    <mat-icon class="status-icon">safety_check</mat-icon>
+  </div>
+
+  <h2 class="modal-title">{{ 'AUTH.BACKUP_CODES_TITLE' | translate }}</h2>
+  <p class="modal-desc">{{ 'AUTH.BACKUP_CODES_DESC' | translate }}</p>
+
+  <div class="codes-grid">
+    @for (code of codes; track code) {
+      <div class="code-item">{{ code }}</div>
+    }
+  </div>
+
+  <div class="modal-actions">
+    <button matButton="outlined" color="primary" class="w-full" (click)="copyAll()">
+      <mat-icon>{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+      {{ (copied() ? 'AUTH.BACKUP_CODES_COPIED' : 'AUTH.BACKUP_CODES_COPY') | translate }}
+    </button>
+    <button matButton="filled" color="primary" class="w-full" (click)="close()">
+      {{ 'AUTH.BACKUP_CODES_SAVED' | translate }}
+    </button>
+  </div>
+</div>

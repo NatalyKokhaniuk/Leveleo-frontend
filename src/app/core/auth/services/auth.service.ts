@@ -1,4 +1,4 @@
-import { Injectable, computed, inject, signal } from '@angular/core';
+import { Injectable, NgZone, computed, inject, signal } from '@angular/core';
 import { Observable, of, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
@@ -28,30 +28,41 @@ import {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = inject(ApiService);
-
+  private ngZone = inject(NgZone);
   private _currentUser = signal<UserResponse | null>(null);
   private _accessToken = signal<string | null>(null);
   private _isAuthenticated = signal<boolean>(false);
+  // true поки йде перевірка refresh-token при старті — компоненти можуть
+  // показати skeleton/spinner замість "моргання" між станами
+  private _isRestoring = signal<boolean>(true);
 
   currentUser = this._currentUser.asReadonly();
   accessToken = this._accessToken.asReadonly();
   isAuthenticated = this._isAuthenticated.asReadonly();
+  isRestoring = this._isRestoring.asReadonly();
 
   isAdmin = computed(() => this.currentUser()?.roles.includes('Admin') ?? false);
 
-  constructor() {
-    this.tryRestoreSession();
-  }
+  // ─── Відновлення сесії ───────────────────────────────────────────
+  // Повертає Observable — використовується в APP_INITIALIZER щоб
+  // Angular чекав завершення перед першим рендером.
+  restoreSession(): Observable<RefreshResponse | null> {
+    console.log('restoreSession');
 
-  private tryRestoreSession() {
-    this.refreshToken().subscribe({
-      next: (res) => {
+    return this.refreshToken().pipe(
+      tap((res) => {
         this._currentUser.set(res.user);
+        console.log(res.user);
         this._accessToken.set(res.accessToken);
         this._isAuthenticated.set(true);
-      },
-      error: () => this._clearAuthState(),
-    });
+        this._isRestoring.set(false);
+      }),
+      catchError(() => {
+        this._clearAuthState();
+        this._isRestoring.set(false);
+        return of(null); // не кидаємо помилку — це нормальна ситуація (не залогінений)
+      }),
+    );
   }
 
   // ─── Основні методи автентифікації ───────────────────────────────
@@ -79,7 +90,6 @@ export class AuthService {
   }
 
   resendConfirmation(data: ResendConfirmationRequest): Observable<{ message: string }> {
-    console.log('resendConfirmation - auth servive');
     return this.api.post<{ message: string }>('/auth/resend-confirmation', data);
   }
 
@@ -141,7 +151,7 @@ export class AuthService {
     return this.api.post<void>('/auth/password/change', req);
   }
 
-  // ─── Account deletion ────────────────────────────────────────────
+  // ─── Account ─────────────────────────────────────────────────────
 
   deleteAccount(): Observable<{ message: string }> {
     return this.api
@@ -149,7 +159,7 @@ export class AuthService {
       .pipe(tap(() => this._clearAuthState()));
   }
 
-  // ─── Social login ────────────────────────────────────────────────
+  // ─── Social ──────────────────────────────────────────────────────
 
   loginWithGoogle(req: SocialLoginRequest): Observable<SocialRedirectResponse> {
     return this.api.post<SocialRedirectResponse>('/auth/social/google', req);
@@ -166,13 +176,18 @@ export class AuthService {
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────
-
+  /** Оновлює дані поточного користувача після редагування профілю */
+  updateCurrentUser(user: UserResponse): void {
+    this._currentUser.set(user);
+  }
   private handleSuccessfulAuth(res: AuthResponse): void {
-    if (res.status === 'SUCCESS' && res.user && res.accessToken) {
-      this._currentUser.set(res.user);
-      this._accessToken.set(res.accessToken);
-      this._isAuthenticated.set(true);
-    }
+    this.ngZone.run(() => {
+      if (res.user && res.accessToken) {
+        this._currentUser.set(res.user);
+        this._accessToken.set(res.accessToken);
+        this._isAuthenticated.set(true);
+      }
+    });
   }
 
   private _clearAuthState(): void {

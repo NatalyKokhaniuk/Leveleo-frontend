@@ -21,7 +21,7 @@ export class AuthButtonsComponent {
     this.dialog.open(AuthDialogComponent, {
       panelClass: 'auth-dialog',
       maxHeight: '90vh',
-      disableClose: true,
+      //disableClose: true,
       data: { defaultTab: tab },
     });
   }
