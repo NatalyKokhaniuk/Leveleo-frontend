@@ -8,6 +8,7 @@ import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { CarouselComponent } from './carousel/carousel';
+import { QuickLinksComponent } from './quick-links/quick-links';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
 
 @Component({
@@ -22,6 +23,7 @@ import { AuthHandlerService } from '../../core/auth/services/auth-handler.servic
     MatTabGroup,
     MatTab,
     CarouselComponent,
+    QuickLinksComponent,
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss',

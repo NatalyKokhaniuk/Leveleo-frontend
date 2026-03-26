@@ -1,16 +1,14 @@
 <main class="flex flex-col gap-2 pt-37.5">
   <div class="hero fade-in">
+    
+<app-carousel></app-carousel>
     <h1 class="mat-display-large font-fixel font-bold text-3xl">
       {{ 'HOME.WELCOME' | translate }}
     </h1>
     <p class="mat-body-large">{{ 'HOME.DESCRIPTION' | translate }}</p>
   </div>
 
-  <h2 class="text-2xl font-bold mt-10">
-  {{ 'BRANDS.TITLE' | translate }}
-</h2>
 
-<app-carousel></app-carousel>
   <!-- Кнопки — показують primary колір -->
   <div class="flex gap-4 mb-5">
     <button matIconButton>
@@ -52,6 +50,8 @@
     <mat-tab label="Tab one">Tab one content</mat-tab>
     <mat-tab label="Tab two">Tab two content</mat-tab>
   </mat-tab-group>
+
+<app-quick-links></app-quick-links>
 
   <div class="mt-2 w-full flex flex-col gap-2 bg-surface-container">
     asdfasfsdfsdfdsf

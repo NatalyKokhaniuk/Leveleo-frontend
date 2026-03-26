@@ -1,0 +1,38 @@
+<section class="mt-12">
+
+  <div class="grid grid-cols-3 md:grid-cols-6 gap-6">
+
+    @for (item of links; track $index) {
+      <a
+        [routerLink]="item.link"
+        class="flex flex-col items-center text-center group"
+      >
+
+        <!-- ICON WITH CIRCLE -->
+        <div
+          class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center mb-2
+                 bg-white rounded-full shadow-md
+                 transition duration-300
+                 group-hover:shadow-lg group-hover:scale-105"
+        >
+          <img
+            [src]="item.icon"
+            alt=""
+            class="w-8 h-8 md:w-10 md:h-10 object-contain
+                   grayscale group-hover:grayscale-0 transition"
+          />
+        </div>
+
+        <!-- TEXT -->
+        <span
+          class="text-xs md:text-sm text-gray-400 group-hover:text-green-500 transition"
+        >
+          {{ item.label | translate }}
+        </span>
+
+      </a>
+    }
+
+  </div>
+
+</section>

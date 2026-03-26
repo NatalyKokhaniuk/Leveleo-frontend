@@ -1,4 +1,8 @@
-<div class="relative w-full overflow-hidden">
+<div
+  class="relative w-full overflow-hidden"
+  (mouseenter)="pause()"
+  (mouseleave)="resume()"
+>
 
   <!-- TRACK -->
   <div
@@ -9,7 +13,7 @@
     @for (brand of brands; track $index) {
       <a
         [routerLink]="brand.link"
-        class="min-w-full h-[140px] md:h-[180px] rounded-2xl flex items-center justify-center text-white font-bold text-xl transition hover:scale-105"
+        class="min-w-full h-[280px] md:h-[360px] rounded-2xl flex items-center justify-center text-white font-bold text-xl transition hover:scale-105"
         [ngClass]="brand.color"
       >
         {{ brand.name }}

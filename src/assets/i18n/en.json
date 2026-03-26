@@ -414,7 +414,14 @@
 
     "FINAL_NOTE": "Only unused items without damage are accepted. Otherwise return may be rejected."
   },
-
+"HOME_LINKS": {
+  "ABOUT": "About",
+  "PRODUCTS": "Products",
+  "CONTACTS": "Contacts",
+  "DELIVERY": "Delivery",
+  "RETURNS": "Returns",
+  "TERMS": "Terms"
+},
   "TERMS": {
     "TITLE": "Terms of Use",
     "SUBTITLE": "Please read the rules for using the Leveleo online store",

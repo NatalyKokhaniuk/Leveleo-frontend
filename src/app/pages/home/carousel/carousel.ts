@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
@@ -10,7 +10,7 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [CommonModule, RouterLink, TranslateModule, MatIconModule],
   templateUrl: './carousel.html',
 })
-export class CarouselComponent {
+export class CarouselComponent implements OnInit, OnDestroy {
 
   brands = [
     { name: 'Fender', color: 'bg-red-500', link: '/brands/fender' },
@@ -23,20 +23,52 @@ export class CarouselComponent {
 
   currentIndex = signal(0);
 
-  next() {
-    if (this.currentIndex() < this.brands.length - 1) {
-      this.currentIndex.update(v => v + 1);
-    } else {
-      this.currentIndex.set(0);
+  private intervalId: any;
+  private paused = false;
+
+  ngOnInit(): void {
+    this.startAutoSlide();
+  }
+
+  ngOnDestroy(): void {
+    this.stopAutoSlide();
+  }
+
+  // AUTO SLIDE
+  startAutoSlide() {
+    this.intervalId = setInterval(() => {
+      if (!this.paused) {
+        this.next();
+      }
+    }, 2000);
+  }
+
+  stopAutoSlide() {
+    if (this.intervalId) {
+      clearInterval(this.intervalId);
     }
   }
 
+  // PAUSE ON HOVER
+  pause() {
+    this.paused = true;
+  }
+
+  resume() {
+    this.paused = false;
+  }
+
+  // CONTROLS
+  next() {
+    this.currentIndex.set(
+      (this.currentIndex() + 1) % this.brands.length
+    );
+  }
+
   prev() {
-    if (this.currentIndex() > 0) {
-      this.currentIndex.update(v => v - 1);
-    } else {
-      this.currentIndex.set(this.brands.length - 1);
-    }
+    this.currentIndex.set(
+      (this.currentIndex() - 1 + this.brands.length) % this.brands.length
+    );
   }
 
   goTo(i: number) {
