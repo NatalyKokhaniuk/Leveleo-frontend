@@ -15,9 +15,58 @@
     "MY_PROFILE": "My profile",
     "SHOPPNG_CART": "Cart"
   },
+  "CAROUSEL": {
+    "GUITARS": "Guitars",
+    "KEYBOARDS": "Keyboards",
+    "DRUMS": "Drums",
+    "DJ": "DJ Equipment",
+    "STUDIO": "Studio",
+    "MICROPHONES": "Microphones"
+  },
+  "FOOTER": {
+    "STORE_NAME": "Leveleo",
+    "PHONE": "+380 XX XXX XX XX",
+    "ADDRESS": "Chernivtsi, Ukraine",
+    "DESCRIPTION": "Online music instruments store",
+    "CATALOG": "Catalog",
+    "INFO": "Information",
+    "SUBSCRIBE": "Subscribe",
+    "SUBMIT": "Subscribe",
+    "PRIVACY": "Privacy Policy",
+    "TERMS": "Terms of Use",
+    "GUITARS": "Guitars",
+    "KEYBOARDS": "Keyboards",
+    "DJ": "DJ Equipment",
+    "STUDIO": "Studio Equipment",
+    "ABOUT": "About",
+    "DELIVERY": "Delivery",
+    "RETURN": "Returns",
+    "CONTACTS": "Contacts",
+
+    "SUBSCRIBE_DESC": "Get updates and special offers",
+    "EMAIL": "Your email",
+    "SUBSCRIBE_BTN": "Subscribe"
+  },
   "HOME": {
     "WELCOME": "Welcome",
     "DESCRIPTION": "A clean foundation for your Angular project."
+  },
+  "CONTACTS": {
+    "TITLE": "Contact Us",
+    "NAME": "Name",
+    "NAME_PLACEHOLDER": "Enter your name",
+    "EMAIL": "Email",
+    "EMAIL_PLACEHOLDER": "example@mail.com",
+    "PHONE": "Phone (optional)",
+    "PHONE_PLACEHOLDER": "+1 XXX XXX XXXX",
+    "SUBJECT": "Subject",
+    "SUBJECT_PLACEHOLDER": "Enter message subject",
+    "MESSAGE": "Message",
+    "MESSAGE_PLACEHOLDER": "Your message",
+    "SUBMIT": "Send",
+    "REQUIRED": "This field is required",
+    "MINLENGTH": "Minimum {{length}} characters",
+    "INVALID_EMAIL": "Invalid email format"
   },
   "AUTH": {
     "REGISTER": "Register",

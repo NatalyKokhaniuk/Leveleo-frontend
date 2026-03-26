@@ -1,12 +1,112 @@
+<!-- FOOTER -->
+<footer class="bg-on-primary text-primary rounded-t-[40px] px-6 py-8 md:py-10">
+
+  <!-- 📱 MOBILE CONTACTS -->
+  <div class="md:hidden flex flex-col items-center text-center gap-4">
+    <h2 class="text-lg font-semibold">{{ 'FOOTER.STORE_NAME' | translate }}</h2>
+    <div class="w-10 h-[2px] bg-primary opacity-30"></div>
+    <a href="tel:+380000000000" class="flex items-center gap-2 text-sm">
+      <mat-icon>phone</mat-icon>
+      {{ 'FOOTER.PHONE' | translate }}
+    </a>
+    <div class="flex items-center gap-2 text-sm">
+      <mat-icon>location_on</mat-icon>
+      {{ 'FOOTER.ADDRESS' | translate }}
+    </div>
+  </div>
+
+  <!-- 🖥 DESKTOP FOOTER -->
+  <div class="hidden md:block">
+    <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-8">
+
+      <!-- LOGO + DESCRIPTION + SOCIAL -->
+      <div class="flex flex-col gap-4">
+        <img src="/assets/images/Logo_light.png" class="h-10 w-fit" />
+        <p class="text-sm opacity-70">{{ 'FOOTER.DESCRIPTION' | translate }}</p>
+        <div class="flex gap-3 mt-2">
+          <button mat-icon-button><mat-icon>facebook</mat-icon></button>
+          <button mat-icon-button><mat-icon>telegram</mat-icon></button>
+          <button mat-icon-button><mat-icon>instagram</mat-icon></button>
+        </div>
+      </div>
+
+      <!-- CATALOG -->
+      <div>
+        <h3 class="font-semibold mb-4">{{ 'FOOTER.CATALOG' | translate }}</h3>
+        <ul class="flex flex-col gap-2">
+          <li *ngFor="let item of links.catalog">
+            <a [routerLink]="item.link" class="hover:underline opacity-80 hover:opacity-100 transition">
+              {{ item.label | translate }}
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- INFO -->
+      <div>
+        <h3 class="font-semibold mb-4">{{ 'FOOTER.INFO' | translate }}</h3>
+        <ul class="flex flex-col gap-2">
+          <li *ngFor="let item of links.info">
+            <a [routerLink]="item.link" class="hover:underline opacity-80 hover:opacity-100 transition">
+              {{ item.label | translate }}
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- SUBSCRIBE FORM -->
+      <div>
+        <h3 class="font-semibold mb-4">{{ 'FOOTER.SUBSCRIBE' | translate }}</h3>
+        <form [formGroup]="subscribeForm" (ngSubmit)="onSubscribe()" class="flex flex-col gap-3">
+          <mat-form-field appearance="outline" class="w-full">
+            <input matInput placeholder="{{ 'FOOTER.EMAIL' | translate }}" formControlName="email" />
+          </mat-form-field>
+          <button mat-raised-button color="primary" [disabled]="subscribeForm.invalid">
+            {{ 'FOOTER.SUBMIT' | translate }}
+          </button>
+        </form>
+      </div>
+
+      <!-- CONTACTS -->
+      <div>
+        <h3 class="font-semibold mb-4">{{ 'FOOTER.CONTACTS' | translate }}</h3>
+        <div class="flex flex-col gap-3 text-sm">
+          <span class="font-medium">{{ 'FOOTER.STORE_NAME' | translate }}</span>
+          <a href="tel:+380000000000" class="flex items-center gap-2 hover:underline">
+            <mat-icon>phone</mat-icon>
+            {{ 'FOOTER.PHONE' | translate }}
+          </a>
+          <a href="https://maps.google.com/?q=Chernivtsi" target="_blank" class="flex items-center gap-2 hover:underline">
+            <mat-icon>location_on</mat-icon>
+            {{ 'FOOTER.ADDRESS' | translate }}
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM -->
+    <div class="border-t mt-10 pt-6 flex flex-col md:flex-row justify-between items-center text-sm opacity-70">
+      <span>© {{ year }} Music Store</span>
+      <div class="flex gap-4">
+        <a routerLink="/privacy" class="hover:underline">{{ 'FOOTER.PRIVACY' | translate }}</a>
+        <a routerLink="/terms" class="hover:underline">{{ 'FOOTER.TERMS' | translate }}</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- SCROLL TO TOP BUTTON -->
 <button
-  matIconButton
+  mat-icon-button
   (click)="scrollToTop()"
-  class="bg-on-primary fixed bottom-10 right-10 z-50 w-10 h-10 rounded-full shadow-lg flex items-center justify-center transform transition-all duration-500 ease-out translate-y-6 opacity-0 hover:scale-110"
+  class="fixed right-10 z-[60] w-12 h-12 rounded-full shadow-lg flex items-center justify-center
+         bg-on-primary transform transition-all duration-300 hover:scale-110"
+  [style.bottom.px]="scrollTopPosition()"
   [ngClass]="{
-    'translate-y-0 opacity-100': showScrollTop(),
-    'pointer-events-auto cursor-pointer': showScrollTop(),
-    'pointer-events-none': !showScrollTop(),
+    'opacity-100 translate-y-0 pointer-events-auto': showScrollTop(),
+    'opacity-0 translate-y-6 pointer-events-none': !showScrollTop()
   }"
 >
-  <mat-icon class="text-primary"> keyboard_arrow_up </mat-icon>
+  <mat-icon class="text-primary">keyboard_arrow_up</mat-icon>
 </button>
