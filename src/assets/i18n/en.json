@@ -54,7 +54,16 @@
     "WELCOME": "Welcome",
     "DESCRIPTION": "A clean foundation for your Angular project."
   },
-  "CONTACTS": {
+  "ABOUT": {
+  "TITLE": "About Us",
+  "SUBTITLE": "A music instruments store for professionals and beginners",
+  "WHO_WE_ARE_TITLE": "Who We Are",
+  "WHO_WE_ARE_TEXT": "We are a team passionate about music, helping you find the best instruments.",
+  "MISSION_TITLE": "Our Mission",
+  "MISSION_TEXT": "To provide quality instruments and service for every musician."
+},
+"CONTACTS": {
+  "SUCCESS": "Message sent successfully!",
     "TITLE": "Contact Us",
     "NAME": "Name",
     "NAME_PLACEHOLDER": "Enter your name",
