@@ -41,10 +41,11 @@
     "KEYBOARDS": "Keyboards",
     "DJ": "DJ Equipment",
     "STUDIO": "Studio Equipment",
-    "ABOUT": "About",
+    "ABOUT": "Contacts",
     "DELIVERY": "Delivery",
     "RETURN": "Returns",
-    "CONTACTS": "Contacts",
+    "CONTACTS": "Terms and regulations",
+
 
     "SUBSCRIBE_DESC": "Get updates and special offers",
     "EMAIL": "Your email",
@@ -54,15 +55,15 @@
     "WELCOME": "Welcome",
     "DESCRIPTION": "A clean foundation for your Angular project."
   },
-  "ABOUT": {
-  "TITLE": "About Us",
+
+  
+"CONTACTS": {
+  "MAINTITLE": "About Us",
   "SUBTITLE": "A music instruments store for professionals and beginners",
   "WHO_WE_ARE_TITLE": "Who We Are",
   "WHO_WE_ARE_TEXT": "We are a team passionate about music, helping you find the best instruments.",
   "MISSION_TITLE": "Our Mission",
-  "MISSION_TEXT": "To provide quality instruments and service for every musician."
-},
-"CONTACTS": {
+  "MISSION_TEXT": "To provide quality instruments and service for every musician.",
   "SUCCESS": "Message sent successfully!",
     "TITLE": "Contact Us",
     "NAME": "Name",
@@ -286,5 +287,176 @@
   "USER_INACTIVE": "User inactive",
   "USER_NOT_FOUND": "Login and password combination not found",
   "UNKNOWN_ERROR": "Unknown error",
-  "VALIDATION_ERROR": "Validation error"
+  "VALIDATION_ERROR": "Validation error",
+
+  "DELIVERY": {
+    "TITLE": "Payment & Delivery",
+    "SUBTITLE": "Choose the convenient delivery and payment method for your order",
+    "METHODS_TITLE": "Delivery Methods",
+    "SELF_PICKUP": {
+      "TITLE": "Self Pickup (Chernivtsi)",
+      "DESCRIPTION": "You can pick up your order at our office.",
+      "PAYMENT_1": "Cash upon receipt",
+      "PAYMENT_2": "Privat24 online payment",
+      "PAYMENT_3": "LiqPay or bank transfer to FOP account"
+    },
+    "COURIER": {
+      "TITLE": "Courier Delivery (Chernivtsi)",
+      "DESCRIPTION": "Orders over 4000 UAH are delivered free of charge. Our staff will deliver to your address, check the package, and provide documents.",
+      "PAYMENT_1": "Cash upon receipt",
+      "PAYMENT_2": "Privat24, LiqPay, or afterpayment",
+      "PAYMENT_3": "Bank transfer to FOP account"
+    },
+    "NOVA_BRANCH": {
+      "TITLE": "Nova Poshta (to branch)",
+      "DESCRIPTION": "Payment options: Privat24, LiqPay, afterpayment, or bank transfer. Delivery according to carrier schedule."
+    },
+    "NOVA_ADDRESS": {
+      "TITLE": "Nova Poshta (to address)",
+      "DESCRIPTION": "Delivery cost is determined by carrier. Estimated delivery: 2–4 days. Payment via selected method."
+    },
+    "CHECK_TITLE": "Check Package",
+    "CHECK_TEXT": "Check the completeness, packaging, and integrity of the goods upon receipt.",
+    "PAYMENT_TITLE": "Payment Methods",
+    "PAYMENT": {
+      "PRIVAT24": "Privat24 Online (0.5% commission)",
+      "LIQPAY": "LiqPay Online (0.5% commission)",
+      "CASH": "Cash payment at pickup",
+      "BANK": "Bank transfer to FOP account (no commission)"
+    },
+    "IMPORTANT_TITLE": "Important",
+    "IMPORTANT_TEXT": "After leaving the pickup point or releasing the courier, you agree the goods were delivered correctly. Any claims made afterward will not be accepted."
+  },
+  "ABOUT": {
+    "TITLE": "About Us",
+    "SUBTITLE": "Leveleeo Chernivtsi — next-generation music hypermarket",
+
+    "INTRO_TITLE": "Who we are",
+    "INTRO_TEXT": "Leveleeo Chernivtsi is a modern music hypermarket offering a wide range of musical instruments, sound, lighting, and studio equipment across Ukraine. Thanks to a professional team, high-quality products, and advanced technologies, our store holds a leading position in the market.",
+
+    "CATALOG_TITLE": "Product range",
+    "CATALOG_TEXT": "Our catalog includes a wide variety of musical instruments and equipment: from rare instruments to advanced professional studio solutions, meeting the needs of any customer.",
+
+    "PRICING_TITLE": "Affordability",
+    "PRICING_TEXT": "We offer products for both beginners and professionals. Regular sales and promotions allow customers to purchase high-quality equipment at the best prices.",
+
+    "SUPPORT_TITLE": "Customer support",
+    "SUPPORT_TEXT": "Our technical support team is always ready to assist. You can contact us anytime via phone or website for professional advice.",
+
+    "ADVANTAGES_TITLE": "Advantages",
+
+    "ADVANTAGES": [
+      "Warranty and certified quality for all products",
+      "Fast and secure delivery across Ukraine",
+      "Convenient payment methods",
+      "Professional consultation support",
+      "Discount and promotion system",
+      "Loyalty bonus program",
+      "Return and exchange according to legislation"
+    ],
+
+    "MISSION_TITLE": "Our mission",
+    "MISSION_TEXT": "We aim to deliver emotions through music by providing quality service, reliable instruments, and a comfortable shopping experience."
+  },
+
+  "RETURNS": {
+    "TITLE": "Returns & Exchange",
+
+    "INTRO": "According to Ukrainian consumer protection law, you can return goods within 14 days if all conditions are met.",
+
+    "GOOD_QUALITY_TITLE": "Return conditions (good quality)",
+    "GOOD_QUALITY_LIST": [
+      "Item was not used",
+      "Original condition preserved",
+      "Seals and labels intact",
+      "Receipt and warranty provided"
+    ],
+
+    "GOOD_QUALITY_NOTE": "The item must be in new condition without scratches or signs of use.",
+
+    "NOT_RETURNABLE_TITLE": "Non-returnable items",
+    "NOT_RETURNABLE_LIST": [
+      "Microphones (hygiene products)",
+      "Mouthpieces, reeds, mutes",
+      "Harmonicas, flutes",
+      "Strings, sticks, consumables",
+      "Accessories and components",
+      "Custom-made products"
+    ],
+
+    "BAD_QUALITY_TITLE": "Defective goods",
+    "BAD_QUALITY_TEXT": "If defects are found during warranty period, you may request:",
+    "BAD_QUALITY_LIST": [
+      "Price reduction",
+      "Free repair",
+      "Repair cost compensation"
+    ],
+
+    "HOW_TO_RETURN_TITLE": "How to return",
+    "HOW_TO_RETURN_STEPS": [
+      "Fill and sign return form",
+      "Pack item with documents",
+      "Send via Nova Poshta",
+      "Wait for refund (up to 10 days)"
+    ],
+
+    "DELIVERY_TITLE": "Shipping via Nova Poshta",
+    "DELIVERY_TEXT": "Shipping cost is paid by customer according to carrier тарифs.",
+
+    "IMPORTANT_TITLE": "Important",
+    "IMPORTANT_LIST": [
+      "Only unused items can be returned",
+      "Original packaging must be preserved",
+      "Customer pays return shipping",
+      "Refund goes to original payment method",
+      "Refund time — up to 10 business days"
+    ],
+
+    "FINAL_NOTE": "Only unused items without damage are accepted. Otherwise return may be rejected."
+  },
+
+  "TERMS": {
+    "TITLE": "Terms of Use",
+    "SUBTITLE": "Please read the rules for using the Leveleo online store",
+    "WARNING": "Attention! Please read these terms before using the website. If you disagree — do not use the site.",
+
+    "SECTION_1_TITLE": "1. Website Usage",
+    "SECTION_1_TEXT": "Leveleo provides access to browse and purchase products.",
+    "SECTION_1_LIST_1": "Copying materials is prohibited",
+    "SECTION_1_LIST_2": "Commercial use is not allowed",
+    "SECTION_1_LIST_3": "Distribution without permission is forbidden",
+
+    "SECTION_2_TITLE": "2. Disclaimer",
+    "SECTION_2_1": "Information is provided \"as is\"",
+    "SECTION_2_2": "Prices may change",
+    "SECTION_2_3": "We are not liable for damages",
+
+    "SECTION_3_TITLE": "3. Registration",
+    "SECTION_3_1": "Users must provide accurate data",
+    "SECTION_3_2": "User is responsible for account security",
+
+    "SECTION_4_TITLE": "4. Orders and Payment",
+    "SECTION_4_1": "Confirm product details",
+    "SECTION_4_2": "Agree with pricing and delivery",
+    "SECTION_4_3": "Orders may be canceled",
+
+    "SECTION_5_TITLE": "5. Feedback",
+    "SECTION_5_1": "No offensive content",
+    "SECTION_5_2": "No false information",
+    "SECTION_5_3": "Content may be removed",
+
+    "SECTION_6_TITLE": "6. Personal Data",
+    "SECTION_6_TEXT": "We process data according to Ukrainian law.",
+
+    "SECTION_7_TITLE": "7. Cookies",
+    "SECTION_7_TEXT": "We use cookies to improve the website.",
+
+    "SECTION_8_TITLE": "8. Changes",
+    "SECTION_8_TEXT": "We may update terms at any time.",
+
+    "CONTACT_TITLE": "Contacts",
+    "CONTACT_CITY": "Chernivtsi, Ukraine",
+    "CONTACT_PHONE": "+380 XX XXX XX XX",
+    "CONTACT_EMAIL": "support@leveleo.com"
+  }
 }

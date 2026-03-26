@@ -13,6 +13,22 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/about/about').then((m) => m.AboutComponent),
   },
   {
+    path: 'terms',
+    loadComponent: () => import('./pages/terms/terms').then((m) => m.TermsComponent),
+  },
+  {
+    path: 'returns',
+    loadComponent: () => import('./pages/returns/returns').then((m) => m.ReturnsComponent),
+  },
+  {
+    path: 'contacts',
+    loadComponent: () => import('./pages/contacts/contacts').then((m) => m.ContactsComponent),
+  },
+  {
+    path: 'delivery',
+    loadComponent: () => import('./pages/delivery/delivery').then((m) => m.DeliveryComponent),
+  },
+  {
     path: 'products',
     loadComponent: () => import('./pages/products/products').then((m) => m.Products),
   },

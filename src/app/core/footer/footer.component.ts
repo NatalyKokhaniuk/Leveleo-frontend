@@ -49,10 +49,10 @@ export class FooterComponent implements AfterViewInit {
       { label: 'FOOTER.STUDIO', link: '/products/studio' },
     ],
     info: [
-      { label: 'FOOTER.ABOUT', link: '/about' },
+      { label: 'FOOTER.ABOUT', link: '/contacts' },
       { label: 'FOOTER.DELIVERY', link: '/delivery' },
       { label: 'FOOTER.RETURN', link: '/returns' },
-      { label: 'FOOTER.CONTACTS', link: '/contacts' },
+      { label: 'FOOTER.CONTACTS', link: '/terms' },
     ],
   };
 

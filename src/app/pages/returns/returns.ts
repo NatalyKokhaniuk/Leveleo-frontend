@@ -3,9 +3,9 @@ import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-about',
+  selector: 'app-returns',
   standalone: true,
   imports: [CommonModule, TranslateModule],
-  templateUrl: './about.html',
+  templateUrl: './returns.html',
 })
-export class AboutComponent {}
+export class ReturnsComponent {}

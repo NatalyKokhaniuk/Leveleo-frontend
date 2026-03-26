@@ -1,11 +1,13 @@
+
+
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
-  selector: 'app-about',
+  selector: 'app-delivery',
   standalone: true,
   imports: [CommonModule, TranslateModule],
-  templateUrl: './about.html',
+  templateUrl: './delivery.html',
 })
-export class AboutComponent {}
+export class DeliveryComponent {}

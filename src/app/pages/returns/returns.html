@@ -1,0 +1,102 @@
+<main class="max-w-5xl mx-auto px-4 md:px-10 pt-28 flex flex-col gap-10">
+
+  <!-- TITLE -->
+  <section class="text-center">
+    <h1 class="text-4xl font-bold mb-3">
+      {{ 'RETURNS.TITLE' | translate }}
+    </h1>
+    <p class="text-gray-500">
+      {{ 'RETURNS.INTRO' | translate }}
+    </p>
+  </section>
+
+  <!-- GOOD QUALITY -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'RETURNS.GOOD_QUALITY_TITLE' | translate }}
+    </h2>
+
+    <ul class="list-disc pl-5 space-y-1">
+      <li *ngFor="let item of ('RETURNS.GOOD_QUALITY_LIST' | translate)">
+        {{ item }}
+      </li>
+    </ul>
+
+    <p class="mt-3 text-gray-600">
+      {{ 'RETURNS.GOOD_QUALITY_NOTE' | translate }}
+    </p>
+  </section>
+
+  <!-- NOT RETURNABLE -->
+  <section class="bg-gray-50 p-6 rounded-2xl">
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'RETURNS.NOT_RETURNABLE_TITLE' | translate }}
+    </h2>
+
+    <ul class="list-disc pl-5 space-y-1">
+      <li *ngFor="let item of ('RETURNS.NOT_RETURNABLE_LIST' | translate)">
+        {{ item }}
+      </li>
+    </ul>
+  </section>
+
+  <!-- BAD QUALITY -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'RETURNS.BAD_QUALITY_TITLE' | translate }}
+    </h2>
+
+    <p class="mb-3">
+      {{ 'RETURNS.BAD_QUALITY_TEXT' | translate }}
+    </p>
+
+    <ul class="list-disc pl-5 space-y-1">
+      <li *ngFor="let item of ('RETURNS.BAD_QUALITY_LIST' | translate)">
+        {{ item }}
+      </li>
+    </ul>
+  </section>
+
+  <!-- HOW TO RETURN -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'RETURNS.HOW_TO_RETURN_TITLE' | translate }}
+    </h2>
+
+    <ol class="list-decimal pl-5 space-y-1">
+      <li *ngFor="let item of ('RETURNS.HOW_TO_RETURN_STEPS' | translate)">
+        {{ item }}
+      </li>
+    </ol>
+  </section>
+
+  <!-- DELIVERY -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'RETURNS.DELIVERY_TITLE' | translate }}
+    </h2>
+
+    <p>
+      {{ 'RETURNS.DELIVERY_TEXT' | translate }}
+    </p>
+  </section>
+
+  <!-- IMPORTANT -->
+  <section class="bg-red-50 border border-red-200 p-6 rounded-2xl">
+    <h2 class="text-2xl font-semibold mb-3 text-red-600">
+      {{ 'RETURNS.IMPORTANT_TITLE' | translate }}
+    </h2>
+
+    <ul class="list-disc pl-5 space-y-1">
+      <li *ngFor="let item of ('RETURNS.IMPORTANT_LIST' | translate)">
+        {{ item }}
+      </li>
+    </ul>
+  </section>
+
+  <!-- FINAL NOTE -->
+  <section class="text-center text-gray-600">
+    {{ 'RETURNS.FINAL_NOTE' | translate }}
+  </section>
+
+</main>
