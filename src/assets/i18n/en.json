@@ -15,6 +15,9 @@
     "MY_PROFILE": "My profile",
     "SHOPPNG_CART": "Cart"
   },
+  "BRANDS": {
+  "TITLE": "Brands"
+},
   "CAROUSEL": {
     "GUITARS": "Guitars",
     "KEYBOARDS": "Keyboards",

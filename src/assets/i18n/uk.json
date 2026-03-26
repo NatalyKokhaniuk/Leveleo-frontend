@@ -15,6 +15,9 @@
     "MY_PROFILE": "Мій кабінет",
     "SHOPPNG_CART": "Кошик"
   },
+  "BRANDS": {
+  "TITLE": "Бренди"
+},
   "CAROUSEL": {
     "GUITARS": "Гітари",
     "KEYBOARDS": "Клавішні",
