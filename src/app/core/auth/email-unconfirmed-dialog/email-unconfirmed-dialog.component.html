@@ -1,0 +1,41 @@
+<div class="auth-modal-container">
+  <div class="icon-wrapper icon-warning">
+    <mat-icon class="status-icon">mark_email_unread</mat-icon>
+  </div>
+
+  <h2 class="modal-title">{{ 'AUTH.EMAIL_UNCONFIRMED' | translate }}</h2>
+  <p class="modal-desc">{{ 'AUTH.EMAIL_UNCONFIRMED_DESC' | translate }}</p>
+
+  @if (email) {
+    <p class="text-sm font-semibold" style="color: var(--color-text)">{{ email }}</p>
+  }
+
+  @if (errorMessage()) {
+    <div class="error-banner">
+      <mat-icon>error_outline</mat-icon>
+      <span>{{ errorMessage() | translate }}</span>
+    </div>
+  }
+
+  <div class="modal-actions">
+    <button
+      matButton="filled"
+      color="primary"
+      class="w-full"
+      [disabled]="!canResend() || isLoading()"
+      (click)="resendEmail()"
+    >
+      @if (isLoading()) {
+        <mat-spinner diameter="20"></mat-spinner>
+      } @else {
+        {{ 'AUTH.RESEND_EMAIL' | translate }}
+        @if (!canResend()) {
+          &nbsp;({{ countdown() }}s)
+        }
+      }
+    </button>
+    <button matButton class="w-full" (click)="close()">
+      {{ 'AUTH.CLOSE' | translate }}
+    </button>
+  </div>
+</div>

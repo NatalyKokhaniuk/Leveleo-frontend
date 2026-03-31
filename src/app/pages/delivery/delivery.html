@@ -1,0 +1,73 @@
+<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-12">
+
+  <!-- TITLE -->
+  <section class="text-center">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4">
+      {{ 'DELIVERY.TITLE' | translate }}
+    </h1>
+    <p class="text-gray-500 max-w-3xl mx-auto">
+      {{ 'DELIVERY.SUBTITLE' | translate }}
+    </p>
+  </section>
+
+  <!-- DELIVERY METHODS -->
+  <section class="flex flex-col gap-8">
+    <h2 class="text-2xl font-semibold">{{ 'DELIVERY.METHODS_TITLE' | translate }}</h2>
+
+    <div class="space-y-6">
+      <div>
+        <h3 class="font-semibold">{{ 'DELIVERY.SELF_PICKUP.TITLE' | translate }}</h3>
+        <p>{{ 'DELIVERY.SELF_PICKUP.DESCRIPTION' | translate }}</p>
+        <ul class="list-disc list-inside text-gray-600">
+          <li *ngFor="let item of ['DELIVERY.SELF_PICKUP.PAYMENT_1','DELIVERY.SELF_PICKUP.PAYMENT_2','DELIVERY.SELF_PICKUP.PAYMENT_3']">
+            {{ item | translate }}
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold">{{ 'DELIVERY.COURIER.TITLE' | translate }}</h3>
+        <p>{{ 'DELIVERY.COURIER.DESCRIPTION' | translate }}</p>
+        <ul class="list-disc list-inside text-gray-600">
+          <li *ngFor="let item of ['DELIVERY.COURIER.PAYMENT_1','DELIVERY.COURIER.PAYMENT_2','DELIVERY.COURIER.PAYMENT_3']">
+            {{ item | translate }}
+          </li>
+        </ul>
+      </div>
+
+      <div>
+        <h3 class="font-semibold">{{ 'DELIVERY.NOVA_BRANCH.TITLE' | translate }}</h3>
+        <p>{{ 'DELIVERY.NOVA_BRANCH.DESCRIPTION' | translate }}</p>
+      </div>
+
+      <div>
+        <h3 class="font-semibold">{{ 'DELIVERY.NOVA_ADDRESS.TITLE' | translate }}</h3>
+        <p>{{ 'DELIVERY.NOVA_ADDRESS.DESCRIPTION' | translate }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRODUCT CHECK -->
+  <section class="flex flex-col gap-4">
+    <h2 class="text-2xl font-semibold">{{ 'DELIVERY.CHECK_TITLE' | translate }}</h2>
+    <p>{{ 'DELIVERY.CHECK_TEXT' | translate }}</p>
+  </section>
+
+  <!-- PAYMENT METHODS -->
+  <section class="flex flex-col gap-4">
+    <h2 class="text-2xl font-semibold">{{ 'DELIVERY.PAYMENT_TITLE' | translate }}</h2>
+    <ul class="list-disc list-inside text-gray-600 space-y-2">
+      <li>{{ 'DELIVERY.PAYMENT.PRIVAT24' | translate }}</li>
+      <li>{{ 'DELIVERY.PAYMENT.LIQPAY' | translate }}</li>
+      <li>{{ 'DELIVERY.PAYMENT.CASH' | translate }}</li>
+      <li>{{ 'DELIVERY.PAYMENT.BANK' | translate }}</li>
+    </ul>
+  </section>
+
+  <!-- IMPORTANT NOTE -->
+  <section class="flex flex-col gap-2">
+    <p class="text-red-600 font-semibold">{{ 'DELIVERY.IMPORTANT_TITLE' | translate }}</p>
+    <p>{{ 'DELIVERY.IMPORTANT_TEXT' | translate }}</p>
+  </section>
+
+</main>

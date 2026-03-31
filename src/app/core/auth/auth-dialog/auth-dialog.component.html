@@ -1,0 +1,362 @@
+<div class="w-[calc(100vw-20px)] md:w-140 max-w-full p-6">
+  <!-- ══════════════════════════════════════════
+       FORGOT PASSWORD OVERLAY (replaces tabs)
+  ══════════════════════════════════════════ -->
+  @if (forgotPasswordStep()) {
+    <div class="auth-modal-container w-full">
+      @if (forgotPasswordStep() === 'form') {
+        <div class="icon-wrapper icon-info mx-auto">
+          <mat-icon class="status-icon">lock_reset</mat-icon>
+        </div>
+        <h2 class="modal-title">{{ 'AUTH.FORGOT_PASSWORD_REQUEST_TITLE' | translate }}</h2>
+        <p class="modal-desc">{{ 'AUTH.FORGOT_PASSWORD_REQUEST_DESC' | translate }}</p>
+
+        <form [formGroup]="forgotPasswordForm" (ngSubmit)="sendForgotPassword()" class="w-full">
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+            <input matInput formControlName="email" type="email" autocomplete="email" />
+            @if (
+              forgotPasswordForm.get('email')?.hasError('email') &&
+              forgotPasswordForm.get('email')?.touched
+            ) {
+              <mat-error>{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
+            }
+          </mat-form-field>
+
+          @if (forgotPasswordError(); as err) {
+            <div class="error-banner">
+              <mat-icon>error_outline</mat-icon>
+              <span>{{ err | translate }}</span>
+            </div>
+          }
+
+          <div class="modal-actions">
+            <button
+              matButton="filled"
+              color="primary"
+              class="w-full"
+              type="submit"
+              [disabled]="forgotPasswordLoading() || forgotPasswordForm.invalid"
+            >
+              @if (forgotPasswordLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                {{ 'AUTH.FORGOT_PASSWORD_SEND' | translate }}
+              }
+            </button>
+            <button matButton class="w-full" type="button" (click)="closeForgotPassword()">
+              {{ 'AUTH.CANCEL' | translate }}
+            </button>
+          </div>
+        </form>
+      }
+
+      @if (forgotPasswordStep() === 'sent') {
+        <div class="icon-wrapper icon-success mx-auto">
+          <mat-icon class="status-icon">forward_to_inbox</mat-icon>
+        </div>
+        <h2 class="modal-title">{{ 'AUTH.FORGOT_PASSWORD_SENT_TITLE' | translate }}</h2>
+        <p class="modal-desc">{{ 'AUTH.FORGOT_PASSWORD_SENT_DESC' | translate }}</p>
+        <div class="modal-actions">
+          <button matButton="filled" color="primary" class="w-full" (click)="closeForgotPassword()">
+            {{ 'AUTH.CLOSE' | translate }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════
+       MAIN AUTH TABS
+  ══════════════════════════════════════════ -->
+  @if (!forgotPasswordStep()) {
+    <mat-tab-group
+      [selectedIndex]="activeTab() === 'register' ? 1 : 0"
+      (selectedIndexChange)="activeTab.set($event === 0 ? 'login' : 'register')"
+    >
+      <!-- ─────────── LOGIN TAB ─────────── -->
+      <mat-tab label="{{ 'AUTH.LOGIN' | translate }}">
+        <div class="mt-5">
+          <!-- Normal login form -->
+          @if (!twoFaRequired()) {
+            <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="space-y-1">
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="email"
+                  type="email"
+                  placeholder="example@email.com"
+                  autocomplete="username"
+                />
+              </mat-form-field>
+
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+                <input
+                  matInput
+                  formControlName="password"
+                  [type]="showLoginPassword() ? 'text' : 'password'"
+                  autocomplete="current-password"
+                />
+                <button
+                  matIconSuffix
+                  mat-icon-button
+                  type="button"
+                  (click)="showLoginPassword.set(!showLoginPassword())"
+                  [attr.aria-label]="'AUTH.TOGGLE_PASSWORD' | translate"
+                >
+                  <mat-icon>{{ showLoginPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <!-- Forgot password link -->
+              <div class="flex justify-end -mt-2 mb-3">
+                <button type="button" class="link-btn text-sm" (click)="openForgotPassword()">
+                  {{ 'AUTH.FORGOT_PASSWORD' | translate }}
+                </button>
+              </div>
+
+              @if (loginError(); as err) {
+                <div class="error-banner">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ err | translate }}</span>
+                </div>
+              }
+
+              <button
+                matButton="filled"
+                color="primary"
+                class="w-full"
+                type="submit"
+                [disabled]="isLoading() || loginForm.invalid"
+              >
+                @if (isLoading()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  {{ 'AUTH.LOGIN' | translate }}
+                }
+              </button>
+              <button matButton class="w-full" type="button" (click)="closeLogin()">
+                {{ 'AUTH.CANCEL' | translate }}
+              </button>
+            </form>
+
+            <!-- Social login -->
+            <p class="mt-4 w-full flex justify-center text-primary">
+              {{ 'AUTH.OR' | translate | uppercase }}
+            </p>
+            <div
+              class="flex flex-col md:flex-row justify-center gap-2 w-full items-center mt-2 mb-1"
+            >
+              <button color="primary" (click)="loginWithGoogle()">
+                <app-icon [name]="'google'" class="cursor-pointer"></app-icon>
+              </button>
+              <button color="primary" (click)="loginWithFacebook()">
+                <app-icon [name]="'facebook'" class="cursor-pointer"></app-icon>
+              </button>
+            </div>
+          } @else {
+            <!-- ─── 2FA step ─── -->
+            <div class="auth-modal-container px-0 pt-2">
+              <div class="icon-wrapper icon-info mx-auto">
+                <mat-icon class="status-icon">shield</mat-icon>
+              </div>
+              <h2 class="modal-title">{{ 'AUTH.2FA_TITLE' | translate }}</h2>
+              <p class="modal-desc">
+                @switch (twoFaMethod()) {
+                  @case ('Email') {
+                    {{ 'AUTH.2FA_DESC_EMAIL' | translate }}
+                  }
+                  @case ('Sms') {
+                    {{ 'AUTH.2FA_DESC_SMS' | translate }}
+                  }
+                  @default {
+                    {{ 'AUTH.2FA_DESC_TOTP' | translate }}
+                  }
+                }
+              </p>
+
+              <form [formGroup]="twoFaForm" (ngSubmit)="onVerify2FA()" class="w-full">
+                <mat-form-field class="w-full">
+                  <mat-label>{{ 'AUTH.2FA_CODE' | translate }}</mat-label>
+                  <input
+                    matInput
+                    formControlName="code"
+                    autocomplete="one-time-code"
+                    inputmode="numeric"
+                    maxlength="6"
+                  />
+                </mat-form-field>
+
+                @if (twoFaError(); as err) {
+                  <div class="error-banner">
+                    <mat-icon>error_outline</mat-icon>
+                    <span>{{ err | translate }}</span>
+                  </div>
+                }
+
+                <div class="modal-actions">
+                  <button
+                    matButton="filled"
+                    color="primary"
+                    class="w-full"
+                    type="submit"
+                    [disabled]="isLoading() || twoFaForm.invalid"
+                  >
+                    @if (isLoading()) {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'AUTH.2FA_VERIFY' | translate }}
+                    }
+                  </button>
+                  <button matButton class="w-full" type="button" (click)="openBackupCodeLogin()">
+                    {{ 'AUTH.USE_BACKUP_CODE' | translate }}
+                  </button>
+                  <button matButton class="w-full" type="button" (click)="back2FA()">
+                    <mat-icon>arrow_back</mat-icon>
+                    {{ 'AUTH.BACK' | translate }}
+                  </button>
+                </div>
+              </form>
+            </div>
+          }
+        </div>
+      </mat-tab>
+
+      <!-- ─────────── REGISTER TAB ─────────── -->
+      <mat-tab label="{{ 'AUTH.REGISTER' | translate }}">
+        <div class="mt-5">
+          @if (!registerSuccess()) {
+            <form [formGroup]="registerForm" (ngSubmit)="onRegister()" class="space-y-1">
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.EMAIL' | translate }}</mat-label>
+                <input matInput formControlName="email" type="email" autocomplete="username" />
+                @if (
+                  registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched
+                ) {
+                  <mat-error>{{ 'AUTH.EMAIL_INVALID' | translate }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.PASSWORD' | translate }}</mat-label>
+                <input
+                  matInput
+                  [type]="showRegisterPassword() ? 'text' : 'password'"
+                  formControlName="password"
+                  autocomplete="new-password"
+                />
+                <button
+                  matIconSuffix
+                  mat-icon-button
+                  type="button"
+                  (click)="showRegisterPassword.set(!showRegisterPassword())"
+                >
+                  <mat-icon>{{
+                    showRegisterPassword() ? 'visibility_off' : 'visibility'
+                  }}</mat-icon>
+                </button>
+              </mat-form-field>
+
+              <!-- Підказки сили пароля -->
+              <app-password-strength
+                [password]="registerPassword"
+                [touched]="registerPasswordTouched"
+              />
+
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.CONFIRM_PASSWORD' | translate }}</mat-label>
+                <input
+                  matInput
+                  [type]="showConfirmPassword() ? 'text' : 'password'"
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                />
+                <button
+                  matIconSuffix
+                  mat-icon-button
+                  type="button"
+                  (click)="showConfirmPassword.set(!showConfirmPassword())"
+                >
+                  <mat-icon>{{ showConfirmPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                </button>
+                @if (
+                  registerForm.get('confirmPassword')?.touched &&
+                  registerForm.value.password !== registerForm.value.confirmPassword
+                ) {
+                  <mat-error>{{ 'AUTH.PASSWORDS_DO_NOT_MATCH' | translate }}</mat-error>
+                }
+              </mat-form-field>
+
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.FIRST_NAME' | translate }}</mat-label>
+                <input matInput formControlName="firstName" />
+              </mat-form-field>
+
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'AUTH.LAST_NAME' | translate }}</mat-label>
+                <input matInput formControlName="lastName" />
+              </mat-form-field>
+
+              @if (registerError(); as err) {
+                <div class="error-banner">
+                  <mat-icon>error_outline</mat-icon>
+                  <span>{{ err | translate }}</span>
+                </div>
+                @if (registerEmailExists()) {
+                  <p
+                    class="text-sm text-center mt-1 mb-2"
+                    style="color: var(--color-text-secondary)"
+                  >
+                    {{ 'AUTH.EMAIL_EXISTS_HINT' | translate }}
+                    <button type="button" class="link-btn" (click)="switchToLogin()">
+                      {{ 'AUTH.GO_TO_LOGIN' | translate }}
+                    </button>
+                  </p>
+                }
+              }
+
+              <button
+                matButton="filled"
+                color="primary"
+                class="w-full mt-1"
+                type="submit"
+                [disabled]="isLoading()"
+              >
+                @if (isLoading()) {
+                  <mat-spinner diameter="20"></mat-spinner>
+                } @else {
+                  {{ 'AUTH.REGISTER' | translate }}
+                }
+              </button>
+              <button matButton class="w-full" type="button" (click)="closeRegister()">
+                {{ 'AUTH.CANCEL' | translate }}
+              </button>
+              <div></div>
+            </form>
+          } @else {
+            <!-- ─── Registration success ─── -->
+            <div class="auth-modal-container px-0 pt-2">
+              <div class="icon-wrapper icon-success mx-auto">
+                <mat-icon class="status-icon">forward_to_inbox</mat-icon>
+              </div>
+              <h2 class="modal-title">{{ 'AUTH.REGISTER_SUCCESS_TITLE' | translate }}</h2>
+              <p class="modal-desc">{{ 'AUTH.REGISTRATION_SUCCESS' | translate }}</p>
+              <div class="modal-actions">
+                <button
+                  matButton="filled"
+                  color="primary"
+                  class="w-full"
+                  (click)="dialogRef.close()"
+                >
+                  {{ 'AUTH.CLOSE' | translate }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  }
+</div>

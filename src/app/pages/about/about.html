@@ -1,0 +1,82 @@
+<main class="max-w-6xl mx-auto px-4 md:px-10 pt-28 flex flex-col gap-14">
+
+  <!-- HEADER -->
+  <section class="text-center">
+    <h1 class="text-4xl font-bold mb-3">
+      {{ 'ABOUT.TITLE' | translate }}
+    </h1>
+    <p class="text-gray-500 max-w-2xl mx-auto">
+      {{ 'ABOUT.SUBTITLE' | translate }}
+    </p>
+  </section>
+
+  <!-- WHO WE ARE -->
+  <section class="grid md:grid-cols-2 gap-10 items-center">
+    <div>
+      <h2 class="text-2xl font-semibold mb-3">
+        {{ 'ABOUT.INTRO_TITLE' | translate }}
+      </h2>
+      <p class="text-gray-700">
+        {{ 'ABOUT.INTRO_TEXT' | translate }}
+      </p>
+    </div>
+
+    <div class="bg-gray-200 rounded-2xl h-64 flex items-center justify-center">
+      <span class="text-gray-500">Image</span>
+    </div>
+  </section>
+
+  <!-- CATALOG -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'ABOUT.CATALOG_TITLE' | translate }}
+    </h2>
+    <p class="text-gray-700">
+      {{ 'ABOUT.CATALOG_TEXT' | translate }}
+    </p>
+  </section>
+
+  <!-- PRICING -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'ABOUT.PRICING_TITLE' | translate }}
+    </h2>
+    <p class="text-gray-700">
+      {{ 'ABOUT.PRICING_TEXT' | translate }}
+    </p>
+  </section>
+
+  <!-- SUPPORT -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'ABOUT.SUPPORT_TITLE' | translate }}
+    </h2>
+    <p class="text-gray-700">
+      {{ 'ABOUT.SUPPORT_TEXT' | translate }}
+    </p>
+  </section>
+
+  <!-- ADVANTAGES -->
+  <section class="bg-gray-50 p-6 md:p-10 rounded-2xl shadow">
+    <h2 class="text-2xl font-semibold mb-5">
+      {{ 'ABOUT.ADVANTAGES_TITLE' | translate }}
+    </h2>
+
+    <ul class="grid md:grid-cols-2 gap-3 list-disc pl-5 text-gray-700">
+      <li *ngFor="let item of ('ABOUT.ADVANTAGES' | translate)">
+        {{ item }}
+      </li>
+    </ul>
+  </section>
+
+  <!-- MISSION -->
+  <section class="text-center">
+    <h2 class="text-2xl font-semibold mb-3">
+      {{ 'ABOUT.MISSION_TITLE' | translate }}
+    </h2>
+    <p class="text-gray-700 max-w-3xl mx-auto">
+      {{ 'ABOUT.MISSION_TEXT' | translate }}
+    </p>
+  </section>
+
+</main>

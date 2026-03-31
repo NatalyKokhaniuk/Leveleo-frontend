@@ -1,0 +1,14 @@
+<div class="auth-modal-container">
+  <div class="icon-wrapper" [ngClass]="'icon-' + config.iconColor">
+    <mat-icon class="status-icon">{{ config.icon }}</mat-icon>
+  </div>
+
+  <h2 class="modal-title">{{ config.titleKey | translate }}</h2>
+  <p class="modal-desc">{{ config.descKey | translate }}</p>
+
+  <div class="modal-actions">
+    <button matButton="filled" color="primary" class="w-full" (click)="onPrimary()">
+      {{ config.primaryBtnKey | translate }}
+    </button>
+  </div>
+</div>

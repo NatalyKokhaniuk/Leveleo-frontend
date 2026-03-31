@@ -1,0 +1,133 @@
+<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-12">
+
+  <!-- TITLE -->
+  <section class="text-center">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4">
+      {{ 'CONTACTS.MAINTITLE' | translate }}
+    </h1>
+    <p class="text-gray-500 max-w-2xl mx-auto">
+      {{ 'CONTACTS.SUBTITLE' | translate }}
+    </p>
+  </section>
+
+  <!-- CONTENT -->
+  <section class="grid md:grid-cols-2 gap-10 items-center">
+
+    <div class="flex flex-col gap-4">
+      <h2 class="text-2xl font-semibold">
+        {{ 'CONTACTS.WHO_WE_ARE_TITLE' | translate }}
+      </h2>
+      <p>{{ 'CONTACTS.WHO_WE_ARE_TEXT' | translate }}</p>
+
+      <h2 class="text-2xl font-semibold mt-4">
+        {{ 'CONTACTS.MISSION_TITLE' | translate }}
+      </h2>
+      <p>{{ 'CONTACTS.MISSION_TEXT' | translate }}</p>
+    </div>
+
+    <div class="bg-gray-200 h-64 rounded-2xl flex items-center justify-center">
+      <span class="text-gray-500">Image</span>
+    </div>
+
+  </section>
+
+  <!-- CONTACT FORM -->
+  <section class="bg-surface-container rounded-2xl p-6 md:p-10 shadow">
+
+    <h2 class="text-2xl font-bold mb-6">
+      {{ 'CONTACTS.TITLE' | translate }}
+    </h2>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="grid md:grid-cols-2 gap-4">
+
+      <!-- NAME -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'CONTACTS.NAME' | translate }} *</mat-label>
+
+        <input matInput placeholder="{{ 'CONTACT.NAME_PLACEHOLDER' | translate }}" formControlName="name" />
+        
+
+        @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+        }
+
+        @if (form.get('name')?.hasError('minlength') && form.get('name')?.touched) {
+          <mat-error>
+            {{ 'CONTACTS.MINLENGTH' | translate:{ length: 2 } }}
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <!-- EMAIL -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>{{ 'CONTACTS.EMAIL' | translate }} *</mat-label>
+
+        <input
+          matInput
+          formControlName="email"
+          placeholder="{{'CONTACTS.EMAIL_PLACEHOLDER' | translate}}"
+        />
+
+        @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
+          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+        }
+
+        @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+          <mat-error>{{ 'CONTACTS.INVALID_EMAIL' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- SUBJECT -->
+      <mat-form-field appearance="outline" class="w-full md:col-span-2">
+        <mat-label>{{ 'CONTACTS.SUBJECT' | translate }} *</mat-label>
+
+        <input
+          matInput
+          formControlName="subject"
+          placeholder="{{ 'CONTACTS.SUBJECT_PLACEHOLDER' | translate }} "
+        />
+
+        @if (form.get('subject')?.hasError('required') && form.get('subject')?.touched) {
+          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- MESSAGE -->
+      <mat-form-field appearance="outline" class="w-full md:col-span-2">
+        <mat-label>{{ 'CONTACTS.MESSAGE' | translate }} *</mat-label>
+
+        <textarea
+          matInput
+          rows="4"
+          formControlName="message"
+          placeholder="{{'CONTACTS.MESSAGE_PLACEHOLDER' | translate}}"
+        ></textarea>
+
+        @if (form.get('message')?.hasError('required') && form.get('message')?.touched) {
+          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+        }
+
+        @if (form.get('message')?.hasError('minlength') && form.get('message')?.touched) {
+          <mat-error>
+            {{ 'CONTACTS.MINLENGTH' | translate:{ length: 10 } }}
+          </mat-error>
+        }
+      </mat-form-field>
+
+      <!-- BUTTON -->
+      <div class="md:col-span-2">
+        <button
+          mat-raised-button
+          color="primary"
+          class="w-full h-12 rounded-xl"
+          [disabled]="form.invalid"
+        >
+          {{ 'CONTACT.SUBMIT' | translate }}
+        </button>
+      </div>
+
+    </form>
+
+  </section>
+
+</main>
