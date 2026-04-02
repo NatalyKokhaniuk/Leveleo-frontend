@@ -43,7 +43,7 @@ export class App implements OnInit {
         error: () => console.warn('Refresh token failed'),
       });
     }
-
+       
     // Відновлення сесії відбувається в APP_INITIALIZER (app.config.ts),
     // тому тут нічого додатково робити не потрібно.
   }

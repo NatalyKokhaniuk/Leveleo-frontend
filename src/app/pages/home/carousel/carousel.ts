@@ -1,5 +1,12 @@
-import { Component, signal, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  signal,
+  OnInit,
+  OnDestroy,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { MatIconModule } from '@angular/material/icon';
@@ -11,6 +18,8 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './carousel.html',
 })
 export class CarouselComponent implements OnInit, OnDestroy {
+
+  private platformId = inject(PLATFORM_ID);
 
   brands = [
     { name: 'Fender', color: 'bg-red-500', link: '/brands/fender' },
@@ -27,7 +36,10 @@ export class CarouselComponent implements OnInit, OnDestroy {
   private paused = false;
 
   ngOnInit(): void {
-    this.startAutoSlide();
+    // 🔥 ГОЛОВНЕ — перевірка DOM (browser)
+    if (isPlatformBrowser(this.platformId)) {
+      this.startAutoSlide();
+    }
   }
 
   ngOnDestroy(): void {
@@ -40,7 +52,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
       if (!this.paused) {
         this.next();
       }
-    }, 20000);
+    }, 2000); // 👈 2 секунди як ти хотіла
   }
 
   stopAutoSlide() {
