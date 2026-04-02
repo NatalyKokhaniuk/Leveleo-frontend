@@ -14,7 +14,7 @@ export const routes: Routes = [
   },
   {
     path: 'admin/users',
-    loadComponent: () => import('./pages/admin/users/users').then((m) => m.UsersComponent),
+    loadComponent: () => import('./pages/admin/admin/users/users').then((m) => m.UsersComponent),
   },
   
   

@@ -97,7 +97,17 @@
     "SUBMIT": "Send",
     "REQUIRED": "This field is required",
     "MINLENGTH": "Minimum {{length}} characters",
-    "INVALID_EMAIL": "Invalid email format"
+    "INVALID_EMAIL": "Invalid email format",
+    "CATEGORY_TITLE": "Reason for contact",
+  "CATEGORY": {
+    "DELIVERY": "Delivery question",
+    "ORDER": "Order question",
+    "RETURN": "Return or exchange",
+    "PRODUCT": "Product question",
+    "WEBSITE": "Website issue",
+    "PAYMENT": "Payment question",
+    "OTHER": "Other"
+  }
   },
   "AUTH": {
     "REGISTER": "Register",

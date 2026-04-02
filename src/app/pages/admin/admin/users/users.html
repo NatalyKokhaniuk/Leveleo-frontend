@@ -1,0 +1,25 @@
+<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-10">
+
+  <!-- TITLE -->
+  <div class="flex flex-col gap-2">
+    <h1 class="text-3xl font-semibold">
+      {{ 'ADMIN.USERS.TITLE' | translate }}
+    </h1>
+
+    <p class="text-sm opacity-70">
+      {{ 'ADMIN.USERS.DESCRIPTION' | translate }}
+    </p>
+  </div>
+
+  <!-- TABLE -->
+  <section class="p-6 rounded-2xl border flex flex-col gap-6">
+
+    <app-data-table
+      [data]="users()"
+      [columns]="columns"
+      (action)="handleAction($event)"
+    />
+
+  </section>
+
+</main>

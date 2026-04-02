@@ -33,9 +33,6 @@ export class Footer implements AfterViewInit {
 
   year = new Date().getFullYear();
 
-  showScrollTop = signal(false);
-  scrollTopPosition = signal(0); // bottom position для кнопки
-
   subscribeForm = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
   });

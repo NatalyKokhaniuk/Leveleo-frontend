@@ -32,7 +32,7 @@
   </section>
 
   <!-- CONTACT FORM -->
-  <section class="bg-surface-container rounded-2xl p-6 md:p-10 shadow">
+  <section class="bg-surface-container rounded-2xl p-6 md:p-10 shadow mb-10">
 
     <h2 class="text-2xl font-bold mb-6">
       {{ 'CONTACTS.TITLE' | translate }}
@@ -42,72 +42,71 @@
 
       <!-- NAME -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'CONTACTS.NAME' | translate }} *</mat-label>
+        <input
+          matInput
+          placeholder="{{ 'CONTACTS.NAME' | translate }}"
+          formControlName="name"
+        />
 
-        <input matInput placeholder="{{ 'CONTACT.NAME_PLACEHOLDER' | translate }}" formControlName="name" />
-        
-
-        @if (form.get('name')?.hasError('required') && form.get('name')?.touched) {
+        @if (form.get('name')?.touched && form.get('name')?.invalid) {
           <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
-        }
-
-        @if (form.get('name')?.hasError('minlength') && form.get('name')?.touched) {
-          <mat-error>
-            {{ 'CONTACTS.MINLENGTH' | translate:{ length: 2 } }}
-          </mat-error>
         }
       </mat-form-field>
 
       <!-- EMAIL -->
       <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ 'CONTACTS.EMAIL' | translate }} *</mat-label>
-
         <input
           matInput
+          placeholder="{{ 'CONTACTS.EMAIL' | translate }}"
           formControlName="email"
-          placeholder="{{'CONTACTS.EMAIL_PLACEHOLDER' | translate}}"
         />
 
-        @if (form.get('email')?.hasError('required') && form.get('email')?.touched) {
-          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
-        }
-
-        @if (form.get('email')?.hasError('email') && form.get('email')?.touched) {
+        @if (form.get('email')?.touched && form.get('email')?.invalid) {
           <mat-error>{{ 'CONTACTS.INVALID_EMAIL' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <!-- CATEGORY -->
+      <mat-form-field appearance="outline" class="w-full md:col-span-2">
+        <mat-select
+          formControlName="category"
+          placeholder="{{ 'CONTACTS.CATEGORY_TITLE' | translate }}"
+        >
+          @for (cat of categories; track cat.value) {
+            <mat-option [value]="cat.value">
+              {{ cat.label | translate }}
+            </mat-option>
+          }
+        </mat-select>
+
+        @if (form.get('category')?.touched && form.get('category')?.invalid) {
+          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
         }
       </mat-form-field>
 
       <!-- SUBJECT -->
       <mat-form-field appearance="outline" class="w-full md:col-span-2">
-        <mat-label>{{ 'CONTACTS.SUBJECT' | translate }} *</mat-label>
-
         <input
           matInput
+          placeholder="{{ 'CONTACTS.SUBJECT' | translate }}"
           formControlName="subject"
-          placeholder="{{ 'CONTACTS.SUBJECT_PLACEHOLDER' | translate }} "
         />
 
-        @if (form.get('subject')?.hasError('required') && form.get('subject')?.touched) {
+        @if (form.get('subject')?.touched && form.get('subject')?.invalid) {
           <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
         }
       </mat-form-field>
 
       <!-- MESSAGE -->
       <mat-form-field appearance="outline" class="w-full md:col-span-2">
-        <mat-label>{{ 'CONTACTS.MESSAGE' | translate }} *</mat-label>
-
         <textarea
           matInput
           rows="4"
           formControlName="message"
-          placeholder="{{'CONTACTS.MESSAGE_PLACEHOLDER' | translate}}"
+          placeholder="{{ 'CONTACTS.MESSAGE' | translate }}"
         ></textarea>
 
-        @if (form.get('message')?.hasError('required') && form.get('message')?.touched) {
-          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
-        }
-
-        @if (form.get('message')?.hasError('minlength') && form.get('message')?.touched) {
+        @if (form.get('message')?.touched && form.get('message')?.invalid) {
           <mat-error>
             {{ 'CONTACTS.MINLENGTH' | translate:{ length: 10 } }}
           </mat-error>
@@ -122,7 +121,7 @@
           class="w-full h-12 rounded-xl"
           [disabled]="form.invalid"
         >
-          {{ 'CONTACT.SUBMIT' | translate }}
+          {{ 'CONTACTS.SUBMIT' | translate }}
         </button>
       </div>
 

@@ -30,4 +30,8 @@ export class UsersService {
   blockUser(id: string) {
     return this.api.post(`${this.base}/${id}/block`, {});
   }
+
+  updateUser(id: string, data: Partial<UserDto>) {
+  return this.api.put(`/api/Users/${id}`, data);
+}
 }

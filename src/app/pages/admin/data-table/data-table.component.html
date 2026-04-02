@@ -1,0 +1,119 @@
+<div class="flex flex-col gap-6">
+
+  <!-- HEADER -->
+  <div class="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+
+    <!-- SEARCH -->
+    <input
+      type="text"
+      placeholder="Search..."
+      (input)="search.set($any($event.target).value)"
+      class="border rounded-xl px-4 py-2 w-full md:w-80 outline-none"
+    />
+
+    <!-- FILTERS -->
+    <div class="flex gap-2 flex-wrap">
+      @for (col of columns; track col.key) {
+        @if (col.type === 'select') {
+          <select
+            (change)="setFilter(col.key as string, $any($event.target).value)"
+            class="border rounded-xl px-3 py-2"
+          >
+            <option value="">All {{ col.label }}</option>
+            @for (opt of col.options ?? []; track opt) {
+              <option [value]="opt">{{ opt }}</option>
+            }
+          </select>
+        }
+      }
+    </div>
+
+  </div>
+
+  <!-- TABLE -->
+  <div class="overflow-hidden rounded-2xl border">
+    <table class="w-full text-sm">
+
+      <thead class="border-b">
+        <tr>
+          @for (col of columns; track col.key) {
+            <th
+              class="p-4 text-left cursor-pointer select-none font-medium"
+              (click)="col.sortable && changeSort(col.key)"
+            >
+              {{ col.label }}
+              @if (sortKey() === col.key) {
+                <span class="ml-1">
+                  {{ sortDir() === 'asc' ? '↑' : '↓' }}
+                </span>
+              }
+            </th>
+          }
+          <th class="p-4 text-left">Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (row of paginatedData(); track row) {
+          <tr class="border-t hover:bg-neutral-50 transition">
+
+            @for (col of columns; track col.key) {
+              <td class="p-4">
+
+                @if (col.type === 'select') {
+                  <select
+                    [value]="$any(row)[col.key]"
+                    (change)="emitAction('select', { ...row, [col.key]: $any($event.target).value })"
+                    class="border rounded-lg px-2 py-1"
+                  >
+                    @for (opt of col.options ?? []; track opt) {
+                      <option [value]="opt">{{ opt }}</option>
+                    }
+                  </select>
+                } @else {
+                  {{ $any(row)[col.key] }}
+                }
+
+              </td>
+            }
+
+            <!-- ACTIONS -->
+            <td class="p-4 flex gap-2">
+              <button
+                (click)="emitAction('delete', row)"
+                class="px-3 py-1 rounded-lg border"
+              >
+                Delete
+              </button>
+
+              <button
+                (click)="emitAction('block', row)"
+                class="px-3 py-1 rounded-lg border"
+              >
+                Block
+              </button>
+            </td>
+
+          </tr>
+        }
+      </tbody>
+
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="flex justify-between items-center">
+    <button (click)="page.set(page() - 1)" class="border px-4 py-1 rounded-lg">
+      Prev
+    </button>
+
+    <span class="text-sm">
+      Page {{ page() }} / {{ totalPages() }}
+    </span>
+
+    <button (click)="page.set(page() + 1)" class="border px-4 py-1 rounded-lg">
+      Next
+    </button>
+  </div>
+
+</div>
