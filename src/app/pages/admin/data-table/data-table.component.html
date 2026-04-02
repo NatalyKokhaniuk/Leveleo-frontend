@@ -1,33 +1,28 @@
 <div class="flex flex-col gap-6">
 
-  <!-- HEADER -->
-  <div class="flex flex-col md:flex-row md:items-center gap-4 justify-between">
+  <!-- SEARCH -->
+  <input
+    type="text"
+    placeholder={{ 'ADMIN.TABLE.SEARCH' | translate }}
+    (input)="onSearch($event)"
+    class="border rounded-xl px-4 py-2 w-full md:w-80"
+  />
 
-    <!-- SEARCH -->
-    <input
-      type="text"
-      placeholder="Search..."
-      (input)="search.set($any($event.target).value)"
-      class="border rounded-xl px-4 py-2 w-full md:w-80 outline-none"
-    />
-
-    <!-- FILTERS -->
-    <div class="flex gap-2 flex-wrap">
-      @for (col of columns; track col.key) {
-        @if (col.type === 'select') {
-          <select
-            (change)="setFilter(col.key as string, $any($event.target).value)"
-            class="border rounded-xl px-3 py-2"
-          >
-            <option value="">All {{ col.label }}</option>
-            @for (opt of col.options ?? []; track opt) {
-              <option [value]="opt">{{ opt }}</option>
-            }
-          </select>
-        }
+  <!-- FILTERS -->
+  <div class="flex gap-2 flex-wrap">
+    @for (col of columns; track col.key) {
+      @if (col.type === 'select') {
+        <select
+          (change)="onFilterChange(col.key, $event)"
+          class="border rounded-xl px-3 py-2"
+        >
+          <option value="">...</option>
+          @for (opt of col.options ?? []; track opt) {
+            <option [value]="opt">{{ opt }}</option>
+          }
+        </select>
       }
-    </div>
-
+    }
   </div>
 
   <!-- TABLE -->
@@ -38,24 +33,23 @@
         <tr>
           @for (col of columns; track col.key) {
             <th
-              class="p-4 text-left cursor-pointer select-none font-medium"
-              (click)="col.sortable && changeSort(col.key)"
+              class="p-4 text-left cursor-pointer"
+              (click)="changeSort(col.key)"
             >
               {{ col.label }}
+
               @if (sortKey() === col.key) {
-                <span class="ml-1">
-                  {{ sortDir() === 'asc' ? '↑' : '↓' }}
-                </span>
+                <span>{{ sortDir() === 'asc' ? '↑' : '↓' }}</span>
               }
             </th>
           }
-          <th class="p-4 text-left">Actions</th>
+          <th class="p-4">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
         </tr>
       </thead>
 
       <tbody>
         @for (row of paginatedData(); track row) {
-          <tr class="border-t hover:bg-neutral-50 transition">
+          <tr class="border-t">
 
             @for (col of columns; track col.key) {
               <td class="p-4">
@@ -63,8 +57,8 @@
                 @if (col.type === 'select') {
                   <select
                     [value]="$any(row)[col.key]"
-                    (change)="emitAction('select', { ...row, [col.key]: $any($event.target).value })"
-                    class="border rounded-lg px-2 py-1"
+                    (change)="onSelectChange(row, col.key, $event)"
+                    class="border rounded px-2 py-1"
                   >
                     @for (opt of col.options ?? []; track opt) {
                       <option [value]="opt">{{ opt }}</option>
@@ -77,20 +71,13 @@
               </td>
             }
 
-            <!-- ACTIONS -->
             <td class="p-4 flex gap-2">
-              <button
-                (click)="emitAction('delete', row)"
-                class="px-3 py-1 rounded-lg border"
-              >
-                Delete
+              <button (click)="emitAction('delete', row)" class="border px-3 py-1 rounded">
+                {{ 'ADMIN.TABLE.DELETE' | translate }}
               </button>
 
-              <button
-                (click)="emitAction('block', row)"
-                class="px-3 py-1 rounded-lg border"
-              >
-                Block
+              <button (click)="emitAction('block', row)" class="border px-3 py-1 rounded">
+                {{ 'ADMIN.TABLE.BLOCK' | translate }}
               </button>
             </td>
 
@@ -102,18 +89,20 @@
   </div>
 
   <!-- PAGINATION -->
-  <div class="flex justify-between items-center">
-    <button (click)="page.set(page() - 1)" class="border px-4 py-1 rounded-lg">
-      Prev
+  <div class="flex justify-between">
+
+    <button (click)="prevPage()" class="border px-4 py-1 rounded">
+      {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
     </button>
 
-    <span class="text-sm">
+    <span>
       Page {{ page() }} / {{ totalPages() }}
     </span>
 
-    <button (click)="page.set(page() + 1)" class="border px-4 py-1 rounded-lg">
-      Next
+    <button (click)="nextPage()" class="border px-4 py-1 rounded">
+      {{ 'ADMIN.TABLE.NEXT' | translate }}
     </button>
+
   </div>
 
 </div>

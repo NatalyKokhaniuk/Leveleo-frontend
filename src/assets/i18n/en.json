@@ -30,6 +30,20 @@
   "ADMIN": {
   "TITLE": "Admin Dashboard",
   "USERS": "Users",
+  "USER": {
+    "TITLE":"Users", 
+    "DESCRIPTION": "Manage user accounts, roles, and permissions"
+},
+"TABLE": {
+  "PREVIOUS": "Previous",
+  "NEXT": "Next",
+  "SEARCH": "Search...",
+  "ACTIONS": "Actions",
+  "DELETE": "Delete",
+  "EDIT": "Edit",
+  "BLOCK": "Block",
+  "UNBLOCK": "Unblock"
+},
   "STATISTICS": "Statistics",
   "TASKS": "Tasks",
   "BRANDS": "Brands",
