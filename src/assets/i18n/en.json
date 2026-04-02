@@ -28,7 +28,21 @@
     "MICROPHONES": "Microphones"
   },
   "ADMIN": {
-    "TITLE": "Users Management"
+  "TITLE": "Admin Dashboard",
+  "USERS": "Users",
+  "STATISTICS": "Statistics",
+  "TASKS": "Tasks",
+  "BRANDS": "Brands",
+  "ATTRIBUTES": "Attributes",
+  "ATTRIBUTE_GROUPS": "Attribute Groups",
+  "CATEGORIES": "Categories",
+  "PRODUCTS": "Products",
+  "ORDERS": "Orders",
+  "SHIPPING": "Shipping Addresses",
+  "SUBSCRIPTIONS": "Subscriptions",
+  "PAYMENTS": "Payments",
+  "PROMOTIONS": "Promotions",
+  "REVIEWS": "Reviews"
   },
   "FOOTER": {
     "STORE_NAME": "Leveleo",

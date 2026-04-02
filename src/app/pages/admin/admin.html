@@ -1,67 +1,32 @@
-<div class="p-6">
+<div class="p-6 md:p-10">
 
-  <h2 class="text-2xl font-bold mb-4">
+  <!-- TITLE -->
+  <h1 class="text-2xl md:text-3xl font-bold mb-8 text-primary">
     {{ 'ADMIN.TITLE' | translate }}
-  </h2>
+  </h1>
 
-  <table class="w-full border rounded-lg overflow-hidden">
-    <thead class="bg-gray-100">
-      <tr>
-        <th class="p-3">Name</th>
-        <th class="p-3">Surname</th>
-        <th class="p-3">Role</th>
-        <th class="p-3">Actions</th>
-      </tr>
-    </thead>
+  <!-- GRID -->
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
 
-    <tbody>
-      @for (user of users(); track user.id) {
-        <tr class="border-t">
+    @for (item of menu; track item.key) {
+      <a
+        [routerLink]="item.link"
+        class="bg-surface rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+      >
 
-          <td class="p-3">{{ user.firstName }}</td>
-          <td class="p-3">{{ user.lastName }}</td>
+        <!-- ICON -->
+        <mat-icon class="text-4xl mb-3 text-primary">
+          {{ item.icon }}
+        </mat-icon>
 
-          <!-- ROLE -->
-          <td class="p-3">
-            @if (isAdmin()) {
-              <select
-                [value]="user.roles[0]"
-                (change)="changeRole(user, $any($event.target).value)"
-                class="border p-2 rounded"
-              >
-                @for (role of roles; track role) {
-                  <option [value]="role">{{ role }}</option>
-                }
-              </select>
-            } @else {
-              {{ user.roles[0] }}
-            }
-          </td>
+        <!-- TEXT -->
+        <span class="font-medium text-sm md:text-base">
+          {{ ('ADMIN.' + item.key) | translate }}
+        </span>
 
-          <!-- ACTIONS -->
-          <td class="p-3 flex gap-2">
+      </a>
+    }
 
-            @if (isAdmin()) {
-              <button
-                (click)="deleteUser(user.id)"
-                class="px-2 py-1 bg-red-600 text-white rounded"
-              >
-                Delete
-              </button>
-            }
-
-            <button
-              (click)="blockUser(user.id)"
-              class="px-2 py-1 bg-yellow-500 text-white rounded"
-            >
-              Block
-            </button>
-
-          </td>
-
-        </tr>
-      }
-    </tbody>
-  </table>
+  </div>
 
 </div>

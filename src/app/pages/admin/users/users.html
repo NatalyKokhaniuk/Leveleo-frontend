@@ -1,0 +1,67 @@
+<div class="p-6">
+
+  <h2 class="text-2xl font-bold mb-4">
+    {{ 'ADMIN.TITLE' | translate }}
+  </h2>
+
+  <table class="w-full border rounded-lg overflow-hidden">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="p-3">Name</th>
+        <th class="p-3">Surname</th>
+        <th class="p-3">Role</th>
+        <th class="p-3">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (user of users(); track user.id) {
+        <tr class="border-t">
+
+          <td class="p-3">{{ user.firstName }}</td>
+          <td class="p-3">{{ user.lastName }}</td>
+
+          <!-- ROLE -->
+          <td class="p-3">
+            @if (isAdmin()) {
+              <select
+                [value]="user.roles[0]"
+                (change)="changeRole(user, $any($event.target).value)"
+                class="border p-2 rounded"
+              >
+                @for (role of roles; track role) {
+                  <option [value]="role">{{ role }}</option>
+                }
+              </select>
+            } @else {
+              {{ user.roles[0] }}
+            }
+          </td>
+
+          <!-- ACTIONS -->
+          <td class="p-3 flex gap-2">
+
+            @if (isAdmin()) {
+              <button
+                (click)="deleteUser(user.id)"
+                class="px-2 py-1 bg-red-600 text-white rounded"
+              >
+                Delete
+              </button>
+            }
+
+            <button
+              (click)="blockUser(user.id)"
+              class="px-2 py-1 bg-yellow-500 text-white rounded"
+            >
+              Block
+            </button>
+
+          </td>
+
+        </tr>
+      }
+    </tbody>
+  </table>
+
+</div>

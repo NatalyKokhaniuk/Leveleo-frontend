@@ -1,52 +1,31 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { UsersService, UserDto } from '../../core/auth/services/users';
-import { AuthService } from '../../core/auth/services/auth.service';
+import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, TranslateModule],
+  imports: [CommonModule, RouterLink, TranslateModule, MatIconModule],
   templateUrl: './admin.html',
 })
 export class AdminComponent {
-  private usersService = inject(UsersService);
-  private authService = inject(AuthService);
 
-  users = signal<UserDto[]>([]);
-  roles = ['Admin', 'Moderator', 'User'];
-
-  constructor() {
-    this.loadUsers();
-  }
-
-  loadUsers() {
-    this.usersService.getUsers().subscribe((res) => {
-      this.users.set(res);
-    });
-  }
-
-  isAdmin(): boolean {
-    return this.authService.hasRole('Admin');
-  }
-
-  changeRole(user: UserDto, role: string) {
-    if (!this.isAdmin()) return;
-
-    this.usersService.updateRoles(user.id, [role]).subscribe(() => {
-      user.roles = [role];
-      this.users.set([...this.users()]);
-    });
-  }
-
-  deleteUser(id: string) {
-    this.usersService.deleteUser(id).subscribe(() => {
-      this.users.set(this.users().filter((u) => u.id !== id));
-    });
-  }
-
-  blockUser(id: string) {
-    this.usersService.blockUser(id).subscribe();
-  }
+  menu = [
+    { key: 'USERS', icon: 'people', link: '/admin/users' },
+    { key: 'STATISTICS', icon: 'bar_chart', link: '/admin/statistics' },
+    { key: 'TASKS', icon: 'task', link: '/admin/tasks' },
+    { key: 'BRANDS', icon: 'store', link: '/admin/brands' },
+    { key: 'ATTRIBUTES', icon: 'tune', link: '/admin/attributes' },
+    { key: 'ATTRIBUTE_GROUPS', icon: 'view_list', link: '/admin/attribute-groups' },
+    { key: 'CATEGORIES', icon: 'category', link: '/admin/categories' },
+    { key: 'PRODUCTS', icon: 'inventory_2', link: '/admin/products' },
+    { key: 'ORDERS', icon: 'shopping_cart', link: '/admin/orders' },
+    { key: 'SHIPPING', icon: 'local_shipping', link: '/admin/shipping' },
+    { key: 'SUBSCRIPTIONS', icon: 'subscriptions', link: '/admin/subscriptions' },
+    { key: 'PAYMENTS', icon: 'payments', link: '/admin/payments' },
+    { key: 'PROMOTIONS', icon: 'local_offer', link: '/admin/promotions' },
+    { key: 'REVIEWS', icon: 'rate_review', link: '/admin/reviews' },
+  ];
 }

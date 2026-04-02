@@ -9,8 +9,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/home/home').then((m) => m.Home),
   },
   {
-    path: 'admin/users',
+    path: 'admin',
     loadComponent: () => import('./pages/admin/admin').then((m) => m.AdminComponent),
+  },
+  {
+    path: 'admin/users',
+    loadComponent: () => import('./pages/admin/users/users').then((m) => m.UsersComponent),
   },
   
   
