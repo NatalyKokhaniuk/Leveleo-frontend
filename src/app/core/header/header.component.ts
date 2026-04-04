@@ -182,8 +182,8 @@ export class HeaderComponent {
   }
 
   hasAdminAccess(): boolean {
-  return this.authService.isAdmin();
-}
+    return this.authService.isAdmin() || this.authService.isModerator();
+  }
 
   constructor() {
     effect(() => {

@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
-
-
-
+import { adminGuard } from './core/guards/admin.guard';
+import { adminOrModeratorGuard } from './core/guards/admin.moderator.guartd';
+import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
   {
@@ -11,13 +11,14 @@ export const routes: Routes = [
   {
     path: 'admin',
     loadComponent: () => import('./pages/admin/admin').then((m) => m.AdminComponent),
+    canActivate: [adminOrModeratorGuard], // ← додаємо guard
   },
   {
     path: 'admin/users',
     loadComponent: () => import('./pages/admin/admin/users/users').then((m) => m.UsersComponent),
+    canActivate: [adminGuard], // ← додаємо guard
   },
-  
-  
+
   {
     path: 'about',
     loadComponent: () => import('./pages/about/about').then((m) => m.AboutComponent),
@@ -46,6 +47,7 @@ export const routes: Routes = [
     path: 'profile',
     loadComponent: () =>
       import('./pages/profile/profile.component').then((m) => m.ProfileComponent),
+    canActivate: [authGuard],
   },
 
   // ── All auth callback paths use AuthRedirect to preserve query params ─

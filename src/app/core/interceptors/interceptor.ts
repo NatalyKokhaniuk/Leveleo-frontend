@@ -1,27 +1,32 @@
+import { isPlatformBrowser } from '@angular/common';
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../auth/services/auth.service';
 
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
+  const platformId = inject(PLATFORM_ID);
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Пропускаємо Authorization для самого /refresh-token
-  const isRefreshRequest = req.url.endsWith('/api/auth/refresh-token');
+  if (!isPlatformBrowser(platformId)) {
+    return next(req.clone({ withCredentials: true }));
+  }
 
-  const authReq =
-    !isRefreshRequest && authService.accessToken()
-      ? req.clone({
-          setHeaders: { Authorization: `Bearer ${authService.accessToken()}` },
-          withCredentials: true,
-        })
-      : req.clone({ withCredentials: true });
+  const isRefreshRequest = req.url.endsWith('/auth/refresh-token');
+
+  let authReq = req.clone({ withCredentials: true });
+
+  if (!isRefreshRequest && authService.accessToken()) {
+    authReq = req.clone({
+      setHeaders: { Authorization: `Bearer ${authService.accessToken()}` },
+      withCredentials: true,
+    });
+  }
 
   return next(authReq).pipe(
     catchError((error) => {
-      // Якщо 401 і це не сам refresh-запит
       if (error.status === 401 && !isRefreshRequest) {
         return from(authService.refreshToken()).pipe(
           switchMap(() => {
@@ -32,15 +37,17 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
                   withCredentials: true,
                 })
               : req.clone({ withCredentials: true });
+
             return next(retryReq);
           }),
-          catchError(() => {
-            return throwError(() => error);
+          catchError((refreshErr) => {
+            authService.logout();
+            router.navigate(['/login']);
+            return throwError(() => refreshErr);
           }),
         );
       }
 
-      // Серверні помилки
       if (error.status === 500) router.navigate(['/internal-server-error']);
       if (error.status === 503) router.navigate(['/service-unavailable']);
 

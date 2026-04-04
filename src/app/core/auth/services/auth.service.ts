@@ -1,6 +1,8 @@
-import { Injectable, NgZone, computed, inject, signal } from '@angular/core';
-import { Observable, of, throwError } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, NgZone, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { catchError, finalize, shareReplay, tap } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
 import {
   AuthResponse,
@@ -35,49 +37,60 @@ export class AuthService {
   // true поки йде перевірка refresh-token при старті — компоненти можуть
   // показати skeleton/spinner замість "моргання" між станами
   private _isRestoring = signal<boolean>(true);
-
+  private isRefreshing = false;
+  private refreshSubject = new BehaviorSubject<string | null>(null);
   currentUser = this._currentUser.asReadonly();
   accessToken = this._accessToken.asReadonly();
   isAuthenticated = this._isAuthenticated.asReadonly();
   isRestoring = this._isRestoring.asReadonly();
-
+  platformId = inject(PLATFORM_ID);
   isAdmin = computed(() => this.currentUser()?.roles.includes('Admin') ?? false);
-
+  isRestoring$ = toObservable(this._isRestoring);
   // ADD BELOW isAdmin
 
-hasRole(role: string): boolean {
-  const user = this.currentUser();
-  return !!user && user.roles.includes(role);
-}
+  hasRole(role: string): boolean {
+    const user = this.currentUser();
+    return !!user && user.roles.includes(role);
+  }
 
-hasAnyRole(roles: string[]): boolean {
-  const user = this.currentUser();
-  return !!user && roles.some((r) => user.roles.includes(r));
-}
+  hasAnyRole(roles: string[]): boolean {
+    const user = this.currentUser();
+    return !!user && roles.some((r) => user.roles.includes(r));
+  }
 
-isModerator = computed(() => this.currentUser()?.roles.includes('Moderator') ?? false);
+  isModerator = computed(() => this.currentUser()?.roles.includes('Moderator') ?? false);
   // ─── Відновлення сесії ───────────────────────────────────────────
   // Повертає Observable — використовується в APP_INITIALIZER щоб
   // Angular чекав завершення перед першим рендером.
+  // В AuthService
   restoreSession(): Observable<RefreshResponse | null> {
-    console.log('restoreSession');
+    if (!isPlatformBrowser(this.platformId)) {
+      this._isRestoring.set(false);
+      return of(null);
+    }
+
+    console.log('🔄 restoreSession started');
+
+    this._isRestoring.set(true);
 
     return this.refreshToken().pipe(
       tap((res) => {
+        console.log('✅ restoreSession SUCCESS', res);
         this._currentUser.set(res.user);
-        console.log(res.user);
         this._accessToken.set(res.accessToken);
         this._isAuthenticated.set(true);
-        this._isRestoring.set(false);
       }),
-      catchError(() => {
+      catchError((err) => {
+        console.error('❌ restoreSession FAILED', err);
         this._clearAuthState();
+        return of(null);
+      }),
+      finalize(() => {
         this._isRestoring.set(false);
-        return of(null); // не кидаємо помилку — це нормальна ситуація (не залогінений)
+        console.log('🔄 restoreSession finished, isRestoring = false');
       }),
     );
   }
-
   // ─── Основні методи автентифікації ───────────────────────────────
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
@@ -105,9 +118,40 @@ isModerator = computed(() => this.currentUser()?.roles.includes('Moderator') ?? 
   resendConfirmation(data: ResendConfirmationRequest): Observable<{ message: string }> {
     return this.api.post<{ message: string }>('/auth/resend-confirmation', data);
   }
-
+  private refresh$?: Observable<RefreshResponse>;
   refreshToken(): Observable<RefreshResponse> {
-    return this.api.post<RefreshResponse>('/auth/refresh-token', {});
+    if (!this.refresh$) {
+      console.log('🔄 refreshToken() START');
+
+      this.refresh$ = this.api.post<RefreshResponse>('/auth/refresh-token', {}).pipe(
+        tap((res) => {
+          console.log('✅ refreshToken SUCCESS', {
+            accessToken: res.accessToken ? 'present' : 'MISSING',
+            user: res.user?.email || 'no user',
+          });
+
+          this._accessToken.set(res.accessToken);
+          this._currentUser.set(res.user);
+          this._isAuthenticated.set(true);
+        }),
+
+        catchError((err) => {
+          console.error('❌ refreshToken FAILED', err.error || err);
+          this._clearAuthState();
+          return throwError(() => err);
+        }),
+
+        finalize(() => {
+          console.log('♻️ refreshToken RESET');
+          this.refresh$ = undefined; // 🔥 дозволяємо наступний refresh
+          this._isRestoring.set(false);
+        }),
+
+        shareReplay(1), // 🔥 КЛЮЧОВЕ
+      );
+    }
+
+    return this.refresh$;
   }
 
   logout(): Observable<{ message: string }> {

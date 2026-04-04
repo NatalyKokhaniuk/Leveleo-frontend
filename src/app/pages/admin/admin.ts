@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import { MatIconModule } from '@angular/material/icon';
+import { AuthService } from '../../core/auth/services/auth.service';
 
 @Component({
   selector: 'app-admin',
@@ -11,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
   templateUrl: './admin.html',
 })
 export class AdminComponent {
-
+  userservice = inject(AuthService);
   menu = [
     { key: 'USERS', icon: 'people', link: '/admin/users' },
     { key: 'STATISTICS', icon: 'bar_chart', link: '/admin/statistics' },

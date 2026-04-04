@@ -1,9 +1,9 @@
-import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { DataTableComponent, TableColumn } from '../../data-table/data-table.component';
-import { UsersService, UserDto } from '../../../../core/auth/services/users';
-import { AuthService } from '../../../../core/auth/services/auth.service';
+import { Component, computed, inject, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
+import { AuthService } from '../../../../core/auth/services/auth.service';
+import { UserDto, UsersService } from '../../../../core/auth/services/users';
+import { DataTableComponent, TableColumn } from '../../data-table/data-table.component';
 
 @Component({
   selector: 'app-users',
@@ -14,18 +14,19 @@ import { TranslateModule } from '@ngx-translate/core';
 export class UsersComponent {
   private usersService = inject(UsersService);
   private authService = inject(AuthService);
-
+  dataForTable = computed(() => this.users());
   users = signal<UserDto[]>([]);
   roles = ['Admin', 'Moderator', 'User'];
 
-  columns: TableColumn<UserDto>[] = [
+  columns: TableColumn[] = [
     { key: 'firstName', label: 'Name', sortable: true },
     { key: 'lastName', label: 'Surname', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
     {
       key: 'roles',
       label: 'Role',
       type: 'select',
-      options: this.roles,
+      options: ['User', 'Moderator', 'Admin'],
     },
   ];
 
@@ -38,7 +39,7 @@ export class UsersComponent {
       this.users.set(res);
     });
   }
-
+  rowLoading = signal<Record<string, 'block' | 'unblock' | null>>({});
   handleAction(event: any) {
     const { type, row } = event;
 
@@ -49,18 +50,32 @@ export class UsersComponent {
     }
 
     if (type === 'block') {
-      this.usersService.blockUser(row.id).subscribe();
+      this.rowLoading.update((r) => ({ ...r, [row.id]: 'block' }));
+      this.usersService.blockUser(row.id).subscribe(() => {
+        this.loadUsers();
+        this.rowLoading.update((r) => ({ ...r, [row.id]: null }));
+      });
+    }
+
+    if (type === 'unblock') {
+      this.rowLoading.update((r) => ({ ...r, [row.id]: 'unblock' }));
+      this.usersService.unblockUser(row.id).subscribe(() => {
+        this.loadUsers();
+        this.rowLoading.update((r) => ({ ...r, [row.id]: null }));
+      });
     }
 
     if (type === 'select') {
       if (!this.authService.hasRole('Admin')) return;
 
       // 🔥 API PUT
-      this.usersService.updateUser(row.id, {
-        roles: [row.roles],
-      }).subscribe(() => {
-        this.loadUsers();
-      });
+      this.usersService
+        .updateUser(row.id, {
+          roles: row.roles,
+        })
+        .subscribe(() => {
+          this.loadUsers();
+        });
     }
   }
 }

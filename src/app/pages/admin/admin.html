@@ -1,5 +1,4 @@
 <div class="p-6 pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-12">
-
   <!-- TITLE -->
   <h1 class="text-2xl md:text-3xl font-bold mb-8 text-primary">
     {{ 'ADMIN.TITLE' | translate }}
@@ -7,26 +6,24 @@
 
   <!-- GRID -->
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-
     @for (item of menu; track item.key) {
-      <a
-        [routerLink]="item.link"
-        class="bg-surface rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
-      >
+      @if ((item.key == 'USERS' || item.key == 'USERS') && !userservice.isAdmin()) {
+      } @else {
+        <a
+          [routerLink]="item.link"
+          class="bg-surface rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+        >
+          <!-- ICON -->
+          <mat-icon class="text-4xl mb-3 text-primary">
+            {{ item.icon }}
+          </mat-icon>
 
-        <!-- ICON -->
-        <mat-icon class="text-4xl mb-3 text-primary">
-          {{ item.icon }}
-        </mat-icon>
-
-        <!-- TEXT -->
-        <span class="font-medium text-sm md:text-base">
-          {{ ('ADMIN.' + item.key) | translate }}
-        </span>
-
-      </a>
+          <!-- TEXT -->
+          <span class="font-medium text-sm md:text-base">
+            {{ 'ADMIN.' + item.key | translate }}
+          </span>
+        </a>
+      }
     }
-
   </div>
-
 </div>
