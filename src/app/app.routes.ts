@@ -18,6 +18,18 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/admin/admin/users/users').then((m) => m.UsersComponent),
     canActivate: [adminGuard], // ← додаємо guard
   },
+  {
+    path: 'admin/categories',
+    loadComponent: () =>
+      import('./pages/admin/admin/categories/categories').then((m) => m.CategoriesComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
+  {
+    path: 'admin/brands',
+    loadComponent: () =>
+      import('./pages/admin/admin/brands/brands').then((m) => m.BrandsComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
 
   {
     path: 'about',

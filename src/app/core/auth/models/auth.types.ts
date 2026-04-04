@@ -125,5 +125,11 @@ export interface UpdateMyProfileRequest {
 export interface MediaUploadResponse {
   fileName: string;
   key: string;
+  /** Може вказувати на приватне сховище; для &lt;img&gt; використовуйте {@link MediaSignedUrlResponse} з GET /api/media/url. */
+  url: string;
+}
+
+export interface MediaSignedUrlResponse {
+  key: string;
   url: string;
 }

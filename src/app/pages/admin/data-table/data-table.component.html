@@ -1,48 +1,115 @@
 <div class="flex flex-col gap-6">
-  <!-- SEARCH -->
-  <input
-    type="text"
-    placeholder="{{ 'ADMIN.TABLE.SEARCH' | translate }}"
-    (input)="onSearch($event)"
-    class="border rounded-xl px-4 py-2 w-full md:w-80"
-  />
-
-  <!-- ROLE FILTER -->
-  <div class="flex gap-2 flex-wrap">
-    <select (change)="onRoleFilterChange($event)" class="border rounded-xl px-3 py-2">
-      <option value="">...</option>
+  <!-- SEARCH + FILTER -->
+  <div class="flex flex-col sm:flex-row gap-4 flex-wrap">
+    <input
+      type="text"
+      placeholder="{{ 'ADMIN.TABLE.SEARCH' | translate }}"
+      (input)="onSearch($event)"
+      class="border border-outline-variant rounded-xl px-4 py-2 w-full sm:flex-1 sm:min-w-[12rem] md:max-w-md bg-surface-container"
+    />
+    <select
+      (change)="onRoleFilterChange($event)"
+      class="border border-outline-variant rounded-xl px-3 py-2 w-full sm:w-auto sm:min-w-[10rem] bg-surface-container"
+    >
+      <option value="">{{ 'ADMIN.TABLE.FILTER_ROLE_ALL' | translate }}</option>
       @for (opt of roleOptions; track opt) {
         <option [value]="opt">{{ opt }}</option>
       }
     </select>
   </div>
 
-  <!-- TABLE -->
-  <div class="overflow-hidden rounded-2xl border">
-    <table class="w-full text-sm">
-      <thead class="border-b">
+  <!-- Mobile: картки -->
+  <div class="flex flex-col gap-4 md:hidden">
+    @for (row of paginatedData(); track row.id) {
+      <div
+        class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-3 min-w-0"
+      >
+        @for (col of columns; track col.key) {
+          <div class="flex flex-col gap-1 min-w-0">
+            <span class="text-xs opacity-70">{{ col.label }}</span>
+            @if (col.type === 'select') {
+              <select
+                (change)="onSelectChange(row, col.key, $any($event.target).value)"
+                class="border border-outline-variant rounded-lg px-2 py-2 w-full bg-surface-container"
+              >
+                @for (opt of col.options ?? []; track opt) {
+                  <option [value]="opt" [selected]="row.roles[0] === opt">{{ opt }}</option>
+                }
+              </select>
+            } @else {
+              <span class="text-sm break-words">{{ displayValue(row, col.key) }}</span>
+            }
+          </div>
+        }
+        <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant">
+          <button
+            matButton="outlined"
+            type="button"
+            class="w-full"
+            (click)="emitAction('delete', row)"
+          >
+            {{ 'ADMIN.TABLE.DELETE' | translate }}
+          </button>
+          @if (row.isActive) {
+            <button
+              matButton="tonal"
+              type="button"
+              class="w-full"
+              (click)="emitAction('block', row)"
+              [disabled]="rowLoading()[row.id] === 'block'"
+            >
+              @if (rowLoading()[row.id] === 'block') {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                {{ 'ADMIN.TABLE.BLOCK' | translate }}
+              }
+            </button>
+          } @else {
+            <button
+              matButton="tonal"
+              type="button"
+              class="w-full mat-primary-button"
+              (click)="emitAction('unblock', row)"
+              [disabled]="rowLoading()[row.id] === 'unblock'"
+            >
+              @if (rowLoading()[row.id] === 'unblock') {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                {{ 'ADMIN.TABLE.UNBLOCK' | translate }}
+              }
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Desktop: таблиця -->
+  <div class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
+    <table class="w-full text-sm min-w-0">
+      <thead class="border-b border-outline-variant">
         <tr>
           @for (col of columns; track col.key) {
-            <th class="p-4 text-left cursor-pointer" (click)="changeSort(col.key)">
+            <th class="p-3 md:p-4 text-left cursor-pointer whitespace-nowrap" (click)="changeSort(col.key)">
               {{ col.label }}
               @if (sortKey() === col.key) {
                 <span>{{ sortDir() === 'asc' ? '↑' : '↓' }}</span>
               }
             </th>
           }
-          <th class="p-4">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+          <th class="p-3 md:p-4 whitespace-nowrap">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
         </tr>
       </thead>
 
       <tbody>
         @for (row of paginatedData(); track row.id) {
-          <tr class="border-t">
+          <tr class="border-t border-outline-variant">
             @for (col of columns; track col.key) {
-              <td class="p-4">
+              <td class="p-3 md:p-4 align-top max-w-[10rem] md:max-w-none break-words">
                 @if (col.type === 'select') {
                   <select
                     (change)="onSelectChange(row, col.key, $any($event.target).value)"
-                    class="border rounded px-2 py-1"
+                    class="border border-outline-variant rounded-lg px-2 py-1 w-full min-w-0 max-w-full bg-surface-container"
                   >
                     @for (opt of col.options ?? []; track opt) {
                       <option [value]="opt" [selected]="row.roles[0] === opt">{{ opt }}</option>
@@ -53,36 +120,40 @@
                 }
               </td>
             }
-            <td class="p-4 flex gap-2">
-              <button matButton="outlined" (click)="emitAction('delete', row)">
-                {{ 'ADMIN.TABLE.DELETE' | translate }}
-              </button>
-              @if (row.isActive) {
-                <button
-                  matButton="tonal"
-                  (click)="emitAction('block', row)"
-                  [disabled]="rowLoading()[row.id] === 'block'"
-                >
-                  @if (rowLoading()[row.id] === 'block') {
-                    <mat-spinner diameter="20"></mat-spinner>
-                  } @else {
-                    {{ 'ADMIN.TABLE.BLOCK' | translate }}
-                  }
+            <td class="p-3 md:p-4 align-top">
+              <div class="flex flex-col lg:flex-row flex-wrap gap-2 min-w-[7rem]">
+                <button matButton="outlined" type="button" (click)="emitAction('delete', row)">
+                  {{ 'ADMIN.TABLE.DELETE' | translate }}
                 </button>
-              } @else {
-                <button
-                  matButton="tonal"
-                  class="mat-primary-button"
-                  (click)="emitAction('unblock', row)"
-                  [disabled]="rowLoading()[row.id] === 'unblock'"
-                >
-                  @if (rowLoading()[row.id] === 'unblock') {
-                    <mat-spinner diameter="20"></mat-spinner>
-                  } @else {
-                    {{ 'ADMIN.TABLE.UNBLOCK' | translate }}
-                  }
-                </button>
-              }
+                @if (row.isActive) {
+                  <button
+                    matButton="tonal"
+                    type="button"
+                    (click)="emitAction('block', row)"
+                    [disabled]="rowLoading()[row.id] === 'block'"
+                  >
+                    @if (rowLoading()[row.id] === 'block') {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.BLOCK' | translate }}
+                    }
+                  </button>
+                } @else {
+                  <button
+                    matButton="tonal"
+                    type="button"
+                    class="mat-primary-button"
+                    (click)="emitAction('unblock', row)"
+                    [disabled]="rowLoading()[row.id] === 'unblock'"
+                  >
+                    @if (rowLoading()[row.id] === 'unblock') {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.UNBLOCK' | translate }}
+                    }
+                  </button>
+                }
+              </div>
             </td>
           </tr>
         }
@@ -91,14 +162,26 @@
   </div>
 
   <!-- PAGINATION -->
-  <div class="flex justify-between">
-    <button (click)="prevPage()" class="border px-4 py-1 rounded">
+  <div
+    class="flex flex-col sm:flex-row flex-wrap justify-between items-stretch sm:items-center gap-3"
+  >
+    <button
+      type="button"
+      (click)="prevPage()"
+      class="border border-outline-variant rounded-xl px-4 py-2 w-full sm:w-auto bg-surface-container"
+    >
       {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
     </button>
 
-    <span> Page {{ page() }} / {{ totalPages() }} </span>
+    <span class="text-sm text-center order-first sm:order-none opacity-80">
+      {{ 'ADMIN.TABLE.PAGE' | translate }} {{ page() }} / {{ totalPages() }}
+    </span>
 
-    <button (click)="nextPage()" class="border px-4 py-1 rounded">
+    <button
+      type="button"
+      (click)="nextPage()"
+      class="border border-outline-variant rounded-xl px-4 py-2 w-full sm:w-auto bg-surface-container"
+    >
       {{ 'ADMIN.TABLE.NEXT' | translate }}
     </button>
   </div>

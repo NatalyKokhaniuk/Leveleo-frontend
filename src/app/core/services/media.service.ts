@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { MediaUploadResponse } from '../auth/models/auth.types';
+import { MediaSignedUrlResponse, MediaUploadResponse } from '../auth/models/auth.types';
 
 @Injectable({ providedIn: 'root' })
 export class MediaService {
@@ -31,5 +31,18 @@ export class MediaService {
       `${this.base}/${encodeURIComponent(key)}`,
       this.options,
     );
+  }
+
+  /**
+   * Тимчасовий pre-signed URL для ключа (приватний бакет). Використовуйте для &lt;img [src]&gt;.
+   */
+  getSignedUrl(key: string, expiresMinutes = 30): Observable<MediaSignedUrlResponse> {
+    const params = new HttpParams()
+      .set('key', key)
+      .set('expiresMinutes', String(expiresMinutes));
+    return this.http.get<MediaSignedUrlResponse>(`${this.base}/url`, {
+      ...this.options,
+      params,
+    });
   }
 }

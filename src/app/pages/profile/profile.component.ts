@@ -14,7 +14,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { MediaService } from '../../core/services/media.service';
-import { UserService } from '../../core/services/user.service';
+import { UserService } from '../../features/users/user.service';
 
 @Component({
   selector: 'app-profile',

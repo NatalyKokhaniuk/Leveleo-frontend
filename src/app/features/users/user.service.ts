@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, tap } from 'rxjs';
-import { UpdateMyProfileRequest, UserResponse } from '../auth/models/auth.types';
-import { AuthService } from '../auth/services/auth.service';
-import { ApiService } from './api.service';
+import { UpdateMyProfileRequest, UserResponse } from '../../core/auth/models/auth.types';
+import { AuthService } from '../../core/auth/services/auth.service';
+import { ApiService } from '../../core/services/api.service';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -13,7 +13,7 @@ export class UserService {
 
   /**
    * Оновлює профіль поточного користувача.
-   * Використовує Optional-патерн бекенду — передавай тільки ті поля які змінились.
+   * Тіло — плоский JSON (опційні поля); надсилай лише те, що змінюється.
    * Після успіху оновлює сигнал currentUser в AuthService.
    */
   updateMyProfile(data: UpdateMyProfileRequest): Observable<UserResponse> {
