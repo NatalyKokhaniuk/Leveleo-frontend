@@ -1,8 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   CreateProductAttributeDto,
   CreateProductAttributeTranslationDto,
+  normalizeProductAttributeDto,
   ProductAttributeResponseDto,
   ProductAttributeTranslationResponseDto,
   UpdateProductAttributeDto,
@@ -15,11 +17,15 @@ export class ProductAttributeService {
   private base = '/productattributes';
 
   create(dto: CreateProductAttributeDto): Observable<ProductAttributeResponseDto> {
-    return this.api.post<ProductAttributeResponseDto>(this.base, dto);
+    return this.api
+      .post<ProductAttributeResponseDto>(this.base, dto)
+      .pipe(map(normalizeProductAttributeDto));
   }
 
   update(id: string, dto: UpdateProductAttributeDto): Observable<ProductAttributeResponseDto> {
-    return this.api.put<ProductAttributeResponseDto>(`${this.base}/${id}`, dto);
+    return this.api
+      .put<ProductAttributeResponseDto>(`${this.base}/${id}`, dto)
+      .pipe(map(normalizeProductAttributeDto));
   }
 
   delete(id: string): Observable<void> {
@@ -27,32 +33,42 @@ export class ProductAttributeService {
   }
 
   getById(id: string): Observable<ProductAttributeResponseDto> {
-    return this.api.get<ProductAttributeResponseDto>(`${this.base}/${id}`);
+    return this.api
+      .get<ProductAttributeResponseDto>(`${this.base}/${id}`)
+      .pipe(map(normalizeProductAttributeDto));
   }
 
   getBySlug(slug: string): Observable<ProductAttributeResponseDto> {
-    return this.api.get<ProductAttributeResponseDto>(
-      `${this.base}/slug/${encodeURIComponent(slug)}`,
-    );
+    return this.api
+      .get<ProductAttributeResponseDto>(`${this.base}/slug/${encodeURIComponent(slug)}`)
+      .pipe(map(normalizeProductAttributeDto));
   }
 
   getAll(): Observable<ProductAttributeResponseDto[]> {
-    return this.api.get<ProductAttributeResponseDto[]>(this.base);
+    return this.api
+      .get<ProductAttributeResponseDto[]>(this.base)
+      .pipe(map((list) => list.map(normalizeProductAttributeDto)));
   }
 
   search(query: string): Observable<ProductAttributeResponseDto[]> {
     const q = encodeURIComponent(query);
-    return this.api.get<ProductAttributeResponseDto[]>(`${this.base}/search?query=${q}`);
+    return this.api
+      .get<ProductAttributeResponseDto[]>(`${this.base}/search?query=${q}`)
+      .pipe(map((list) => list.map(normalizeProductAttributeDto)));
   }
 
   getByGroupId(groupId: string): Observable<ProductAttributeResponseDto[]> {
-    return this.api.get<ProductAttributeResponseDto[]>(`${this.base}/group/${groupId}`);
+    return this.api
+      .get<ProductAttributeResponseDto[]>(`${this.base}/group/${groupId}`)
+      .pipe(map((list) => list.map(normalizeProductAttributeDto)));
   }
 
   getByGroupSlug(groupSlug: string): Observable<ProductAttributeResponseDto[]> {
-    return this.api.get<ProductAttributeResponseDto[]>(
-      `${this.base}/group/slug/${encodeURIComponent(groupSlug)}`,
-    );
+    return this.api
+      .get<ProductAttributeResponseDto[]>(
+        `${this.base}/group/slug/${encodeURIComponent(groupSlug)}`,
+      )
+      .pipe(map((list) => list.map(normalizeProductAttributeDto)));
   }
 
   addTranslation(

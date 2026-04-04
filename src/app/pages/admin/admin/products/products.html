@@ -1,0 +1,381 @@
+<main class="pt-32 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-6 min-w-0">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <a
+        routerLink="/admin"
+        class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+      >
+        <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+        {{ 'ADMIN.BACK' | translate }}
+      </a>
+      <h1 class="modal-title text-2xl md:text-3xl text-left">{{ 'ADMIN.PRODUCT.TITLE' | translate }}</h1>
+      <p class="modal-desc text-left max-w-none">
+        {{ 'ADMIN.PRODUCT.DESCRIPTION' | translate }}
+      </p>
+    </div>
+    <a
+      mat-flat-button
+      color="primary"
+      routerLink="/admin/products/new"
+      class="w-full sm:w-auto sm:self-start"
+    >
+      <mat-icon>add</mat-icon>
+      {{ 'ADMIN.PRODUCT.ADD' | translate }}
+    </a>
+  </div>
+
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4 min-w-0"
+  >
+    <p class="text-sm opacity-80">{{ 'ADMIN.PRODUCT.SEARCH_HINT' | translate }}</p>
+    <div class="flex flex-col lg:flex-row gap-4 flex-wrap">
+      <mat-form-field class="flex-1 min-w-[200px]">
+        <mat-label>{{ 'ADMIN.TABLE.SEARCH' | translate }}</mat-label>
+        <input
+          matInput
+          type="search"
+          [value]="searchText()"
+          (input)="onSearchInput($event)"
+          autocomplete="off"
+        />
+        @if (searchText().trim()) {
+          <button matSuffix mat-icon-button type="button" (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="min-w-[200px]">
+        <mat-label>{{ 'ADMIN.PRODUCT.FILTER_CATEGORY' | translate }}</mat-label>
+        <mat-select
+          [value]="categoryId()"
+          (selectionChange)="categoryId.set($event.value); onFilterChange()"
+        >
+          <mat-option [value]="null">{{ 'ADMIN.PRODUCT.FILTER_ALL' | translate }}</mat-option>
+          @for (c of categories(); track c.id) {
+            <mat-option [value]="c.id">{{ c.fullPath }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="min-w-[180px]">
+        <mat-label>{{ 'ADMIN.PRODUCT.FILTER_BRAND' | translate }}</mat-label>
+        <mat-select [value]="brandId()" (selectionChange)="brandId.set($event.value); onFilterChange()">
+          <mat-option [value]="null">{{ 'ADMIN.PRODUCT.FILTER_ALL' | translate }}</mat-option>
+          @for (b of brands(); track b.id) {
+            <mat-option [value]="b.id">{{ b.name }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-checkbox
+        [checked]="includeInactive()"
+        (change)="includeInactive.set($event.checked); onFilterChange()"
+      >
+        {{ 'ADMIN.PRODUCT.INCLUDE_INACTIVE' | translate }}
+      </mat-checkbox>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 flex-wrap">
+      <mat-form-field class="min-w-[120px]">
+        <mat-label>{{ 'ADMIN.PRODUCT.PRICE_FROM' | translate }}</mat-label>
+        <input
+          matInput
+          type="text"
+          [value]="priceFrom()"
+          (change)="onPriceFromChange($event)"
+        />
+      </mat-form-field>
+      <mat-form-field class="min-w-[120px]">
+        <mat-label>{{ 'ADMIN.PRODUCT.PRICE_TO' | translate }}</mat-label>
+        <input
+          matInput
+          type="text"
+          [value]="priceTo()"
+          (change)="onPriceToChange($event)"
+        />
+      </mat-form-field>
+    </div>
+
+    <div class="flex flex-col gap-3 border-t border-outline-variant pt-4">
+      <span class="text-sm font-medium">{{ 'ADMIN.PRODUCT.ATTR_FILTERS' | translate }}</span>
+      <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-stretch sm:items-end min-w-0">
+        <mat-form-field class="w-full shrink-0 sm:w-auto sm:min-w-[220px]">
+          <mat-label>{{ 'ADMIN.PRODUCT.ATTR_SELECT' | translate }}</mat-label>
+          <mat-select
+            [value]="attrFilterAttrId()"
+            (selectionChange)="onAttrFilterAttrChange($event.value)"
+          >
+            <mat-option [value]="null">{{ 'ADMIN.PRODUCT.ATTR_SELECT_PLACEHOLDER' | translate }}</mat-option>
+            @for (a of filterableAttributes(); track a.id) {
+              <mat-option [value]="a.id">{{ a.name }} ({{ a.slug }})</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (selectedFilterAttr(); as fa) {
+          @switch (filterAttrControlKind(fa)) {
+            @case ('string') {
+              <mat-form-field class="attr-filter-values-field w-full min-w-0 flex-1 sm:min-w-[200px]">
+                <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUES' | translate }}</mat-label>
+                <input
+                  matInput
+                  class="w-full"
+                  [value]="attrFilterString()"
+                  (input)="onAttrFilterStringInput($event)"
+                  [placeholder]="'ADMIN.PRODUCT.ATTR_VALUES_HINT' | translate"
+                  autocomplete="off"
+                />
+              </mat-form-field>
+            }
+            @case ('decimal') {
+              <mat-form-field class="attr-filter-values-field w-full min-w-0 flex-1 sm:min-w-[240px]">
+                <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUES' | translate }}</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  inputmode="decimal"
+                  [value]="attrFilterDecimalListRaw()"
+                  (input)="onAttrFilterDecimalListInput($event)"
+                  [placeholder]="'ADMIN.PRODUCT.ATTR_FILTER_DECIMAL_LIST_HINT' | translate"
+                  autocomplete="off"
+                />
+              </mat-form-field>
+            }
+            @case ('integer') {
+              <mat-form-field class="attr-filter-values-field w-full min-w-0 flex-1 sm:min-w-[240px]">
+                <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUES' | translate }}</mat-label>
+                <input
+                  matInput
+                  type="text"
+                  inputmode="numeric"
+                  [value]="attrFilterIntegerListRaw()"
+                  (input)="onAttrFilterIntegerListInput($event)"
+                  [placeholder]="'ADMIN.PRODUCT.ATTR_FILTER_INT_LIST_HINT' | translate"
+                  autocomplete="off"
+                />
+              </mat-form-field>
+            }
+            @case ('boolean') {
+              <mat-form-field class="w-full min-w-[10rem] sm:max-w-[14rem]">
+                <mat-label>{{ 'ADMIN.PRODUCT.ATTR_BOOL_LABEL' | translate }}</mat-label>
+                <mat-select
+                  [value]="attrFilterBoolChoice()"
+                  (selectionChange)="onAttrFilterBoolChange($event.value)"
+                >
+                  <mat-option value="unset">{{ 'ADMIN.PRODUCT.ATTR_FILTER_BOOL_PLACEHOLDER' | translate }}</mat-option>
+                  <mat-option value="yes">{{ 'ADMIN.PRODUCT.ATTR_BOOL_YES' | translate }}</mat-option>
+                  <mat-option value="no">{{ 'ADMIN.PRODUCT.ATTR_BOOL_NO' | translate }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            }
+          }
+        }
+        <button mat-stroked-button type="button" class="mt-1 shrink-0 self-start sm:self-end" (click)="addAttributeFilter()">
+          {{ 'ADMIN.PRODUCT.ATTR_ADD' | translate }}
+        </button>
+      </div>
+      @if (attributeFilters().length) {
+        <div class="flex flex-wrap gap-2">
+          @for (f of attributeFilters(); track f.attributeId) {
+            <span
+              class="inline-flex items-center gap-1 rounded-full border border-outline-variant px-3 py-1 text-sm"
+            >
+              {{ attrFilterChipLabel(f) }}
+              <button type="button" mat-icon-button class="!w-7 !h-7" (click)="removeAttributeFilter(f.attributeId)">
+                <mat-icon class="text-base">close</mat-icon>
+              </button>
+            </span>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-6 min-w-0"
+  >
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (items().length === 0) {
+      <p class="modal-desc text-center max-w-none py-8">{{ 'ADMIN.PRODUCT.EMPTY' | translate }}</p>
+    } @else {
+      <p class="text-sm opacity-80">{{ 'ADMIN.PRODUCT.TABLE_SORT_HINT' | translate }}</p>
+      <div
+        class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"
+        appHorizontalDragScroll
+      >
+        <table mat-table [dataSource]="displayedItems()" class="w-full min-w-[960px]">
+          <ng-container matColumnDef="image">
+            <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap w-14">{{
+              'ADMIN.PRODUCT.COL_IMAGE' | translate
+            }}</th>
+            <td mat-cell *matCellDef="let row" class="w-14 align-middle">
+              <app-media-image-thumb [imageKey]="row.mainImageKey" />
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="name">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none max-w-[220px]"
+              (click)="changeSort('name')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_NAME' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('name') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row" class="max-w-[220px]">
+              <span class="font-medium break-words">{{ row.name }}</span>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="price">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none whitespace-nowrap"
+              (click)="changeSort('price')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_PRICE' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('price') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.price | number: '1.2-2' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="stock">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none whitespace-nowrap"
+              (click)="changeSort('stock')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_STOCK' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('stock') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.stockQuantity }}</td>
+          </ng-container>
+          <ng-container matColumnDef="available">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none whitespace-nowrap"
+              (click)="changeSort('available')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_AVAILABLE' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('available') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.availableQuantity }}</td>
+          </ng-container>
+          <ng-container matColumnDef="category">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('category')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_CATEGORY' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('category') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row" class="max-w-[160px] break-words">{{
+              categoryLabel(row.categoryId)
+            }}</td>
+          </ng-container>
+          <ng-container matColumnDef="brand">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('brand')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_BRAND' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('brand') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{ brandLabel(row.brandId) }}</td>
+          </ng-container>
+          <ng-container matColumnDef="rating">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none whitespace-nowrap"
+              (click)="changeSort('rating')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_RATING' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('rating') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.averageRating | number: '1.1-1' }}</td>
+          </ng-container>
+          <ng-container matColumnDef="sold">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none whitespace-nowrap"
+              (click)="changeSort('sold')"
+            >
+              {{ 'ADMIN.PRODUCT.COL_SOLD' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('sold') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.totalSold }}</td>
+          </ng-container>
+          <ng-container matColumnDef="active">
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('isActive')"
+            >
+              {{ 'ADMIN.CATEGORY.COL_ACTIVE' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('isActive') }}</span>
+            </th>
+            <td mat-cell *matCellDef="let row">{{
+              row.isActive ? ('ADMIN.CATEGORY.YES' | translate) : ('ADMIN.CATEGORY.NO' | translate)
+            }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="flex flex-wrap gap-1">
+                <a
+                  mat-icon-button
+                  [routerLink]="['/admin/products', row.id]"
+                  [attr.aria-label]="'ADMIN.TABLE.EDIT' | translate"
+                >
+                  <mat-icon>edit</mat-icon>
+                </a>
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  (click)="confirmDelete(row)"
+                  [attr.aria-label]="'ADMIN.TABLE.DELETE' | translate"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <div class="flex flex-wrap items-center justify-between gap-3 border-t border-outline-variant pt-4">
+        <span class="text-sm opacity-80"
+          >{{ 'ADMIN.TABLE.PAGE' | translate }} {{ page() }} / {{ totalPages() }} ·
+          {{ totalCount() }}</span
+        >
+        <div class="flex gap-2">
+          <button mat-stroked-button type="button" [disabled]="page() <= 1" (click)="prevPage()">
+            {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
+          </button>
+          <button
+            mat-stroked-button
+            type="button"
+            [disabled]="page() >= totalPages()"
+            (click)="nextPage()"
+          >
+            {{ 'ADMIN.TABLE.NEXT' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</main>

@@ -1,0 +1,72 @@
+/* Дві кнопки залишку — однакова ширина (орієнтир — перша, «Застосувати зміну»). */
+.stock-action-btn {
+  box-sizing: border-box;
+  width: 13rem;
+  min-width: 13rem;
+  max-width: 13rem;
+  flex: 0 0 auto;
+}
+
+/*
+ * Таблиця атрибутів: grab після Material (див. products.scss).
+ */
+:host ::ng-deep {
+  .horizontal-drag-scroll-host {
+    cursor: grab !important;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &.horizontal-drag-scroll--dragging {
+      cursor: grabbing !important;
+    }
+
+    td,
+    th,
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      cursor: inherit !important;
+    }
+
+    button,
+    a[href],
+    a[routerLink],
+    [mat-icon-button],
+    .mat-mdc-icon-button {
+      cursor: pointer !important;
+    }
+  }
+}
+
+/* Number: повна ширина зони вводу + вирівнювання; спінери Chrome не «висять» по центру вузького infix */
+.product-number-field {
+  width: 100%;
+  min-width: 0;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper,
+    .mat-mdc-form-field-flex {
+      width: 100%;
+    }
+
+    .mat-mdc-form-field-infix {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    input.mat-mdc-input-element[type='number'] {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      text-align: right;
+      -moz-appearance: textfield;
+    }
+
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button {
+      -webkit-appearance: inner-spin-button;
+      opacity: 1;
+      margin-left: 4px;
+    }
+  }
+}

@@ -64,6 +64,20 @@ export const routes: Routes = [
       ),
     canActivate: [adminOrModeratorGuard],
   },
+  {
+    path: 'admin/products/:productId',
+    loadComponent: () =>
+      import('./pages/admin/admin/products/product-detail/product-detail').then(
+        (m) => m.AdminProductDetailComponent,
+      ),
+    canActivate: [adminOrModeratorGuard],
+  },
+  {
+    path: 'admin/products',
+    loadComponent: () =>
+      import('./pages/admin/admin/products/products').then((m) => m.AdminProductsComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
 
   {
     path: 'about',

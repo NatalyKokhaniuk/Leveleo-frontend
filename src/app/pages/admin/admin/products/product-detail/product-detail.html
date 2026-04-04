@@ -1,0 +1,265 @@
+@if (loading()) {
+  <main class="pt-32 px-4 md:px-10 max-w-4xl mx-auto flex justify-center py-24">
+    <mat-spinner diameter="48"></mat-spinner>
+  </main>
+} @else {
+  <main class="pt-32 px-4 md:px-10 max-w-4xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
+    <div class="flex flex-col gap-2">
+      <a
+        routerLink="/admin/products"
+        class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+      >
+        <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+        {{ 'ADMIN.PRODUCT.BACK_TO_LIST' | translate }}
+      </a>
+      <h1 class="modal-title text-2xl md:text-3xl text-left">
+        {{ (isNew() ? 'ADMIN.PRODUCT.FORM_CREATE_TITLE' : 'ADMIN.PRODUCT.FORM_EDIT_TITLE') | translate }}
+      </h1>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-8">
+      <section
+        class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+      >
+        <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_MAIN' | translate }}</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.CATEGORY.NAME_EN' | translate }}</mat-label>
+            <input matInput formControlName="nameEn" autocomplete="off" />
+          </mat-form-field>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.CATEGORY.NAME_UK' | translate }}</mat-label>
+            <input matInput formControlName="nameUk" autocomplete="off" />
+          </mat-form-field>
+          <mat-form-field class="w-full md:col-span-2">
+            <mat-label>{{ 'ADMIN.CATEGORY.DESCRIPTION_EN' | translate }}</mat-label>
+            <textarea matInput formControlName="descriptionEn" rows="2"></textarea>
+          </mat-form-field>
+          <mat-form-field class="w-full md:col-span-2">
+            <mat-label>{{ 'ADMIN.CATEGORY.DESCRIPTION_UK' | translate }}</mat-label>
+            <textarea matInput formControlName="descriptionUk" rows="2"></textarea>
+          </mat-form-field>
+          <mat-form-field class="w-full product-number-field">
+            <mat-label>{{ 'ADMIN.PRODUCT.PRICE' | translate }}</mat-label>
+            <input matInput type="number" formControlName="price" min="0" step="0.01" />
+          </mat-form-field>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PRODUCT.FILTER_CATEGORY' | translate }}</mat-label>
+            <mat-select formControlName="categoryId">
+              @for (c of categories(); track c.id) {
+                <mat-option [value]="c.id">{{ c.fullPath }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PRODUCT.FILTER_BRAND' | translate }}</mat-label>
+            <mat-select formControlName="brandId">
+              @for (b of brands(); track b.id) {
+                <mat-option [value]="b.id">{{ b.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="w-full product-number-field">
+            <mat-label>{{ 'ADMIN.PRODUCT.STOCK_FIELD' | translate }}</mat-label>
+            <input matInput type="number" formControlName="stockQuantity" min="0" step="1" />
+          </mat-form-field>
+          <div class="flex items-center">
+            <mat-checkbox formControlName="isActive">{{ 'ADMIN.CATEGORY.ACTIVE' | translate }}</mat-checkbox>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+      >
+        <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_MAIN_IMAGE' | translate }}</h2>
+        <p class="text-sm opacity-80">{{ 'ADMIN.PRODUCT.MAIN_IMAGE_HINT' | translate }}</p>
+        <div class="flex flex-wrap items-center gap-4">
+          @if (mainImagePreview()) {
+            <img
+              [src]="mainImagePreview()!"
+              alt=""
+              class="h-24 w-24 object-contain rounded-lg border border-outline-variant"
+            />
+          } @else if (form.value.mainImageKey) {
+            <app-media-image-thumb [imageKey]="form.value.mainImageKey" />
+          }
+          <input #mainFile type="file" accept="image/*" class="hidden" (change)="pickMainImage($event)" />
+          <button mat-stroked-button type="button" [disabled]="isUploadingMain()" (click)="mainFile.click()">
+            @if (isUploadingMain()) {
+              <mat-spinner diameter="20" />
+            } @else {
+              <mat-icon>upload</mat-icon>
+            }
+            {{ 'ADMIN.CATEGORY.UPLOAD_IMAGE' | translate }}
+          </button>
+          @if (form.value.mainImageKey) {
+            <button mat-button type="button" color="warn" (click)="clearMainKey()">
+              {{ 'ADMIN.CATEGORY.REMOVE_IMAGE' | translate }}
+            </button>
+          }
+        </div>
+      </section>
+
+      @if (!isNew()) {
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+        >
+          <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_STOCK' | translate }}</h2>
+          <p class="text-sm opacity-80">
+            {{ 'ADMIN.PRODUCT.AVAILABLE_HINT' | translate }}:
+            <strong>{{ product()?.availableQuantity }}</strong>
+          </p>
+          <div class="flex flex-wrap items-end gap-4">
+            <mat-form-field class="w-36 min-w-[9rem] product-number-field">
+              <mat-label>{{ 'ADMIN.PRODUCT.STOCK_DELTA' | translate }}</mat-label>
+              <input
+                matInput
+                type="number"
+                step="1"
+                [value]="stockDelta()"
+                (input)="onStockDeltaInput($event)"
+              />
+            </mat-form-field>
+            <button
+              mat-flat-button
+              type="button"
+              color="primary"
+              class="stock-action-btn"
+              (click)="applyStockDelta()"
+              [disabled]="saving()"
+            >
+              {{ 'ADMIN.PRODUCT.STOCK_APPLY_DELTA' | translate }}
+            </button>
+            <mat-form-field class="w-40 min-w-[10rem] product-number-field">
+              <mat-label>{{ 'ADMIN.PRODUCT.STOCK_SET' | translate }}</mat-label>
+              <input
+                matInput
+                type="number"
+                min="0"
+                step="1"
+                [value]="stockAbsolute()"
+                (input)="onStockAbsoluteInput($event)"
+              />
+            </mat-form-field>
+            <button
+              mat-stroked-button
+              type="button"
+              class="stock-action-btn"
+              (click)="applyStockAbsolute()"
+              [disabled]="saving()"
+            >
+              {{ 'ADMIN.PRODUCT.STOCK_APPLY_ABSOLUTE' | translate }}
+            </button>
+          </div>
+        </section>
+
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+        >
+          <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_GALLERY' | translate }}</h2>
+          <input #galFile type="file" accept="image/*" class="hidden" (change)="uploadGalleryImage($event)" />
+          <button mat-stroked-button type="button" (click)="galFile.click()">
+            <mat-icon>add_photo_alternate</mat-icon>
+            {{ 'ADMIN.PRODUCT.ADD_GALLERY_IMAGE' | translate }}
+          </button>
+          <div class="flex flex-wrap gap-4">
+            @for (img of images(); track img.id) {
+              <div class="relative flex flex-col items-center gap-1 border border-outline-variant rounded-lg p-2">
+                <app-media-image-thumb [imageKey]="img.imageKey" />
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  class="!mt-1"
+                  (click)="removeGalleryImage(img)"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            }
+          </div>
+        </section>
+
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+        >
+          <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_VIDEOS' | translate }}</h2>
+          <input #vidFile type="file" class="hidden" (change)="uploadVideo($event)" />
+          <button mat-stroked-button type="button" (click)="vidFile.click()">
+            <mat-icon>video_call</mat-icon>
+            {{ 'ADMIN.PRODUCT.ADD_VIDEO' | translate }}
+          </button>
+          <ul class="list-disc pl-5 text-sm break-all">
+            @for (v of videos(); track v.id) {
+              <li class="flex flex-wrap items-center gap-2">
+                <span>{{ v.videoKey }}</span>
+                <button mat-icon-button type="button" color="warn" (click)="removeVideo(v)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        </section>
+
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+        >
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_ATTRIBUTES' | translate }}</h2>
+            <button mat-flat-button type="button" color="primary" (click)="openAddAttributeValue()">
+              <mat-icon>add</mat-icon>
+              {{ 'ADMIN.PRODUCT.ATTR_VALUE_ADD' | translate }}
+            </button>
+          </div>
+          <div
+            class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"
+            appHorizontalDragScroll
+          >
+            <table class="w-full text-sm min-w-[520px]">
+              <thead>
+                <tr class="border-b border-outline-variant text-left">
+                  <th class="py-2 pr-2">{{ 'ADMIN.PRODUCT.ATTR_COL_NAME' | translate }}</th>
+                  <th class="py-2 pr-2">{{ 'ADMIN.PRODUCT.ATTR_COL_VALUE' | translate }}</th>
+                  <th class="py-2">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of attributeValues(); track row.id) {
+                  <tr class="border-b border-outline-variant/60">
+                    <td class="py-2 pr-2">{{ attrLabel(row.productAttributeId) }}</td>
+                    <td class="py-2 pr-2">{{ displayValue(row) }}</td>
+                    <td class="py-2">
+                      <button mat-icon-button type="button" (click)="openEditAttributeValue(row)">
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                      <button mat-icon-button type="button" color="warn" (click)="deleteAttributeValue(row)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+      } @else {
+        <p class="text-sm opacity-80">{{ 'ADMIN.PRODUCT.MEDIA_AFTER_SAVE' | translate }}</p>
+      }
+
+      <div class="flex flex-wrap gap-3">
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+          @if (saving()) {
+            <mat-spinner diameter="22" class="inline-block" />
+          }
+          {{ 'ADMIN.CATEGORY.SAVE' | translate }}
+        </button>
+        @if (!isNew()) {
+          <button mat-stroked-button type="button" color="warn" (click)="deleteProduct()">
+            {{ 'ADMIN.TABLE.DELETE' | translate }}
+          </button>
+        }
+      </div>
+    </form>
+  </main>
+}

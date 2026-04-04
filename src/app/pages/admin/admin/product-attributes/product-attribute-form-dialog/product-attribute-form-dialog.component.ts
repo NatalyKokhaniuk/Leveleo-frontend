@@ -21,6 +21,7 @@ import { ProductAttributeService } from '../../../../../features/product-attribu
 import {
   AttributeType,
   CreateProductAttributeTranslationDto,
+  normalizeAttributeType,
   ProductAttributeResponseDto,
 } from '../../../../../features/product-attributes/product-attribute.types';
 
@@ -91,7 +92,7 @@ export class ProductAttributeFormDialogComponent {
         descriptionEn: a.description ?? '',
         nameUk: uk?.name ?? '',
         descriptionUk: uk?.description ?? '',
-        type: a.type,
+        type: normalizeAttributeType(a.type),
         unit: a.unit ?? '',
         isFilterable: a.isFilterable,
         isComparable: a.isComparable,

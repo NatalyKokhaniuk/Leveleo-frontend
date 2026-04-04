@@ -1,0 +1,97 @@
+<h2 mat-dialog-title>{{
+  (data.mode === 'create' ? 'ADMIN.PRODUCT.ATTR_VALUE_ADD_TITLE' : 'ADMIN.PRODUCT.ATTR_VALUE_EDIT_TITLE')
+    | translate
+}}</h2>
+<mat-dialog-content class="flex flex-col gap-4 min-w-[min(100vw-48px,400px)]" [formGroup]="form">
+  @if (data.mode === 'create') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ 'ADMIN.PRODUCT.ATTR_SELECT' | translate }}</mat-label>
+      <mat-select formControlName="productAttributeId">
+        @for (a of data.attributes; track a.id) {
+          <mat-option [value]="a.id">{{ a.name }} ({{ a.slug }})</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  } @else if (selectedAttr()) {
+    <p class="text-sm font-medium">{{ selectedAttr()!.name }}</p>
+  }
+
+  @if (data.mode === 'create' && !selectedAttr()) {
+    <p class="text-sm opacity-80">{{ 'ADMIN.PRODUCT.ATTR_VALUE_PICK_HINT' | translate }}</p>
+  }
+
+  @if (selectedAttr(); as at) {
+    @if (isStringType(at)) {
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUE_RAW' | translate }}</mat-label>
+        <input matInput formControlName="stringValue" autocomplete="off" />
+        @if (form.controls.stringValue.touched && form.controls.stringValue.hasError('required')) {
+          <mat-error>{{ 'ADMIN.PRODUCT.ATTR_VALUE_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUE_TR_UK' | translate }}</mat-label>
+        <input matInput formControlName="valueUk" autocomplete="off" />
+      </mat-form-field>
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUE_TR_EN' | translate }}</mat-label>
+        <input matInput formControlName="valueEn" autocomplete="off" />
+      </mat-form-field>
+    }
+
+    @if (isDecimalType(at)) {
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUE_NUMBER' | translate }}</mat-label>
+        <input
+          matInput
+          type="text"
+          inputmode="decimal"
+          formControlName="decimalValue"
+          autocomplete="off"
+        />
+        @if (form.controls.decimalValue.touched && form.controls.decimalValue.hasError('required')) {
+          <mat-error>{{ 'ADMIN.PRODUCT.ATTR_VALUE_REQUIRED' | translate }}</mat-error>
+        }
+        @if (form.controls.decimalValue.touched && form.controls.decimalValue.hasError('decimalFormat')) {
+          <mat-error>{{ 'ADMIN.PRODUCT.ATTR_VALUE_DECIMAL_ERROR' | translate }}</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (isIntegerType(at)) {
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT.ATTR_VALUE_INT' | translate }}</mat-label>
+        <input matInput type="text" inputmode="numeric" formControlName="intValue" autocomplete="off" />
+        @if (form.controls.intValue.touched && form.controls.intValue.hasError('required')) {
+          <mat-error>{{ 'ADMIN.PRODUCT.ATTR_VALUE_REQUIRED' | translate }}</mat-error>
+        }
+        @if (form.controls.intValue.touched && form.controls.intValue.hasError('integerFormat')) {
+          <mat-error>{{ 'ADMIN.PRODUCT.ATTR_VALUE_INT_ERROR' | translate }}</mat-error>
+        }
+      </mat-form-field>
+    }
+
+    @if (isBooleanType(at)) {
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT.ATTR_BOOL_LABEL' | translate }}</mat-label>
+        <mat-select formControlName="boolValue">
+          <mat-option [value]="true">{{ 'ADMIN.PRODUCT.ATTR_BOOL_YES' | translate }}</mat-option>
+          <mat-option [value]="false">{{ 'ADMIN.PRODUCT.ATTR_BOOL_NO' | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
+  }
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="ref.close(false)">{{ 'AUTH.CANCEL' | translate }}</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="saving || form.invalid" (click)="submit()">
+    @if (saving) {
+      <span class="inline-flex items-center gap-2">
+        <mat-spinner diameter="20" />
+        {{ 'ADMIN.PRODUCT.SAVING' | translate }}
+      </span>
+    } @else {
+      {{ 'ADMIN.CATEGORY.SAVE' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

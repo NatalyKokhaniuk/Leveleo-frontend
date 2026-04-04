@@ -1,0 +1,63 @@
+/*
+ * Курсор grab після завантаження mat-table: стилі Material підключаються пізніше за глобальні,
+ * тому правила тут з ::ng-deep і після рендеру таблиці лишаються чинними.
+ */
+:host ::ng-deep {
+  .horizontal-drag-scroll-host {
+    cursor: grab !important;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &.horizontal-drag-scroll--dragging {
+      cursor: grabbing !important;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell,
+    .mat-mdc-footer-cell,
+    td,
+    th,
+    .mdc-data-table__cell,
+    .mdc-data-table__header-cell {
+      cursor: inherit !important;
+    }
+
+    button,
+    a[href],
+    a[routerLink],
+    [mat-icon-button],
+    .mat-mdc-icon-button,
+    .mat-mdc-button-base {
+      cursor: pointer !important;
+    }
+  }
+}
+
+/* У flex-рядку MDC-поле без min-width:0 залишає вузьку «infix»-зону — текст і плейсхолдер зліва. */
+.attr-filter-values-field {
+  width: 100%;
+  min-width: 0;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      width: 100%;
+    }
+
+    .mat-mdc-form-field-flex {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .mat-mdc-form-field-infix {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    input.mat-mdc-input-element {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+  }
+}

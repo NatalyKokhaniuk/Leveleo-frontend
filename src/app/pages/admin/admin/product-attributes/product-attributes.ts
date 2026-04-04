@@ -15,6 +15,7 @@ import { AttributeGroupResponseDto } from '../../../../features/attribute-groups
 import { ProductAttributeService } from '../../../../features/product-attributes/product-attribute.service';
 import {
   AttributeType,
+  normalizeAttributeType,
   ProductAttributeResponseDto,
 } from '../../../../features/product-attributes/product-attribute.types';
 import {
@@ -104,7 +105,7 @@ export class ProductAttributesComponent {
           a.unit ?? '',
           String(a.isFilterable),
           String(a.isComparable),
-          this.typeLabelKey(a.type),
+          this.typeLabelKey(normalizeAttributeType(a.type)),
           groupName(a.attributeGroupId),
         ];
         for (const tr of a.translations ?? []) {
@@ -122,7 +123,7 @@ export class ProductAttributesComponent {
         if (key === 'isFilterable' || key === 'isComparable') {
           cmp = Number(a[key]) - Number(b[key]);
         } else if (key === 'type') {
-          cmp = a.type - b.type;
+          cmp = normalizeAttributeType(a.type) - normalizeAttributeType(b.type);
         } else {
           const va = String(a[key as keyof ProductAttributeResponseDto] ?? '');
           const vb = String(b[key as keyof ProductAttributeResponseDto] ?? '');
@@ -172,14 +173,15 @@ export class ProductAttributesComponent {
     return this.groupById().get(attributeGroupId) ?? '—';
   }
 
-  typeLabelKey(type: AttributeType): string {
+  typeLabelKey(type: AttributeType | string | number): string {
+    const t = normalizeAttributeType(type);
     const map: Record<AttributeType, string> = {
       [AttributeType.String]: 'ADMIN.PRODUCT_ATTRIBUTE.TYPE_STRING',
       [AttributeType.Decimal]: 'ADMIN.PRODUCT_ATTRIBUTE.TYPE_DECIMAL',
       [AttributeType.Integer]: 'ADMIN.PRODUCT_ATTRIBUTE.TYPE_INTEGER',
       [AttributeType.Boolean]: 'ADMIN.PRODUCT_ATTRIBUTE.TYPE_BOOLEAN',
     };
-    return map[type] ?? 'ADMIN.PRODUCT_ATTRIBUTE.TYPE_STRING';
+    return map[t] ?? 'ADMIN.PRODUCT_ATTRIBUTE.TYPE_STRING';
   }
 
   onSearch(event: Event) {
