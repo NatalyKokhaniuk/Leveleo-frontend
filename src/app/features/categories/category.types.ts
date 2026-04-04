@@ -19,6 +19,8 @@ export interface CategoryResponseDto {
   parentId?: string | null;
   isActive: boolean;
   fullPath: string;
+  /** Ключ зображення в медіа-сховищі; тимчасовий URL — через MediaService.getSignedUrl. */
+  imageKey?: string | null;
   translations: CategoryTranslationResponseDto[];
 }
 
@@ -47,6 +49,7 @@ export interface CreateCategoryDto {
   description?: string | null;
   parentId?: string | null;
   isActive?: boolean;
+  imageKey?: string | null;
   translations?: CreateCategoryTranslationDto[] | null;
 }
 
@@ -58,4 +61,5 @@ export interface UpdateCategoryDto {
   description?: string | null;
   parentId?: string | null;
   isActive?: boolean;
+  imageKey?: string | null;
 }

@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>{{ 'ADMIN.TASKS_PAGE.CANCEL_TITLE' | translate }}</h2>
+
+<mat-dialog-content>
+  <p class="text-sm">{{ 'ADMIN.TASKS_PAGE.CANCEL_DESC' | translate: { title: data.title } }}</p>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="gap-2">
+  <button matButton type="button" (click)="ref.close(false)" [disabled]="cancelling()">
+    {{ 'ADMIN.TASKS_PAGE.CANCEL' | translate }}
+  </button>
+  <button matButton="filled" color="warn" type="button" (click)="confirm()" [disabled]="cancelling()">
+    @if (cancelling()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ 'ADMIN.TASKS_PAGE.CANCEL_CONFIRM' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

@@ -15,7 +15,7 @@ import {
   BrandFormDialogData,
 } from './brand-form-dialog/brand-form-dialog.component';
 import { BrandDeleteDialogComponent } from './brand-delete-dialog/brand-delete-dialog.component';
-import { BrandLogoThumbComponent } from './brand-logo-thumb/brand-logo-thumb.component';
+import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
 
 export type BrandSortKey = 'name' | 'slug' | 'description' | 'logoKey' | 'metaTitle';
 
@@ -32,7 +32,7 @@ export type BrandSortKey = 'name' | 'slug' | 'description' | 'logoKey' | 'metaTi
     MatTableModule,
     MatProgressSpinnerModule,
     MatDialogModule,
-    BrandLogoThumbComponent,
+    MediaImageThumbComponent,
   ],
   templateUrl: './brands.html',
 })

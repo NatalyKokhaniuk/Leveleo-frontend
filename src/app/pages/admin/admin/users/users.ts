@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { RouterLink } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthService } from '../../../../core/auth/services/auth.service';
 import { UserDto, UsersService } from '../../../../core/auth/services/users';
@@ -8,7 +10,7 @@ import { DataTableComponent, TableColumn } from '../../data-table/data-table.com
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, DataTableComponent, TranslateModule],
+  imports: [CommonModule, RouterLink, MatIconModule, DataTableComponent, TranslateModule],
   templateUrl: './users.html',
 })
 export class UsersComponent {

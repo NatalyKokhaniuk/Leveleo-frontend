@@ -1,0 +1,13 @@
+@if (missingToken) {
+  <main class="min-h-[50vh] flex flex-col items-center justify-center px-4 py-16 text-center">
+    <h1 class="text-xl font-semibold mb-2" style="color: var(--color-text)">
+      {{ 'NEWSLETTER.UNSUBSCRIBE_MISSING_TOKEN' | translate }}
+    </h1>
+    <p class="text-sm opacity-80 mb-6 max-w-md">{{ 'NEWSLETTER.UNSUBSCRIBE_MISSING_TOKEN_DESC' | translate }}</p>
+    <a routerLink="/" class="text-primary underline">{{ 'NEWSLETTER.BACK_HOME' | translate }}</a>
+  </main>
+} @else {
+  <main class="min-h-[50vh] flex flex-col items-center justify-center px-4 py-16 text-center">
+    <p class="text-sm opacity-80">{{ 'NEWSLETTER.REDIRECTING' | translate }}</p>
+  </main>
+}

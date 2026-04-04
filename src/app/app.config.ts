@@ -1,4 +1,6 @@
+import { registerLocaleData } from '@angular/common';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
+import localeUk from '@angular/common/locales/uk';
 import {
   ApplicationConfig,
   inject,
@@ -6,6 +8,8 @@ import {
   provideAppInitializer,
   provideZoneChangeDetection,
 } from '@angular/core';
+
+registerLocaleData(localeUk, 'uk-UA');
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { provideTranslateService } from '@ngx-translate/core';

@@ -34,7 +34,7 @@ export const authGuard: CanActivateFn = async (route, state) => {
     );
   }
 
-  if (!auth.accessToken() && isPlatformBrowser(PLATFORM_ID)) {
+  if (!auth.accessToken()) {
     try {
       await firstValueFrom(auth.restoreSession());
     } catch {}

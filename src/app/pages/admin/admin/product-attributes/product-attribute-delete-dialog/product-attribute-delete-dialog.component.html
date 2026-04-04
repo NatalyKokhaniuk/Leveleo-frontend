@@ -1,0 +1,30 @@
+<div class="w-[calc(100vw-20px)] md:w-96 max-w-full p-6">
+  <div class="auth-modal-container">
+    <div class="icon-wrapper icon-warning mx-auto">
+      <mat-icon class="status-icon">warning</mat-icon>
+    </div>
+    <h2 class="modal-title">{{ 'ADMIN.PRODUCT_ATTRIBUTE.DELETE_TITLE' | translate }}</h2>
+    <p class="modal-desc max-w-none">
+      {{ 'ADMIN.PRODUCT_ATTRIBUTE.DELETE_DESC' | translate: { name: data.name } }}
+    </p>
+    <div class="modal-actions">
+      <button
+        matButton="filled"
+        color="primary"
+        class="w-full"
+        type="button"
+        (click)="confirm()"
+        [disabled]="deleting()"
+      >
+        @if (deleting()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          {{ 'ADMIN.TABLE.DELETE' | translate }}
+        }
+      </button>
+      <button matButton class="w-full" type="button" (click)="ref.close(false)" [disabled]="deleting()">
+        {{ 'AUTH.CANCEL' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -13,7 +13,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
 })
 export class AdminComponent {
   userservice = inject(AuthService);
-  menu = [
+  menu: { key: string; icon: string; link: string }[] = [
     { key: 'USERS', icon: 'people', link: '/admin/users' },
     { key: 'STATISTICS', icon: 'bar_chart', link: '/admin/statistics' },
     { key: 'TASKS', icon: 'task', link: '/admin/tasks' },
@@ -29,4 +29,11 @@ export class AdminComponent {
     { key: 'PROMOTIONS', icon: 'local_offer', link: '/admin/promotions' },
     { key: 'REVIEWS', icon: 'rate_review', link: '/admin/reviews' },
   ];
+
+  /** USERS і SUBSCRIPTIONS — лише для Admin. */
+  showMenuItem(item: { key: string }): boolean {
+    if (item.key === 'USERS' && !this.userservice.isAdmin()) return false;
+    if (item.key === 'SUBSCRIPTIONS' && !this.userservice.isAdmin()) return false;
+    return true;
+  }
 }

@@ -64,7 +64,7 @@
               </div>
               <div class="flex flex-col gap-0.5 min-w-0">
                 <span class="text-xs opacity-70">{{ 'ADMIN.BRAND.COL_LOGO_KEY' | translate }}</span>
-                <app-brand-logo-thumb [logoKey]="row.logoKey" />
+                <app-media-image-thumb [imageKey]="row.logoKey" />
               </div>
               <div class="flex flex-col gap-0.5 min-w-0">
                 <span class="text-xs opacity-70">{{ 'ADMIN.BRAND.COL_META_TITLE' | translate }}</span>
@@ -136,7 +136,7 @@
                 <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('logoKey') }}</span>
               </th>
               <td mat-cell *matCellDef="let row" class="max-w-[16rem]">
-                <app-brand-logo-thumb [logoKey]="row.logoKey" />
+                <app-media-image-thumb [imageKey]="row.logoKey" />
               </td>
             </ng-container>
 

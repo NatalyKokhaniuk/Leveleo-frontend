@@ -1,4 +1,7 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { ContactsComponent } from './contacts';
 
@@ -8,9 +11,9 @@ describe('Contacts', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ContactsComponent]
-    })
-    .compileComponents();
+      imports: [ContactsComponent, TranslateModule.forRoot()],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ContactsComponent);
     component = fixture.componentInstance;

@@ -58,11 +58,25 @@
       <div>
         <h3 class="font-semibold mb-4">{{ 'FOOTER.SUBSCRIBE' | translate }}</h3>
         <form [formGroup]="subscribeForm" (ngSubmit)="onSubscribe()" class="flex flex-col gap-3">
-          <mat-form-field appearance="outline" class="w-full">
-            <input matInput placeholder="{{ 'FOOTER.EMAIL' | translate }}" formControlName="email" />
+          <mat-form-field class="footer-subscribe-field w-full" subscriptSizing="dynamic">
+            <mat-label>{{ 'FOOTER.EMAIL' | translate }}</mat-label>
+            <input matInput type="email" autocomplete="email" formControlName="email" />
+            @if (subscribeForm.get('email')?.touched && subscribeForm.get('email')?.hasError('email')) {
+              <mat-error>{{ 'CONTACTS.INVALID_EMAIL' | translate }}</mat-error>
+            }
           </mat-form-field>
-          <button mat-raised-button color="primary" [disabled]="subscribeForm.invalid">
-            {{ 'FOOTER.SUBMIT' | translate }}
+          <button
+            matButton="filled"
+            color="primary"
+            type="submit"
+            class="footer-subscribe-btn w-full"
+            [disabled]="subscribeForm.invalid || subscribeSubmitting()"
+          >
+            @if (subscribeSubmitting()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'FOOTER.SUBMIT' | translate }}
+            }
           </button>
         </form>
       </div>

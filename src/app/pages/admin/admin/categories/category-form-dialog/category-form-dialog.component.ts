@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -13,9 +13,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { TranslateModule } from '@ngx-translate/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { MediaService } from '../../../../../core/services/media.service';
 import { CategoryService } from '../../../../../features/categories/category.service';
 import {
   CategoryResponseDto,
@@ -46,20 +48,27 @@ export interface CategoryFormDialogData {
   templateUrl: './category-form-dialog.component.html',
   styleUrl: './category-form-dialog.component.scss',
 })
-export class CategoryFormDialogComponent {
+export class CategoryFormDialogComponent implements OnInit, OnDestroy {
   data = inject<CategoryFormDialogData>(MAT_DIALOG_DATA);
   private fb = inject(FormBuilder);
   private categoryService = inject(CategoryService);
   private dialogRef = inject(MatDialogRef<CategoryFormDialogComponent, boolean>);
+  private mediaService = inject(MediaService);
+  private snack = inject(MatSnackBar);
+  private translate = inject(TranslateService);
 
   saving = signal(false);
   error = signal<string | null>(null);
+  isUploadingImage = signal(false);
+  imagePreviewUrl = signal<string | null>(null);
+  private imagePreviewBlobUrl: string | null = null;
 
   form = this.fb.nonNullable.group({
     nameEn: ['', Validators.required],
     descriptionEn: [''],
     nameUk: ['', Validators.required],
     descriptionUk: [''],
+    imageKey: [''],
     parentId: [''],
     isActive: [true],
   });
@@ -82,10 +91,43 @@ export class CategoryFormDialogComponent {
         descriptionEn: c.description ?? '',
         nameUk: uk?.name ?? '',
         descriptionUk: uk?.description ?? '',
+        imageKey: c.imageKey ?? '',
         parentId: c.parentId ?? '',
         isActive: c.isActive,
       });
     }
+  }
+
+  ngOnInit(): void {
+    const c = this.data.category;
+    const ik = c?.imageKey?.trim();
+    if (ik && this.data.mode === 'edit') {
+      this.loadSignedImagePreview(ik);
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.revokeImageBlobPreview();
+  }
+
+  private loadSignedImagePreview(key: string): void {
+    this.mediaService.getSignedUrl(key).subscribe({
+      next: (r) => this.imagePreviewUrl.set(r.url),
+      error: () => this.imagePreviewUrl.set(null),
+    });
+  }
+
+  private revokeImageBlobPreview(): void {
+    if (this.imagePreviewBlobUrl) {
+      URL.revokeObjectURL(this.imagePreviewBlobUrl);
+      this.imagePreviewBlobUrl = null;
+    }
+  }
+
+  private setImageBlobPreview(objectUrl: string): void {
+    this.revokeImageBlobPreview();
+    this.imagePreviewBlobUrl = objectUrl;
+    this.imagePreviewUrl.set(objectUrl);
   }
 
   submit() {
@@ -97,6 +139,7 @@ export class CategoryFormDialogComponent {
     this.error.set(null);
     const v = this.form.getRawValue();
     const parentId = v.parentId === '' ? null : v.parentId;
+    const emptyToNull = (s: string) => (s.trim() === '' ? null : s.trim());
 
     const enDto: CreateCategoryTranslationDto = {
       languageCode: 'en',
@@ -116,6 +159,7 @@ export class CategoryFormDialogComponent {
           description: v.descriptionEn || null,
           parentId,
           isActive: v.isActive,
+          imageKey: emptyToNull(v.imageKey),
           translations: [enDto, ukDto],
         })
         .subscribe({
@@ -134,6 +178,7 @@ export class CategoryFormDialogComponent {
           description: v.descriptionEn || null,
           parentId,
           isActive: v.isActive,
+          imageKey: emptyToNull(v.imageKey),
         })
         .pipe(
           switchMap(() =>
@@ -169,6 +214,76 @@ export class CategoryFormDialogComponent {
 
   cancel() {
     this.dialogRef.close(false);
+  }
+
+  onImageClick(): void {
+    document.getElementById('category-image-input')?.click();
+  }
+
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.snack.open(this.translate.instant('PROFILE.AVATAR_INVALID_TYPE'), 'OK', {
+        duration: 3000,
+      });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      this.snack.open(this.translate.instant('PROFILE.AVATAR_TOO_LARGE'), 'OK', { duration: 3000 });
+      return;
+    }
+
+    const previousKey = this.form.get('imageKey')?.value?.trim() || '';
+
+    this.setImageBlobPreview(URL.createObjectURL(file));
+
+    this.isUploadingImage.set(true);
+    this.mediaService.upload(file).subscribe({
+      next: (res) => {
+        if (previousKey && previousKey !== res.key) {
+          this.mediaService.delete(previousKey).subscribe();
+        }
+        this.form.patchValue({ imageKey: res.key });
+        this.mediaService.getSignedUrl(res.key).subscribe({
+          next: (signed) => {
+            this.revokeImageBlobPreview();
+            this.imagePreviewUrl.set(signed.url);
+            this.isUploadingImage.set(false);
+          },
+          error: () => {
+            this.isUploadingImage.set(false);
+          },
+        });
+      },
+      error: () => {
+        this.isUploadingImage.set(false);
+        this.revokeImageBlobPreview();
+        this.imagePreviewUrl.set(null);
+        this.snack.open(this.translate.instant('PROFILE.AVATAR_UPLOAD_ERROR'), 'OK', {
+          duration: 3000,
+        });
+      },
+    });
+  }
+
+  removeImage(): void {
+    const key = this.form.get('imageKey')?.value?.trim();
+    if (key) {
+      this.mediaService.delete(key).subscribe();
+    }
+    this.form.patchValue({ imageKey: '' });
+    this.revokeImageBlobPreview();
+    this.imagePreviewUrl.set(null);
+  }
+
+  hasImageKey(): boolean {
+    return !!this.form.get('imageKey')?.value?.trim();
   }
 
   private mapError(err: unknown): string {

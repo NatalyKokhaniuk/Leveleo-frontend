@@ -1,0 +1,28 @@
+@use '../../../styles/auth-modal-shared' as *;
+
+:host {
+  display: block;
+}
+
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}

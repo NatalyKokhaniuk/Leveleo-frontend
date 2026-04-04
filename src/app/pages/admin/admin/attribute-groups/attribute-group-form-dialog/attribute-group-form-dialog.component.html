@@ -1,0 +1,83 @@
+<div
+  class="w-full max-w-full min-w-0 max-h-[90vh] overflow-y-auto overflow-x-hidden box-border p-6"
+>
+  <div class="auth-modal-container items-stretch text-left w-full max-w-full min-w-0">
+    <div class="icon-wrapper icon-info mx-auto">
+      <mat-icon class="status-icon">view_list</mat-icon>
+    </div>
+    <h2 class="modal-title text-center w-full">
+      {{
+        (data.mode === 'create'
+          ? 'ADMIN.ATTRIBUTE_GROUP.FORM_CREATE_TITLE'
+          : 'ADMIN.ATTRIBUTE_GROUP.FORM_EDIT_TITLE'
+        ) | translate
+      }}
+    </h2>
+
+    <p class="modal-desc text-left w-full max-w-full break-words">
+      {{ 'ADMIN.ATTRIBUTE_GROUP.TRANSLATIONS_HINT' | translate }}
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-full min-w-0 space-y-1">
+      <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-2 w-full">
+        {{ 'ADMIN.ATTRIBUTE_GROUP.SECTION_EN' | translate }}
+      </p>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.ATTRIBUTE_GROUP.NAME_EN' | translate }}</mat-label>
+        <input matInput formControlName="nameEn" autocomplete="off" />
+        @if (form.get('nameEn')?.hasError('required') && form.get('nameEn')?.touched) {
+          <mat-error>{{ 'ADMIN.ATTRIBUTE_GROUP.NAME_EN_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.ATTRIBUTE_GROUP.DESCRIPTION_EN' | translate }}</mat-label>
+        <textarea matInput formControlName="descriptionEn" rows="2"></textarea>
+      </mat-form-field>
+
+      <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+        {{ 'ADMIN.ATTRIBUTE_GROUP.SECTION_UK' | translate }}
+      </p>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.ATTRIBUTE_GROUP.NAME_UK' | translate }}</mat-label>
+        <input matInput formControlName="nameUk" autocomplete="off" />
+        @if (form.get('nameUk')?.hasError('required') && form.get('nameUk')?.touched) {
+          <mat-error>{{ 'ADMIN.ATTRIBUTE_GROUP.NAME_UK_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.ATTRIBUTE_GROUP.DESCRIPTION_UK' | translate }}</mat-label>
+        <textarea matInput formControlName="descriptionUk" rows="2"></textarea>
+      </mat-form-field>
+
+      @if (error(); as err) {
+        <div class="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ err }}</span>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button
+          matButton="filled"
+          color="primary"
+          class="w-full"
+          type="submit"
+          [disabled]="saving() || form.invalid"
+        >
+          @if (saving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            {{ 'ADMIN.ATTRIBUTE_GROUP.SAVE' | translate }}
+          }
+        </button>
+        <button matButton class="w-full" type="button" (click)="cancel()" [disabled]="saving()">
+          {{ 'AUTH.CANCEL' | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

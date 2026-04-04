@@ -51,6 +51,84 @@
         <textarea matInput formControlName="descriptionUk" rows="2"></textarea>
       </mat-form-field>
 
+      <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+        {{ 'ADMIN.CATEGORY.SECTION_IMAGE' | translate }}
+      </p>
+
+      <div class="flex flex-col gap-3 items-start w-full pb-2">
+        <div
+          class="relative w-28 h-28 rounded-xl overflow-hidden shrink-0 border border-solid cursor-pointer group"
+          style="border-color: var(--color-outline-variant); background: var(--color-surface-hover)"
+          [class.opacity-60]="saving() || isUploadingImage()"
+          [class.pointer-events-none]="saving() || isUploadingImage()"
+          (click)="onImageClick()"
+        >
+          @if (isUploadingImage()) {
+            <div class="w-full h-full flex items-center justify-center">
+              <mat-spinner diameter="36"></mat-spinner>
+            </div>
+          } @else if (imagePreviewUrl()) {
+            <img
+              [src]="imagePreviewUrl()!"
+              alt=""
+              class="w-full h-full object-contain"
+            />
+          } @else if (hasImageKey()) {
+            <div
+              class="w-full h-full flex items-center justify-center"
+              style="color: var(--color-primary)"
+            >
+              <mat-icon class="!w-12 !h-12 text-[3rem]">image</mat-icon>
+            </div>
+          } @else {
+            <div
+              class="w-full h-full flex items-center justify-center text-4xl"
+              style="color: var(--color-text-tertiary)"
+            >
+              <mat-icon class="!w-12 !h-12 text-[3rem]">add_photo_alternate</mat-icon>
+            </div>
+          }
+          <div
+            class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+            style="background: rgba(0, 0, 0, 0.45); color: white"
+          >
+            <mat-icon>photo_camera</mat-icon>
+          </div>
+        </div>
+
+        <input
+          id="category-image-input"
+          type="file"
+          accept="image/*"
+          class="hidden"
+          (change)="onImageSelected($event)"
+        />
+
+        <div class="flex flex-wrap gap-2">
+          <button
+            matButton
+            type="button"
+            (click)="onImageClick()"
+            [disabled]="saving() || isUploadingImage()"
+          >
+            {{ 'ADMIN.CATEGORY.UPLOAD_IMAGE' | translate }}
+          </button>
+          @if (hasImageKey()) {
+            <button
+              matButton
+              type="button"
+              (click)="removeImage()"
+              [disabled]="saving() || isUploadingImage()"
+            >
+              {{ 'ADMIN.CATEGORY.REMOVE_IMAGE' | translate }}
+            </button>
+          }
+        </div>
+        <p class="text-xs m-0" style="color: var(--color-text-tertiary)">
+          {{ 'ADMIN.CATEGORY.IMAGE_HINT' | translate }}
+        </p>
+      </div>
+
       <mat-form-field class="w-full">
         <mat-label>{{ 'ADMIN.CATEGORY.PARENT' | translate }}</mat-label>
         <mat-select formControlName="parentId">
@@ -78,7 +156,7 @@
           color="primary"
           class="w-full"
           type="submit"
-          [disabled]="saving() || form.invalid"
+          [disabled]="saving() || form.invalid || isUploadingImage()"
         >
           @if (saving()) {
             <mat-spinner diameter="20"></mat-spinner>

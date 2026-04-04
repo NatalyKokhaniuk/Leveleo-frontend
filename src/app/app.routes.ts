@@ -19,6 +19,12 @@ export const routes: Routes = [
     canActivate: [adminGuard], // ← додаємо guard
   },
   {
+    path: 'admin/subscriptions',
+    loadComponent: () =>
+      import('./pages/admin/admin/subscriptions/subscriptions').then((m) => m.AdminSubscriptionsComponent),
+    canActivate: [adminGuard],
+  },
+  {
     path: 'admin/categories',
     loadComponent: () =>
       import('./pages/admin/admin/categories/categories').then((m) => m.CategoriesComponent),
@@ -28,6 +34,34 @@ export const routes: Routes = [
     path: 'admin/brands',
     loadComponent: () =>
       import('./pages/admin/admin/brands/brands').then((m) => m.BrandsComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
+  {
+    path: 'admin/tasks/:taskId',
+    loadComponent: () =>
+      import('./pages/admin/admin/tasks/task-detail/task-detail').then((m) => m.AdminTaskDetailComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
+  {
+    path: 'admin/tasks',
+    loadComponent: () =>
+      import('./pages/admin/admin/tasks/tasks').then((m) => m.AdminTasksComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
+  {
+    path: 'admin/attribute-groups',
+    loadComponent: () =>
+      import('./pages/admin/admin/attribute-groups/attribute-groups').then(
+        (m) => m.AttributeGroupsComponent,
+      ),
+    canActivate: [adminOrModeratorGuard],
+  },
+  {
+    path: 'admin/attributes',
+    loadComponent: () =>
+      import('./pages/admin/admin/product-attributes/product-attributes').then(
+        (m) => m.ProductAttributesComponent,
+      ),
     canActivate: [adminOrModeratorGuard],
   },
 
@@ -46,6 +80,13 @@ export const routes: Routes = [
   {
     path: 'contacts',
     loadComponent: () => import('./pages/contacts/contacts').then((m) => m.ContactsComponent),
+  },
+  {
+    path: 'newsletter/unsubscribe',
+    loadComponent: () =>
+      import('./pages/newsletter-unsubscribe/newsletter-unsubscribe').then(
+        (m) => m.NewsletterUnsubscribeComponent,
+      ),
   },
   {
     path: 'delivery',

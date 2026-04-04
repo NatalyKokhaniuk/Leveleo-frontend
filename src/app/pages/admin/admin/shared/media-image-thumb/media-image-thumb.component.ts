@@ -10,8 +10,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MediaService } from '../../../../../core/services/media.service';
 
+/** Превʼю зображення за ключем у сховищі (pre-signed URL). */
 @Component({
-  selector: 'app-brand-logo-thumb',
+  selector: 'app-media-image-thumb',
   standalone: true,
   imports: [MatIconModule, MatProgressSpinnerModule],
   template: `
@@ -31,8 +32,8 @@ import { MediaService } from '../../../../../core/services/media.service';
     </div>
   `,
 })
-export class BrandLogoThumbComponent implements OnChanges {
-  @Input() logoKey: string | null | undefined;
+export class MediaImageThumbComponent implements OnChanges {
+  @Input() imageKey: string | null | undefined;
 
   private media = inject(MediaService);
 
@@ -41,13 +42,13 @@ export class BrandLogoThumbComponent implements OnChanges {
   keyTrimmed = signal<string | null>(null);
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['logoKey']) {
+    if (changes['imageKey']) {
       this.fetch();
     }
   }
 
   private fetch(): void {
-    const raw = this.logoKey?.trim() ?? '';
+    const raw = this.imageKey?.trim() ?? '';
     this.keyTrimmed.set(raw || null);
     if (!raw) {
       this.url.set(null);

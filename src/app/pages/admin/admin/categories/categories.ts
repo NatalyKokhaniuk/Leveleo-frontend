@@ -15,6 +15,7 @@ import {
   CategoryFormDialogData,
 } from './category-form-dialog/category-form-dialog.component';
 import { CategoryDeleteDialogComponent } from './category-delete-dialog/category-delete-dialog.component';
+import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
 
 export type CategorySortKey = 'name' | 'slug' | 'fullPath' | 'parent' | 'isActive';
 
@@ -31,6 +32,7 @@ export type CategorySortKey = 'name' | 'slug' | 'fullPath' | 'parent' | 'isActiv
     MatTableModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    MediaImageThumbComponent,
   ],
   templateUrl: './categories.html',
 })
@@ -47,7 +49,7 @@ export class CategoriesComponent {
   sortKey = signal<CategorySortKey | null>(null);
   sortDir = signal<'asc' | 'desc'>('asc');
 
-  displayedColumns: string[] = ['name', 'slug', 'fullPath', 'parent', 'isActive', 'actions'];
+  displayedColumns: string[] = ['image', 'name', 'slug', 'fullPath', 'parent', 'isActive', 'actions'];
 
   categoryById = computed(() => {
     const m = new Map<string, CategoryResponseDto>();
@@ -77,6 +79,7 @@ export class CategoriesComponent {
           c.slug,
           c.fullPath,
           c.description ?? '',
+          c.imageKey ?? '',
           parentLabel(c.parentId),
         ];
         for (const tr of c.translations ?? []) {

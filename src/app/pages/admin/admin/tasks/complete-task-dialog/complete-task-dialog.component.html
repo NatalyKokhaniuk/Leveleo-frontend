@@ -1,0 +1,22 @@
+<h2 mat-dialog-title>{{ 'ADMIN.TASKS_PAGE.COMPLETE_TITLE' | translate }}</h2>
+
+<mat-dialog-content class="flex flex-col gap-3 min-w-0">
+  <p class="text-sm opacity-80 break-words">{{ data.title }}</p>
+  <mat-form-field class="w-full">
+    <mat-label>{{ 'ADMIN.TASKS_PAGE.COMPLETION_NOTE' | translate }}</mat-label>
+    <textarea matInput rows="3" [formControl]="form.controls.completionNote"></textarea>
+  </mat-form-field>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="gap-2">
+  <button matButton type="button" (click)="ref.close(false)" [disabled]="saving()">
+    {{ 'ADMIN.TASKS_PAGE.CANCEL' | translate }}
+  </button>
+  <button matButton="filled" color="primary" type="button" (click)="submit()" [disabled]="saving()">
+    @if (saving()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ 'ADMIN.TASKS_PAGE.COMPLETE_CONFIRM' | translate }}
+    }
+  </button>
+</mat-dialog-actions>

@@ -1,0 +1,127 @@
+<main class="pt-32 px-4 md:px-10 max-w-3xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
+  <a
+    routerLink="/admin/tasks"
+    class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+  >
+    <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+    {{ 'ADMIN.TASKS_PAGE.BACK_TO_LIST' | translate }}
+  </a>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (notFound()) {
+    <p class="modal-desc">{{ 'ADMIN.TASKS_PAGE.LOAD_ERROR' | translate }}</p>
+  } @else if (task(); as t) {
+    <div class="flex flex-col gap-6">
+      <h1 class="modal-title text-2xl md:text-3xl text-left break-words">{{ t.title }}</h1>
+
+      <section
+        class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-3 text-sm"
+      >
+        <h2 class="font-semibold text-base">{{ 'ADMIN.TASKS_PAGE.DETAIL_SECTION' | translate }}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2">
+          <div>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.COL_TYPE' | translate }}</span>
+            {{ typeLabel(t) }}
+          </div>
+          <div>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.COL_PRIORITY' | translate }}</span>
+            {{ priorityLabel(t) }}
+          </div>
+          <div>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.COL_STATUS' | translate }}</span>
+            {{ statusLabel(t) }}
+          </div>
+          <div>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.COL_CREATED' | translate }}</span>
+            {{ t.createdAt | date: 'short' }}
+          </div>
+          <div class="sm:col-span-2">
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.COL_ASSIGNED' | translate }}</span>
+            {{ assigneeText(t) }}
+          </div>
+          @if (t.requesterEmail) {
+            <div class="sm:col-span-2">
+              <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.REQUESTER_EMAIL' | translate }}</span>
+              <a class="text-primary hover:underline break-all" [href]="'mailto:' + t.requesterEmail">{{
+                t.requesterEmail
+              }}</a>
+            </div>
+          }
+          @if (contactFormMeta(t); as cf) {
+            @if (cf.phone) {
+              <div class="sm:col-span-2">
+                <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.CONTACT_PHONE' | translate }}</span>
+                <a class="text-primary hover:underline" [href]="'tel:' + cf.phone">{{ cf.phone }}</a>
+              </div>
+            }
+            @if (cf.category) {
+              <div class="sm:col-span-2">
+                <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.CONTACT_CATEGORY' | translate }}</span>
+                {{ contactCategoryLabel(cf.category) }}
+              </div>
+            }
+          }
+          @if (t.relatedEntityType || t.relatedEntityId) {
+            <div class="sm:col-span-2">
+              <span class="opacity-70 block text-xs">{{ 'ADMIN.TASKS_PAGE.RELATED' | translate }}</span>
+              {{ t.relatedEntityType ?? '—' }}
+              @if (t.relatedEntityId) {
+                <span class="opacity-80 break-all"> · {{ t.relatedEntityId }}</span>
+              }
+            </div>
+          }
+        </div>
+      </section>
+
+      <section class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6">
+        <h2 class="font-semibold text-base mb-3">{{ 'ADMIN.TASKS_PAGE.TASK_BODY' | translate }}</h2>
+        <pre class="whitespace-pre-wrap break-words font-sans text-sm m-0">{{ t.description }}</pre>
+      </section>
+
+      @if (showCompletionSection(t)) {
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-2"
+        >
+          <h2 class="font-semibold text-base">{{ 'ADMIN.TASKS_PAGE.COMPLETION_SECTION' | translate }}</h2>
+          @if (t.completedAt) {
+            <p class="text-xs opacity-70 m-0">{{ t.completedAt | date: 'short' }}</p>
+          }
+          @if (t.completionNote?.trim()) {
+            <p class="text-sm whitespace-pre-wrap break-words m-0">{{ t.completionNote }}</p>
+          }
+        </section>
+      }
+
+      <div class="flex flex-col gap-2 mx-auto w-2/3 max-w-[18.75rem] min-w-0">
+        @if (canAssign(t)) {
+          <button
+            matButton="filled"
+            type="button"
+            class="w-full"
+            [disabled]="actionLoading()"
+            (click)="assign()"
+          >
+            @if (actionLoading()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ADMIN.TASKS_PAGE.ASSIGN_ME' | translate }}
+            }
+          </button>
+        }
+        @if (canComplete(t)) {
+          <button matButton="outlined" color="primary" type="button" class="w-full" (click)="openComplete()">
+            {{ 'ADMIN.TASKS_PAGE.COMPLETE' | translate }}
+          </button>
+        }
+        @if (canCancel(t)) {
+          <button matButton="tonal" type="button" class="w-full" (click)="openCancel()">
+            {{ 'ADMIN.TASKS_PAGE.CANCEL_ACTION' | translate }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</main>

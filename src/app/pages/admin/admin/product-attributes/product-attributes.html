@@ -1,0 +1,256 @@
+<main class="pt-32 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-6 min-w-0">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <a
+        routerLink="/admin"
+        class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+      >
+        <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+        {{ 'ADMIN.BACK' | translate }}
+      </a>
+      <h1 class="modal-title text-2xl md:text-3xl text-left">
+        {{ 'ADMIN.PRODUCT_ATTRIBUTE.TITLE' | translate }}
+      </h1>
+      <p class="modal-desc text-left max-w-none">
+        {{ 'ADMIN.PRODUCT_ATTRIBUTE.DESCRIPTION' | translate }}
+      </p>
+    </div>
+    <button
+      matButton="filled"
+      color="primary"
+      type="button"
+      class="w-full sm:w-auto sm:self-start"
+      (click)="openCreate()"
+      [disabled]="!loading() && groups().length === 0"
+    >
+      <mat-icon>add</mat-icon>
+      {{ 'ADMIN.PRODUCT_ATTRIBUTE.ADD' | translate }}
+    </button>
+  </div>
+
+  @if (!loading() && groups().length === 0) {
+    <p class="text-sm opacity-80">{{ 'ADMIN.PRODUCT_ATTRIBUTE.NO_GROUPS_HINT' | translate }}</p>
+  }
+
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-6 min-w-0"
+  >
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (attributes().length === 0) {
+      <p class="modal-desc text-center max-w-none py-8">{{ 'ADMIN.PRODUCT_ATTRIBUTE.EMPTY' | translate }}</p>
+    } @else {
+      <div class="flex flex-col sm:flex-row gap-4 w-full min-w-0">
+        <mat-form-field class="w-full sm:flex-1 min-w-0">
+          <mat-label>{{ 'ADMIN.TABLE.SEARCH' | translate }}</mat-label>
+          <input matInput type="search" (input)="onSearch($event)" autocomplete="off" />
+        </mat-form-field>
+        <mat-form-field class="w-full sm:min-w-[14rem] sm:max-w-xs">
+          <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.FILTER_GROUP' | translate }}</mat-label>
+          <mat-select
+            [value]="filterGroupId()"
+            (selectionChange)="onFilterGroupChange($event)"
+          >
+            <mat-option value="">{{ 'ADMIN.PRODUCT_ATTRIBUTE.FILTER_GROUP_ALL' | translate }}</mat-option>
+            @for (g of groups(); track g.id) {
+              <mat-option [value]="g.id">{{ g.name }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      </div>
+
+      @if (filteredAndSortedAttributes().length === 0) {
+        <p class="modal-desc text-center max-w-none py-8">
+          {{ 'ADMIN.PRODUCT_ATTRIBUTE.SEARCH_EMPTY' | translate }}
+        </p>
+      } @else {
+        <div class="flex flex-col gap-4 xl:hidden">
+          @for (row of paginatedAttributes(); track row.id) {
+            <div
+              class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-3 min-w-0"
+            >
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_NAME' | translate }}</span>
+                <span class="text-sm font-medium break-words">{{ row.name }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_SLUG' | translate }}</span>
+                <span class="text-sm break-all">{{ row.slug }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_GROUP' | translate }}</span>
+                <span class="text-sm break-words">{{ groupLabel(row.attributeGroupId) }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_TYPE' | translate }}</span>
+                <span class="text-sm">{{ typeLabelKey(row.type) | translate }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_UNIT' | translate }}</span>
+                <span class="text-sm">{{ dash(row.unit) }}</span>
+              </div>
+              <div class="flex flex-wrap gap-3 text-sm">
+                <span
+                  >{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_FILTERABLE' | translate }}:
+                  {{ yesNo(row.isFilterable) | translate }}</span
+                >
+                <span
+                  >{{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_COMPARABLE' | translate }}:
+                  {{ yesNo(row.isComparable) | translate }}</span
+                >
+              </div>
+              <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant">
+                <button matButton="outlined" type="button" class="w-full" (click)="openEdit(row)">
+                  {{ 'ADMIN.TABLE.EDIT' | translate }}
+                </button>
+                <button matButton="tonal" type="button" class="w-full" (click)="confirmDelete(row)">
+                  {{ 'ADMIN.TABLE.DELETE' | translate }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="hidden xl:block overflow-x-auto rounded-2xl border border-outline-variant">
+          <table mat-table [dataSource]="paginatedAttributes()" class="w-full min-w-[56rem]">
+            <ng-container matColumnDef="name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('name')"
+              >
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_NAME' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('name') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="max-w-[10rem] break-words">{{ row.name }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="slug">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('slug')"
+              >
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_SLUG' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('slug') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="max-w-[8rem] break-all">{{ row.slug }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="group">
+              <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap">
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_GROUP' | translate }}
+              </th>
+              <td mat-cell *matCellDef="let row" class="max-w-[8rem] break-words">{{
+                groupLabel(row.attributeGroupId)
+              }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="type">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none whitespace-nowrap"
+                (click)="changeSort('type')"
+              >
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_TYPE' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('type') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row">{{ typeLabelKey(row.type) | translate }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="unit">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('unit')"
+              >
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_UNIT' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('unit') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="max-w-[6rem] break-all">{{
+                dash(row.unit)
+              }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="filterable">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none whitespace-nowrap"
+                (click)="changeSort('isFilterable')"
+              >
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_FILTERABLE' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('isFilterable') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row">{{ yesNo(row.isFilterable) | translate }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="comparable">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none whitespace-nowrap"
+                (click)="changeSort('isComparable')"
+              >
+                {{ 'ADMIN.PRODUCT_ATTRIBUTE.COL_COMPARABLE' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('isComparable') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row">{{ yesNo(row.isComparable) | translate }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap">{{
+                'ADMIN.TABLE.ACTIONS' | translate
+              }}</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="flex flex-col lg:flex-row flex-wrap gap-2 py-2 min-w-[8rem]">
+                  <button matButton="outlined" type="button" (click)="openEdit(row)">
+                    {{ 'ADMIN.TABLE.EDIT' | translate }}
+                  </button>
+                  <button matButton="tonal" type="button" (click)="confirmDelete(row)">
+                    {{ 'ADMIN.TABLE.DELETE' | translate }}
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+
+        <div
+          class="flex flex-col sm:flex-row flex-wrap justify-between items-stretch sm:items-center gap-3"
+        >
+          <button
+            matButton="outlined"
+            type="button"
+            class="w-full sm:w-auto"
+            (click)="prevPage()"
+            [disabled]="page() <= 1"
+          >
+            {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
+          </button>
+          <span class="text-sm text-on-surface opacity-80 text-center order-first sm:order-none">
+            {{ page() }} / {{ totalPages() }}
+          </span>
+          <button
+            matButton="outlined"
+            type="button"
+            class="w-full sm:w-auto"
+            (click)="nextPage()"
+            [disabled]="page() >= totalPages()"
+          >
+            {{ 'ADMIN.TABLE.NEXT' | translate }}
+          </button>
+        </div>
+      }
+    }
+  </section>
+</main>

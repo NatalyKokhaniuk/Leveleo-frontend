@@ -1,0 +1,119 @@
+<div
+  class="w-full max-w-full min-w-0 max-h-[90vh] overflow-y-auto overflow-x-hidden box-border p-6"
+>
+  <div class="auth-modal-container items-stretch text-left w-full max-w-full min-w-0">
+    <div class="icon-wrapper icon-info mx-auto">
+      <mat-icon class="status-icon">tune</mat-icon>
+    </div>
+    <h2 class="modal-title text-center w-full">
+      {{
+        (data.mode === 'create'
+          ? 'ADMIN.PRODUCT_ATTRIBUTE.FORM_CREATE_TITLE'
+          : 'ADMIN.PRODUCT_ATTRIBUTE.FORM_EDIT_TITLE'
+        ) | translate
+      }}
+    </h2>
+
+    <p class="modal-desc text-left w-full max-w-full break-words">
+      {{ 'ADMIN.PRODUCT_ATTRIBUTE.TRANSLATIONS_HINT' | translate }}
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-full min-w-0 space-y-1">
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.GROUP' | translate }}</mat-label>
+        <mat-select formControlName="attributeGroupId" required>
+          @for (g of data.groups; track g.id) {
+            <mat-option [value]="g.id">{{ g.name }} ({{ g.slug }})</mat-option>
+          }
+        </mat-select>
+        @if (form.get('attributeGroupId')?.hasError('required') && form.get('attributeGroupId')?.touched) {
+          <mat-error>{{ 'ADMIN.PRODUCT_ATTRIBUTE.GROUP_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-2 w-full">
+        {{ 'ADMIN.PRODUCT_ATTRIBUTE.SECTION_EN' | translate }}
+      </p>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.NAME_EN' | translate }}</mat-label>
+        <input matInput formControlName="nameEn" autocomplete="off" />
+        @if (form.get('nameEn')?.hasError('required') && form.get('nameEn')?.touched) {
+          <mat-error>{{ 'ADMIN.PRODUCT_ATTRIBUTE.NAME_EN_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.DESCRIPTION_EN' | translate }}</mat-label>
+        <textarea matInput formControlName="descriptionEn" rows="2"></textarea>
+      </mat-form-field>
+
+      <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+        {{ 'ADMIN.PRODUCT_ATTRIBUTE.SECTION_UK' | translate }}
+      </p>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.NAME_UK' | translate }}</mat-label>
+        <input matInput formControlName="nameUk" autocomplete="off" />
+        @if (form.get('nameUk')?.hasError('required') && form.get('nameUk')?.touched) {
+          <mat-error>{{ 'ADMIN.PRODUCT_ATTRIBUTE.NAME_UK_REQUIRED' | translate }}</mat-error>
+        }
+      </mat-form-field>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.DESCRIPTION_UK' | translate }}</mat-label>
+        <textarea matInput formControlName="descriptionUk" rows="2"></textarea>
+      </mat-form-field>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.TYPE' | translate }}</mat-label>
+        <mat-select formControlName="type">
+          @for (opt of typeOptions; track opt.value) {
+            <mat-option [value]="opt.value">{{ opt.labelKey | translate }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.PRODUCT_ATTRIBUTE.UNIT' | translate }}</mat-label>
+        <input matInput formControlName="unit" autocomplete="off" />
+        <mat-hint>{{ 'ADMIN.PRODUCT_ATTRIBUTE.UNIT_HINT' | translate }}</mat-hint>
+      </mat-form-field>
+
+      <div class="flex flex-col gap-2 py-2">
+        <mat-checkbox formControlName="isFilterable">{{
+          'ADMIN.PRODUCT_ATTRIBUTE.FILTERABLE' | translate
+        }}</mat-checkbox>
+        <mat-checkbox formControlName="isComparable">{{
+          'ADMIN.PRODUCT_ATTRIBUTE.COMPARABLE' | translate
+        }}</mat-checkbox>
+      </div>
+
+      @if (error(); as err) {
+        <div class="error-banner">
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ err }}</span>
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button
+          matButton="filled"
+          color="primary"
+          class="w-full"
+          type="submit"
+          [disabled]="saving() || form.invalid"
+        >
+          @if (saving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            {{ 'ADMIN.PRODUCT_ATTRIBUTE.SAVE' | translate }}
+          }
+        </button>
+        <button matButton class="w-full" type="button" (click)="cancel()" [disabled]="saving()">
+          {{ 'AUTH.CANCEL' | translate }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -3,13 +3,13 @@ import { Component, HostListener, inject, PLATFORM_ID, signal } from '@angular/c
 import { MatIcon } from '@angular/material/icon';
 
 @Component({
-  selector: 'app-footer',
+  selector: 'app-scroll-to-top',
   standalone: true,
   imports: [MatIcon, NgClass],
   templateUrl: './footer.component.html',
   styleUrl: './footer.component.scss',
 })
-export class FooterComponent {
+export class ScrollToTopComponent {
   platformId = inject(PLATFORM_ID);
   showScrollTop = signal(false);
   @HostListener('window:scroll', [])

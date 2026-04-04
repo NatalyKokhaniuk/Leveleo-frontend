@@ -41,7 +41,8 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
             return next(retryReq);
           }),
           catchError((refreshErr) => {
-            authService.logout();
+            // підписати logout — інакше cold Observable не виконається (куки/сесія на сервері)
+            authService.logout().subscribe();
             router.navigate(['/login']);
             return throwError(() => refreshErr);
           }),

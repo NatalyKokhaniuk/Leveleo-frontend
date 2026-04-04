@@ -2,10 +2,10 @@
 
   <!-- TITLE -->
   <section class="text-center">
-    <h1 class="text-3xl md:text-4xl font-bold mb-4">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--color-text)">
       {{ 'CONTACTS.MAINTITLE' | translate }}
     </h1>
-    <p class="text-gray-500 max-w-2xl mx-auto">
+    <p class="max-w-2xl mx-auto modal-desc max-w-none">
       {{ 'CONTACTS.SUBTITLE' | translate }}
     </p>
   </section>
@@ -14,119 +14,114 @@
   <section class="grid md:grid-cols-2 gap-10 items-center">
 
     <div class="flex flex-col gap-4">
-      <h2 class="text-2xl font-semibold">
+      <h2 class="text-2xl font-semibold" style="color: var(--color-text)">
         {{ 'CONTACTS.WHO_WE_ARE_TITLE' | translate }}
       </h2>
-      <p>{{ 'CONTACTS.WHO_WE_ARE_TEXT' | translate }}</p>
+      <p class="modal-desc max-w-none">{{ 'CONTACTS.WHO_WE_ARE_TEXT' | translate }}</p>
 
-      <h2 class="text-2xl font-semibold mt-4">
+      <h2 class="text-2xl font-semibold mt-4" style="color: var(--color-text)">
         {{ 'CONTACTS.MISSION_TITLE' | translate }}
       </h2>
-      <p>{{ 'CONTACTS.MISSION_TEXT' | translate }}</p>
+      <p class="modal-desc max-w-none">{{ 'CONTACTS.MISSION_TEXT' | translate }}</p>
     </div>
 
-    <div class="bg-gray-200 h-64 rounded-2xl flex items-center justify-center">
-      <span class="text-gray-500">Image</span>
+    <div
+      class="h-64 rounded-2xl flex items-center justify-center border border-solid border-outline-variant"
+      style="background: var(--color-surface-hover)"
+    >
+      <span class="modal-desc">Image</span>
     </div>
 
   </section>
 
-  <!-- CONTACT FORM -->
-  <section class="bg-surface-container rounded-2xl p-6 md:p-10 shadow mb-10">
+  <!-- CONTACT FORM (як у модальних: лейбл на полі, одна колонка) -->
+  <section
+    class="w-full rounded-2xl border border-solid border-outline-variant bg-surface-container p-6 md:p-10 mb-10"
+  >
+    <div class="auth-modal-container items-stretch text-left w-full !p-0 !gap-4">
+      <h2 class="modal-title text-center w-full">
+        {{ 'CONTACTS.TITLE' | translate }}
+      </h2>
 
-    <h2 class="text-2xl font-bold mb-6">
-      {{ 'CONTACTS.TITLE' | translate }}
-    </h2>
-
-    <form [formGroup]="form" (ngSubmit)="submit()" class="grid md:grid-cols-2 gap-4">
-
-      <!-- NAME -->
-      <mat-form-field appearance="outline" class="w-full">
-        <input
-          matInput
-          placeholder="{{ 'CONTACTS.NAME' | translate }}"
-          formControlName="name"
-        />
-
-        @if (form.get('name')?.touched && form.get('name')?.invalid) {
-          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
-        }
-      </mat-form-field>
-
-      <!-- EMAIL -->
-      <mat-form-field appearance="outline" class="w-full">
-        <input
-          matInput
-          placeholder="{{ 'CONTACTS.EMAIL' | translate }}"
-          formControlName="email"
-        />
-
-        @if (form.get('email')?.touched && form.get('email')?.invalid) {
-          <mat-error>{{ 'CONTACTS.INVALID_EMAIL' | translate }}</mat-error>
-        }
-      </mat-form-field>
-
-      <!-- CATEGORY -->
-      <mat-form-field appearance="outline" class="w-full md:col-span-2">
-        <mat-select
-          formControlName="category"
-          placeholder="{{ 'CONTACTS.CATEGORY_TITLE' | translate }}"
-        >
-          @for (cat of categories; track cat.value) {
-            <mat-option [value]="cat.value">
-              {{ cat.label | translate }}
-            </mat-option>
+      <form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-full min-w-0 space-y-1 contacts-form">
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'CONTACTS.EMAIL' | translate }}</mat-label>
+          <input matInput type="email" autocomplete="email" formControlName="email" />
+          @if (form.get('email')?.touched && form.get('email')?.hasError('required')) {
+            <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
           }
-        </mat-select>
+          @if (form.get('email')?.touched && form.get('email')?.hasError('email')) {
+            <mat-error>{{ 'CONTACTS.INVALID_EMAIL' | translate }}</mat-error>
+          }
+        </mat-form-field>
 
-        @if (form.get('category')?.touched && form.get('category')?.invalid) {
-          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'CONTACTS.PHONE' | translate }}</mat-label>
+          <input matInput type="tel" autocomplete="tel" formControlName="phone" />
+          @if (form.get('phone')?.touched && form.get('phone')?.hasError('maxlength')) {
+            <mat-error>{{ 'CONTACTS.PHONE_MAX' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'CONTACTS.CATEGORY_TITLE' | translate }}</mat-label>
+          <mat-select formControlName="category">
+            @for (cat of categories; track cat.value) {
+              <mat-option [value]="cat.value">{{ cat.label | translate }}</mat-option>
+            }
+          </mat-select>
+          @if (form.get('category')?.touched && form.get('category')?.invalid) {
+            <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'CONTACTS.SUBJECT' | translate }}</mat-label>
+          <input matInput formControlName="subject" maxlength="200" />
+          <mat-hint align="end">{{ form.get('subject')?.value?.length ?? 0 }}/200</mat-hint>
+          @if (form.get('subject')?.touched && form.get('subject')?.hasError('required')) {
+            <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+          }
+          @if (form.get('subject')?.touched && form.get('subject')?.hasError('maxlength')) {
+            <mat-error>{{ 'CONTACTS.MAXLENGTH_SUBJECT' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'CONTACTS.MESSAGE' | translate }}</mat-label>
+          <textarea matInput rows="4" formControlName="message"></textarea>
+          @if (form.get('message')?.touched && form.get('message')?.hasError('required')) {
+            <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
+          }
+          @if (form.get('message')?.touched && form.get('message')?.hasError('minlength')) {
+            <mat-error>{{ 'CONTACTS.MINLENGTH' | translate: { length: 10 } }}</mat-error>
+          }
+        </mat-form-field>
+
+        @if (submitError(); as errMsg) {
+          <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ errMsg }}</span>
+          </div>
         }
-      </mat-form-field>
 
-      <!-- SUBJECT -->
-      <mat-form-field appearance="outline" class="w-full md:col-span-2">
-        <input
-          matInput
-          placeholder="{{ 'CONTACTS.SUBJECT' | translate }}"
-          formControlName="subject"
-        />
-
-        @if (form.get('subject')?.touched && form.get('subject')?.invalid) {
-          <mat-error>{{ 'CONTACTS.REQUIRED' | translate }}</mat-error>
-        }
-      </mat-form-field>
-
-      <!-- MESSAGE -->
-      <mat-form-field appearance="outline" class="w-full md:col-span-2">
-        <textarea
-          matInput
-          rows="4"
-          formControlName="message"
-          placeholder="{{ 'CONTACTS.MESSAGE' | translate }}"
-        ></textarea>
-
-        @if (form.get('message')?.touched && form.get('message')?.invalid) {
-          <mat-error>
-            {{ 'CONTACTS.MINLENGTH' | translate:{ length: 10 } }}
-          </mat-error>
-        }
-      </mat-form-field>
-
-      <!-- BUTTON -->
-      <div class="md:col-span-2">
-        <button
-          mat-raised-button
-          color="primary"
-          class="w-full h-12 rounded-xl"
-          [disabled]="form.invalid"
-        >
-          {{ 'CONTACTS.SUBMIT' | translate }}
-        </button>
-      </div>
-
-    </form>
-
+        <div class="modal-actions pt-2">
+          <button
+            matButton="filled"
+            color="primary"
+            class="w-full"
+            type="submit"
+            [disabled]="form.invalid || submitting()"
+          >
+            @if (submitting()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'CONTACTS.SUBMIT' | translate }}
+            }
+          </button>
+        </div>
+      </form>
+    </div>
   </section>
 
 </main>
