@@ -17,8 +17,8 @@
     "SHOPPNG_CART": "Cart"
   },
   "BRANDS": {
-  "TITLE": "Brands"
-},
+    "TITLE": "Brands"
+  },
   "CAROUSEL": {
     "GUITARS": "Guitars",
     "KEYBOARDS": "Keyboards",
@@ -28,35 +28,35 @@
     "MICROPHONES": "Microphones"
   },
   "ADMIN": {
-  "TITLE": "Admin Dashboard",
-  "USERS": "Users",
-  "USER": {
-    "TITLE":"Users", 
-    "DESCRIPTION": "Manage user accounts, roles, and permissions"
-},
-"TABLE": {
-  "PREVIOUS": "Previous",
-  "NEXT": "Next",
-  "SEARCH": "Search...",
-  "ACTIONS": "Actions",
-  "DELETE": "Delete",
-  "EDIT": "Edit",
-  "BLOCK": "Block",
-  "UNBLOCK": "Unblock"
-},
-  "STATISTICS": "Statistics",
-  "TASKS": "Tasks",
-  "BRANDS": "Brands",
-  "ATTRIBUTES": "Attributes",
-  "ATTRIBUTE_GROUPS": "Attribute Groups",
-  "CATEGORIES": "Categories",
-  "PRODUCTS": "Products",
-  "ORDERS": "Orders",
-  "SHIPPING": "Shipping Addresses",
-  "SUBSCRIPTIONS": "Subscriptions",
-  "PAYMENTS": "Payments",
-  "PROMOTIONS": "Promotions",
-  "REVIEWS": "Reviews"
+    "TITLE": "Admin Dashboard",
+    "USERS": "Users",
+    "USER": {
+      "TITLE": "Users",
+      "DESCRIPTION": "Manage user accounts, roles, and permissions"
+    },
+    "TABLE": {
+      "PREVIOUS": "Previous",
+      "NEXT": "Next",
+      "SEARCH": "Search...",
+      "ACTIONS": "Actions",
+      "DELETE": "Delete",
+      "EDIT": "Edit",
+      "BLOCK": "Block",
+      "UNBLOCK": "Unblock"
+    },
+    "STATISTICS": "Statistics",
+    "TASKS": "Tasks",
+    "BRANDS": "Brands",
+    "ATTRIBUTES": "Attributes",
+    "ATTRIBUTE_GROUPS": "Attribute Groups",
+    "CATEGORIES": "Categories",
+    "PRODUCTS": "Products",
+    "ORDERS": "Orders",
+    "SHIPPING": "Shipping Addresses",
+    "SUBSCRIPTIONS": "Subscriptions",
+    "PAYMENTS": "Payments",
+    "PROMOTIONS": "Promotions",
+    "REVIEWS": "Reviews"
   },
   "FOOTER": {
     "STORE_NAME": "Leveleo",
@@ -78,7 +78,6 @@
     "RETURN": "Returns",
     "CONTACTS": "Terms and regulations",
 
-
     "SUBSCRIBE_DESC": "Get updates and special offers",
     "EMAIL": "Your email",
     "SUBSCRIBE_BTN": "Subscribe"
@@ -88,15 +87,14 @@
     "DESCRIPTION": "A clean foundation for your Angular project."
   },
 
-  
-"CONTACTS": {
-  "MAINTITLE": "Contact Us",
-  "SUBTITLE": "A music instruments store for professionals and beginners",
-  "WHO_WE_ARE_TITLE": "Who We Are",
-  "WHO_WE_ARE_TEXT": "We are a team passionate about music, helping you find the best instruments.",
-  "MISSION_TITLE": "Our Mission",
-  "MISSION_TEXT": "To provide quality instruments and service for every musician.",
-  "SUCCESS": "Message sent successfully!",
+  "CONTACTS": {
+    "MAINTITLE": "Contact Us",
+    "SUBTITLE": "A music instruments store for professionals and beginners",
+    "WHO_WE_ARE_TITLE": "Who We Are",
+    "WHO_WE_ARE_TEXT": "We are a team passionate about music, helping you find the best instruments.",
+    "MISSION_TITLE": "Our Mission",
+    "MISSION_TEXT": "To provide quality instruments and service for every musician.",
+    "SUCCESS": "Message sent successfully!",
     "TITLE": "Contact Us",
     "NAME": "Name",
     "NAME_PLACEHOLDER": "Enter your name",
@@ -113,15 +111,15 @@
     "MINLENGTH": "Minimum {{length}} characters",
     "INVALID_EMAIL": "Invalid email format",
     "CATEGORY_TITLE": "Reason for contact",
-  "CATEGORY": {
-    "DELIVERY": "Delivery question",
-    "ORDER": "Order question",
-    "RETURN": "Return or exchange",
-    "PRODUCT": "Product question",
-    "WEBSITE": "Website issue",
-    "PAYMENT": "Payment question",
-    "OTHER": "Other"
-  }
+    "CATEGORY": {
+      "DELIVERY": "Delivery question",
+      "ORDER": "Order question",
+      "RETURN": "Return or exchange",
+      "PRODUCT": "Product question",
+      "WEBSITE": "Website issue",
+      "PAYMENT": "Payment question",
+      "OTHER": "Other"
+    }
   },
   "AUTH": {
     "REGISTER": "Register",
@@ -231,7 +229,36 @@
     "AVATAR_TOO_LARGE": "File size must not exceed 5 MB",
     "AVATAR_UPLOAD_ERROR": "Failed to upload avatar",
     "AVATAR_SAVE_ERROR": "Failed to save avatar",
-    "REMOVE_AVATAR": "Remove photo"
+    "REMOVE_AVATAR": "Remove photo",
+    "2FA_DISABLED_SNACK": "Two-factor authentication disabled"
+  },
+  "2FA_SETUP": {
+    "TITLE": "Set Up Two-Factor Authentication",
+    "CHOOSE_METHOD": "Choose your preferred verification method",
+    "METHOD_EMAIL": "Email",
+    "METHOD_EMAIL_DESC": "A code will be sent to your email address",
+    "METHOD_SMS": "SMS",
+    "METHOD_SMS_DESC": "A code will be sent to the phone number in your profile",
+    "METHOD_TOTP": "Authenticator App",
+    "METHOD_TOTP_DESC": "Google Authenticator, Authy, or similar",
+    "NEXT": "Next",
+    "TOTP_SCAN_DESC": "Scan the QR code in your authenticator app, or enter the secret manually",
+    "TOTP_ENTER_CODE": "Enter the 6-digit code from the app to confirm",
+    "COPY_SECRET": "Copy secret",
+    "SUCCESS": "Two-factor authentication successfully enabled!"
+  },
+  "2FA_MANAGE": {
+    "TITLE": "Manage Two-Factor Authentication",
+    "ACTIVE_METHOD": "Active method",
+    "BACKUP_CODES": "Backup Codes",
+    "BACKUP_CODES_DESC": "View your backup codes for logging in if you lose access",
+    "VIEW_CODES": "View",
+    "SWITCH_METHOD": "Switch Method",
+    "SWITCH_METHOD_DESC": "Change from the current method to a different one",
+    "SWITCH": "Switch",
+    "DISABLE": "Disable 2FA",
+    "DISABLE_DESC": "Removing two-factor authentication will reduce account security",
+    "DISABLE_BTN": "Disable"
   },
   "2FA_NOT_ENABLED": "Two-factor authentication is not enabled",
   "ADDRESS_NOT_FOUND": "Address not found",
@@ -428,11 +455,7 @@
 
     "BAD_QUALITY_TITLE": "Defective goods",
     "BAD_QUALITY_TEXT": "If defects are found during warranty period, you may request:",
-    "BAD_QUALITY_LIST": [
-      "Price reduction",
-      "Free repair",
-      "Repair cost compensation"
-    ],
+    "BAD_QUALITY_LIST": ["Price reduction", "Free repair", "Repair cost compensation"],
 
     "HOW_TO_RETURN_TITLE": "How to return",
     "HOW_TO_RETURN_STEPS": [
@@ -456,14 +479,14 @@
 
     "FINAL_NOTE": "Only unused items without damage are accepted. Otherwise return may be rejected."
   },
-"HOME_LINKS": {
-  "ABOUT": "About",
-  "PRODUCTS": "Products",
-  "CONTACTS": "Contacts",
-  "DELIVERY": "Delivery",
-  "RETURNS": "Returns",
-  "TERMS": "Terms"
-},
+  "HOME_LINKS": {
+    "ABOUT": "About",
+    "PRODUCTS": "Products",
+    "CONTACTS": "Contacts",
+    "DELIVERY": "Delivery",
+    "RETURNS": "Returns",
+    "TERMS": "Terms"
+  },
   "TERMS": {
     "TITLE": "Terms of Use",
     "SUBTITLE": "Please read the rules for using the Leveleo online store",

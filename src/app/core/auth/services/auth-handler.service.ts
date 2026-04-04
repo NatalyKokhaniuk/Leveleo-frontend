@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslateService } from '@ngx-translate/core';
 import { take } from 'rxjs';
 import { AuthService } from './auth.service';
 
@@ -9,17 +11,13 @@ export class AuthHandlerService {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private snack = inject(MatSnackBar);
+  private translate = inject(TranslateService);
 
   handleAuthActions(route: ActivatedRoute): void {
     route.queryParamMap.pipe(take(1)).subscribe((params) => {
       const action = params.get('authAction');
       console.log('authAction:', action);
-      console.log('userId:', params.get('userId'));
-      console.log('token:', params.get('token'));
-      console.log(
-        'all params:',
-        params.keys.map((k) => `${k}=${params.get(k)}`),
-      );
       if (!action) return;
 
       this.router.navigate([], { queryParams: {}, replaceUrl: true });
@@ -39,7 +37,6 @@ export class AuthHandlerService {
           if (userId && token) {
             this.openForgotPasswordForm(userId, token);
           } else {
-            // Bug fix: show a proper "invalid link" error, not email-not-confirmed
             this.openSimpleResult('change-password-error');
           }
           break;
@@ -73,6 +70,64 @@ export class AuthHandlerService {
       }
     });
   }
+
+  // ── 2FA ──────────────────────────────────────────────────────────
+
+  openTwoFactorSetup(): void {
+    import('../two-factor-setup-dialog/two-factor-setup-dialog.component').then(
+      ({ TwoFactorSetupDialogComponent }) => {
+        this.dialog
+          .open(TwoFactorSetupDialogComponent, {
+            data: {},
+            disableClose: true,
+            maxWidth: '480px',
+            width: '100%',
+          })
+          .afterClosed()
+          .subscribe((result) => {
+            if (result === 'success') {
+              // Оновлюємо дані користувача після увімкнення 2FA
+              this.auth.restoreSession().pipe(take(1)).subscribe();
+            }
+          });
+      },
+    );
+  }
+
+  openTwoFactorManage(): void {
+    const user = this.auth.currentUser();
+    if (!user?.twoFactorEnabled) return;
+
+    import('../two-factor-manage-dialog/two-factor-manage-dialog.component').then(
+      ({ TwoFactorManageDialogComponent }) => {
+        this.dialog
+          .open(TwoFactorManageDialogComponent, {
+            data: { currentMethod: user.twoFactorMethod },
+            maxWidth: '480px',
+            width: '100%',
+          })
+          .afterClosed()
+          .subscribe((result) => {
+            if (!result) return;
+
+            if (result === 'disabled') {
+              // Оновлюємо стан після відключення 2FA
+              this.auth.restoreSession().pipe(take(1)).subscribe();
+              this.translate.get('PROFILE.2FA_DISABLED_SNACK').subscribe((msg) => {
+                this.snack.open(msg, undefined, { duration: 2500 });
+              });
+            } else if (result === 'switch') {
+              // Відкриваємо setup заново
+              this.openTwoFactorSetup();
+            } else if (result?.action === 'view-backup') {
+              this.openBackupCodes(result.codes);
+            }
+          });
+      },
+    );
+  }
+
+  // ── Існуючі методи ───────────────────────────────────────────────
 
   private openEmailConfirmed(): void {
     import('../auth-result-dialog/auth-result-dialog.component').then(
@@ -115,7 +170,6 @@ export class AuthHandlerService {
           .afterClosed()
           .subscribe((result) => {
             if (result === 'success') this.openAfterLogin('forgot-password-confirmation');
-            // token-invalid: show generic error (link expired)
             else if (result === 'token-invalid') this.openSimpleResult('change-password-error');
           });
       },
@@ -165,7 +219,6 @@ export class AuthHandlerService {
       this.dialog.open(AuthDialogComponent, {
         panelClass: 'auth-dialog',
         maxHeight: '90vh',
-        //disableClose: true,
         data: { defaultTab: tab },
       });
     });
@@ -173,9 +226,7 @@ export class AuthHandlerService {
 
   private exchangeSocialToken(tempToken: string): void {
     this.auth.exchangeTempToken({ tempToken }).subscribe({
-      next: () => {
-        // Сесія встановлена — хедер оновиться автоматично
-      },
+      next: () => {},
       error: () => {
         this.openSimpleResult('change-password-error');
       },

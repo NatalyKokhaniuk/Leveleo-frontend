@@ -95,12 +95,10 @@ export class AuthService {
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.api.post<AuthResponse>('/auth/login', credentials).pipe(
-      tap((res) => this.handleSuccessfulAuth(res)),
-      catchError((err) => {
-        if (err.status === 400 && err.error?.status === '2FA_REQUIRED') {
-          return of(err.error as AuthResponse);
+      tap((res) => {
+        if (!res.twoFaToken) {
+          this.handleSuccessfulAuth(res);
         }
-        return throwError(() => err);
       }),
     );
   }

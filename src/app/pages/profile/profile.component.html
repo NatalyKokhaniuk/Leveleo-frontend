@@ -194,7 +194,11 @@
                 @if (user.twoFactorEnabled) {
                   <span class="flex items-center gap-1" style="color: var(--color-success)">
                     <mat-icon class="text-base leading-none">check_circle</mat-icon>
-                    {{ 'PROFILE.2FA_ENABLED' | translate }} ({{ user.twoFactorMethod }})
+                    {{ 'PROFILE.2FA_ENABLED' | translate }}
+                    &nbsp;·&nbsp;
+                    <span style="color: var(--color-text-secondary)">{{
+                      user.twoFactorMethod
+                    }}</span>
                   </span>
                 } @else {
                   <span style="color: var(--color-text-secondary)">
@@ -203,20 +207,28 @@
                 }
               </p>
             </div>
-            <button
-              matButton="outlined"
-              color="primary"
-              type="button"
-              class="shrink-0"
-              disabled
-              [matTooltip]="'PROFILE.2FA_COMING_SOON' | translate"
-            >
-              {{
-                user.twoFactorEnabled
-                  ? ('PROFILE.2FA_MANAGE' | translate)
-                  : ('PROFILE.2FA_ENABLE' | translate)
-              }}
-            </button>
+
+            @if (user.twoFactorEnabled) {
+              <button
+                matButton="outlined"
+                color="primary"
+                type="button"
+                class="shrink-0"
+                (click)="openTwoFactorManage()"
+              >
+                {{ 'PROFILE.2FA_MANAGE' | translate }}
+              </button>
+            } @else {
+              <button
+                matButton="outlined"
+                color="primary"
+                type="button"
+                class="shrink-0"
+                (click)="openTwoFactorSetup()"
+              >
+                {{ 'PROFILE.2FA_ENABLE' | translate }}
+              </button>
+            }
           </div>
         </div>
       </section>

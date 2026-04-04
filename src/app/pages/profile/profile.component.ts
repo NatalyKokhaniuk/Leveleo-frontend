@@ -90,7 +90,6 @@ export class ProfileComponent {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
-    // Перевірка типу і розміру
     if (!file.type.startsWith('image/')) {
       this.snack.open(this.translate.instant('PROFILE.AVATAR_INVALID_TYPE'), 'OK', {
         duration: 3000,
@@ -106,7 +105,6 @@ export class ProfileComponent {
 
     this.mediaService.upload(file).subscribe({
       next: (res) => {
-        // Зберігаємо одразу — не чекаємо натискання "Зберегти"
         this.userService.updateMyProfile({ avatarKey: res.key }).subscribe({
           next: () => this.isUploadingAvatar.set(false),
           error: () => {
@@ -154,7 +152,6 @@ export class ProfileComponent {
       .subscribe({
         next: () => {
           this.isSaving.set(false);
-          // Оновлюємо мову якщо змінилась
           if (language && language !== this.translate.currentLang) {
             this.translate.use(language);
           }
@@ -171,6 +168,14 @@ export class ProfileComponent {
 
   changePassword(): void {
     this.authHandler.openChangePassword();
+  }
+
+  openTwoFactorSetup(): void {
+    this.authHandler.openTwoFactorSetup();
+  }
+
+  openTwoFactorManage(): void {
+    this.authHandler.openTwoFactorManage();
   }
 
   // ── Небезпечна зона ─────────────────────────────────────────────

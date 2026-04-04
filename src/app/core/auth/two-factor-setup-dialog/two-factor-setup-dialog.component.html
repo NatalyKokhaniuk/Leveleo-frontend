@@ -1,0 +1,194 @@
+<h2 mat-dialog-title>{{ '2FA_SETUP.TITLE' | translate }}</h2>
+
+<mat-dialog-content class="flex flex-col gap-5 pt-2 min-w-80">
+  <!-- ══ КРОК 1: Вибір методу ══ -->
+  @if (step() === 'method') {
+    <p class="text-sm" style="color: var(--color-text-secondary)">
+      {{ '2FA_SETUP.CHOOSE_METHOD' | translate }}
+    </p>
+
+    <mat-radio-group [formControl]="$any(methodForm.get('method'))" class="flex flex-col gap-3">
+      @for (m of methods; track m.value) {
+        <label
+          class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors"
+          [style]="
+            methodForm.value.method === m.value
+              ? 'border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 8%, transparent)'
+              : 'border-color: var(--color-border)'
+          "
+        >
+          <mat-radio-button [value]="m.value" class="mt-0.5"></mat-radio-button>
+          <div class="flex flex-col">
+            <span
+              class="flex items-center gap-1.5 font-medium text-sm"
+              style="color: var(--color-text)"
+            >
+              <mat-icon class="text-base leading-none" style="color: var(--color-primary)">{{
+                m.icon
+              }}</mat-icon>
+              {{ m.labelKey | translate }}
+            </span>
+            <span class="text-xs mt-0.5" style="color: var(--color-text-secondary)">
+              {{ m.descKey | translate }}
+            </span>
+          </div>
+        </label>
+      }
+    </mat-radio-group>
+
+    @if (error(); as err) {
+      <div class="flex items-center gap-2 text-sm" style="color: var(--color-error)">
+        <mat-icon class="text-base">error_outline</mat-icon>
+        <span>{{ err | translate }}</span>
+      </div>
+    }
+  }
+
+  <!-- ══ КРОК 2: Верифікація ══ -->
+  @if (step() === 'verify') {
+    <!-- TOTP: QR + секрет -->
+    @if (selectedMethod() === 'Totp') {
+      <p class="text-sm" style="color: var(--color-text-secondary)">
+        {{ '2FA_SETUP.TOTP_SCAN_DESC' | translate }}
+      </p>
+
+      @if (totpQrUrl(); as qrUrl) {
+        <div class="flex flex-col items-center gap-3">
+          <img [src]="qrUrl" alt="QR code" class="w-48 h-48 rounded-lg" />
+
+          @if (totpSecret(); as secret) {
+            <div
+              class="w-full flex items-center gap-2 p-2 rounded-lg"
+              style="background: var(--color-surface-hover)"
+            >
+              <code class="flex-1 text-xs break-all font-mono" style="color: var(--color-text)">
+                {{ secret }}
+              </code>
+              <button
+                matIconButton
+                [matTooltip]="'2FA_SETUP.COPY_SECRET' | translate"
+                (click)="copySecret()"
+              >
+                <mat-icon class="text-base">{{
+                  secretCopied() ? 'check' : 'content_copy'
+                }}</mat-icon>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <p class="text-sm" style="color: var(--color-text-secondary)">
+        {{ '2FA_SETUP.TOTP_ENTER_CODE' | translate }}
+      </p>
+    }
+
+    <!-- Email / SMS: підказка -->
+    @if (selectedMethod() === 'Email') {
+      <p class="text-sm" style="color: var(--color-text-secondary)">
+        {{ 'AUTH.2FA_DESC_EMAIL' | translate }}
+      </p>
+    }
+    @if (selectedMethod() === 'Sms') {
+      <p class="text-sm" style="color: var(--color-text-secondary)">
+        {{ 'AUTH.2FA_DESC_SMS' | translate }}
+      </p>
+    }
+
+    <!-- Поле для коду -->
+    <mat-form-field class="w-full">
+      <mat-label>{{ 'AUTH.2FA_CODE' | translate }}</mat-label>
+      <input
+        matInput
+        [formControl]="$any(codeForm.get('code'))"
+        autocomplete="one-time-code"
+        inputmode="numeric"
+        maxlength="8"
+        (keydown.enter)="confirmSetup()"
+      />
+    </mat-form-field>
+
+    @if (error(); as err) {
+      <div class="flex items-center gap-2 text-sm" style="color: var(--color-error)">
+        <mat-icon class="text-base">error_outline</mat-icon>
+        <span>{{ err | translate }}</span>
+      </div>
+    }
+  }
+
+  <!-- ══ КРОК 3: Бекап коди ══ -->
+  @if (step() === 'backup') {
+    <div class="flex items-center gap-2" style="color: var(--color-success)">
+      <mat-icon>check_circle</mat-icon>
+      <span class="font-medium text-sm">{{ '2FA_SETUP.SUCCESS' | translate }}</span>
+    </div>
+
+    <p class="text-sm" style="color: var(--color-text-secondary)">
+      {{ 'AUTH.BACKUP_CODES_DESC' | translate }}
+    </p>
+
+    @if (backupCodes().length) {
+      <div class="grid grid-cols-2 gap-2">
+        @for (code of backupCodes(); track code) {
+          <code
+            class="text-center py-1.5 px-2 rounded font-mono text-sm"
+            style="background: var(--color-surface-hover); color: var(--color-text)"
+          >
+            {{ code }}
+          </code>
+        }
+      </div>
+
+      <button matButton type="button" (click)="copyAllCodes()" class="self-start">
+        <mat-icon>{{ codesCopied() ? 'check' : 'content_copy' }}</mat-icon>
+        {{ (codesCopied() ? 'AUTH.BACKUP_CODES_COPIED' : 'AUTH.BACKUP_CODES_COPY') | translate }}
+      </button>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="gap-2">
+  @if (step() === 'method') {
+    <button matButton type="button" (click)="cancel()">
+      {{ 'AUTH.CANCEL' | translate }}
+    </button>
+    <button
+      matButton="filled"
+      color="primary"
+      type="button"
+      [disabled]="isLoading() || methodForm.invalid"
+      (click)="initiateSetup()"
+    >
+      @if (isLoading()) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        {{ '2FA_SETUP.NEXT' | translate }}
+      }
+    </button>
+  }
+
+  @if (step() === 'verify') {
+    <button matButton type="button" (click)="backToMethod()" [disabled]="isLoading()">
+      {{ 'AUTH.BACK' | translate }}
+    </button>
+    <button
+      matButton="filled"
+      color="primary"
+      type="button"
+      [disabled]="isLoading() || codeForm.invalid"
+      (click)="confirmSetup()"
+    >
+      @if (isLoading()) {
+        <mat-spinner diameter="18"></mat-spinner>
+      } @else {
+        {{ 'AUTH.2FA_VERIFY' | translate }}
+      }
+    </button>
+  }
+
+  @if (step() === 'backup') {
+    <button matButton="filled" color="primary" type="button" (click)="finish()">
+      {{ 'AUTH.BACKUP_CODES_SAVED' | translate }}
+    </button>
+  }
+</mat-dialog-actions>

@@ -119,7 +119,7 @@ export class AuthDialogComponent {
 
     this.auth.login(this.loginForm.value as LoginRequest).subscribe({
       next: (res) => {
-        if (res.status === '2FA_REQUIRED') {
+        if (res.twoFaToken) {
           this.twoFaRequired.set(true);
           this.twoFaToken.set(res.twoFaToken ?? null);
           this.twoFaMethod.set(res.method ?? null);
