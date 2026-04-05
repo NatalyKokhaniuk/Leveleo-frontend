@@ -1,0 +1,19 @@
+.picker-root {
+  .picker-search {
+    width: 100%;
+  }
+
+  .picker-chips {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .chip-label {
+    display: inline-block;
+    max-width: min(100%, 28rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: bottom;
+  }
+}

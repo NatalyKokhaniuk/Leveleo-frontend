@@ -1,9 +1,6 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
-import { AuthService } from './core/auth/services/auth.service';
 import { FooterComponent } from './core/footer/footer/footer';
 import { ScrollToTopComponent } from './core/footer/footer.component';
 import { HeaderComponent } from './core/header/header.component';
@@ -16,9 +13,6 @@ import { HeaderComponent } from './core/header/header.component';
 })
 export class App implements OnInit {
   private translate = inject(TranslateService);
-  private auth = inject(AuthService);
-  private platformId = inject(PLATFORM_ID);
-  private authService = inject(AuthService);
 
   async ngOnInit(): Promise<void> {
     // Мова: читаємо збережену або беремо з браузера
@@ -32,6 +26,7 @@ export class App implements OnInit {
         localStorage.setItem('lang', e.lang);
       }
     });
-    if (isPlatformBrowser(this.platformId)) await firstValueFrom(this.auth.restoreSession());
+    // Сесію відновлює лише provideAppInitializer у app.config (один POST /auth/refresh-token).
+    // Другий виклик restoreSession() тут спричиняв подвійне оновлення при ротації refresh у cookie.
   }
 }

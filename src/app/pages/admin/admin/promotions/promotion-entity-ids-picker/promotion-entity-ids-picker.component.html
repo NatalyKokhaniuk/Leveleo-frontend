@@ -1,0 +1,74 @@
+<div class="picker-root w-full min-w-0 flex flex-col gap-2">
+  <mat-form-field class="w-full picker-search" subscriptSizing="dynamic">
+    <mat-label>{{ kind() === 'product' ? ('ADMIN.PROMOTION.PICKER_SEARCH_PRODUCTS' | translate) : ('ADMIN.PROMOTION.PICKER_SEARCH_CATEGORIES' | translate) }}</mat-label>
+    <input
+      type="text"
+      matInput
+      [formControl]="searchCtrl"
+      [matAutocomplete]="auto"
+      [disabled]="disabled"
+      autocomplete="off"
+    />
+    @if (searchLoading()) {
+      <span matSuffix class="inline-flex items-center pr-1">
+        <mat-spinner diameter="20"></mat-spinner>
+      </span>
+    }
+    <mat-hint>{{ 'ADMIN.PROMOTION.PICKER_SEARCH_HINT' | translate }}</mat-hint>
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
+      @for (opt of filteredOptions(); track opt.id) {
+        <mat-option [value]="opt">{{ displayEntity(opt) }}</mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+
+  @if (items().length > 0) {
+    <mat-chip-set class="picker-chips" aria-label="selected">
+      @for (item of items(); track trackById($index, item)) {
+        <mat-chip [disabled]="disabled" (removed)="remove(item.id)">
+          <span class="chip-label min-w-0">{{ item.name }}</span>
+          <button
+            matChipRemove
+            type="button"
+            [disabled]="disabled"
+            [attr.aria-label]="'ADMIN.PROMOTION.PICKER_REMOVE' | translate"
+          >
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+      }
+    </mat-chip-set>
+  }
+
+  <button
+    type="button"
+    matButton="text"
+    class="self-start"
+    (click)="toggleAdvanced()"
+    [disabled]="disabled"
+  >
+    {{ 'ADMIN.PROMOTION.PICKER_ADVANCED_TOGGLE' | translate }}
+  </button>
+
+  @if (advancedOpen()) {
+    <mat-form-field class="w-full" subscriptSizing="dynamic">
+      <mat-label>{{ 'ADMIN.PROMOTION.PICKER_ADVANCED_LABEL' | translate }}</mat-label>
+      <textarea
+        matInput
+        rows="3"
+        [formControl]="advancedCsv"
+        [disabled]="disabled"
+      ></textarea>
+      <mat-hint>{{ 'ADMIN.PROMOTION.PICKER_ADVANCED_HINT' | translate }}</mat-hint>
+    </mat-form-field>
+    <button
+      type="button"
+      matButton="outlined"
+      class="self-start"
+      (click)="applyAdvancedCsv()"
+      [disabled]="disabled"
+    >
+      {{ 'ADMIN.PROMOTION.PICKER_ADVANCED_APPLY' | translate }}
+    </button>
+  }
+</div>

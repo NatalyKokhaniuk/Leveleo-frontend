@@ -117,6 +117,12 @@ export class AuthService {
     return this.api.post<{ message: string }>('/auth/resend-confirmation', data);
   }
   private refresh$?: Observable<RefreshResponse>;
+
+  /**
+   * Оновлення access token за HttpOnly refresh cookie (`withCredentials: true`).
+   * Новий refresh (ротація) приходить у Set-Cookie у відповіді — браузер зберігає сам;
+   * JavaScript не читає HttpOnly cookies, окремо «зберігати» нічого не потрібно.
+   */
   refreshToken(): Observable<RefreshResponse> {
     if (!this.refresh$) {
       console.log('🔄 refreshToken() START');
@@ -141,11 +147,11 @@ export class AuthService {
 
         finalize(() => {
           console.log('♻️ refreshToken RESET');
-          this.refresh$ = undefined; // 🔥 дозволяємо наступний refresh
-          this._isRestoring.set(false);
+          this.refresh$ = undefined;
+          // _isRestoring керує лише restoreSession(), не кожним refresh з інтерсептора
         }),
 
-        shareReplay(1), // 🔥 КЛЮЧОВЕ
+        shareReplay(1),
       );
     }
 

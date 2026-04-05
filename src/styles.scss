@@ -95,12 +95,16 @@ body {
     )
   );
 }
+/* Скидання стилів браузера для MDC; див. нижче — чому потрібні width/min-width. */
 .mdc-text-field input {
   all: unset;
-}
-.mdc-text-field input {
   font: inherit;
   color: inherit;
+  /* all: unset знімає width/flex — однорядковий input стає «вузьким», текст лише зліва.
+     textarea не потрапляє під селектор input, тому опис виглядав нормально. */
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 // Фони
 .bg-primary {

@@ -1,0 +1,31 @@
+/* Курсор grab для горизонтального скролу таблиці (див. products.scss). */
+:host ::ng-deep {
+  .horizontal-drag-scroll-host {
+    cursor: grab !important;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &.horizontal-drag-scroll--dragging {
+      cursor: grabbing !important;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell,
+    .mat-mdc-footer-cell,
+    td,
+    th,
+    .mdc-data-table__cell,
+    .mdc-data-table__header-cell {
+      cursor: inherit !important;
+    }
+
+    button,
+    a[href],
+    a[routerLink],
+    [mat-icon-button],
+    .mat-mdc-icon-button,
+    .mat-mdc-button-base {
+      cursor: pointer !important;
+    }
+  }
+}

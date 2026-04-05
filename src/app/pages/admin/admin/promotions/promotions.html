@@ -1,0 +1,228 @@
+<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-6 min-w-0">
+  <div class="flex flex-col gap-4">
+    <div class="flex flex-col gap-2">
+      <a
+        routerLink="/admin"
+        class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+      >
+        <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+        {{ 'ADMIN.BACK' | translate }}
+      </a>
+      <h1 class="modal-title text-2xl md:text-3xl text-left">{{ 'ADMIN.PROMOTION.TITLE' | translate }}</h1>
+      <p class="modal-desc text-left max-w-none">
+        {{ 'ADMIN.PROMOTION.DESCRIPTION' | translate }}
+      </p>
+    </div>
+    <button
+      matButton="filled"
+      color="primary"
+      type="button"
+      class="w-full sm:w-auto sm:self-start"
+      (click)="openCreate()"
+    >
+      <mat-icon>add</mat-icon>
+      {{ 'ADMIN.PROMOTION.ADD' | translate }}
+    </button>
+  </div>
+
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-6 min-w-0"
+  >
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (loadError(); as errKey) {
+      <div class="flex flex-col gap-4 items-center py-8">
+        <p class="modal-desc text-center max-w-none">{{ errKey | translate }}</p>
+        <button matButton="outlined" type="button" (click)="loadPromotions()">
+          {{ 'ADMIN.PROMOTION.RETRY' | translate }}
+        </button>
+      </div>
+    } @else if (promotions().length === 0) {
+      <p class="modal-desc text-center max-w-none py-8">{{ 'ADMIN.PROMOTION.EMPTY' | translate }}</p>
+    } @else {
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADMIN.TABLE.SEARCH' | translate }}</mat-label>
+        <input matInput type="search" (input)="onSearch($event)" autocomplete="off" />
+      </mat-form-field>
+
+      @if (filteredAndSortedPromotions().length === 0) {
+        <p class="modal-desc text-center max-w-none py-8">
+          {{ 'ADMIN.PROMOTION.SEARCH_EMPTY' | translate }}
+        </p>
+      } @else {
+        <div class="flex flex-col gap-4 md:hidden">
+          @for (row of paginatedPromotions(); track row.id) {
+            <div
+              class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-3 min-w-0"
+            >
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.COL_NAME' | translate }}</span>
+                <span class="text-sm font-medium break-words">{{ promotionDisplayName(row) }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.COL_LEVEL' | translate }}</span>
+                <span class="text-sm">{{ levelLabelKey(row.level) | translate }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.COL_DISCOUNT' | translate }}</span>
+                <span class="text-sm">{{ discountLabel(row) }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.COL_DATES' | translate }}</span>
+                <span class="text-sm break-words">{{ row.startDate | date: 'short' }} — {{ row.endDate | date: 'short' }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.COL_ACTIVE' | translate }}</span>
+                <span class="text-sm">{{ row.isActive ? ('ADMIN.CATEGORY.YES' | translate) : ('ADMIN.CATEGORY.NO' | translate) }}</span>
+              </div>
+              <div class="flex flex-col gap-0.5 min-w-0">
+                <span class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.COL_IMAGE' | translate }}</span>
+                <app-media-image-thumb [imageKey]="row.imageKey" />
+              </div>
+              <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant">
+                <button matButton="outlined" type="button" class="w-full" (click)="openEdit(row)">
+                  {{ 'ADMIN.TABLE.EDIT' | translate }}
+                </button>
+                <button matButton="tonal" type="button" class="w-full" (click)="confirmDelete(row)">
+                  {{ 'ADMIN.TABLE.DELETE' | translate }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <div
+          class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant -mx-4 px-4 sm:mx-0 sm:px-0"
+          appHorizontalDragScroll
+        >
+          <table mat-table [dataSource]="paginatedPromotions()" class="w-full min-w-[720px]">
+            <ng-container matColumnDef="name">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('name')"
+              >
+                {{ 'ADMIN.PROMOTION.COL_NAME' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('name') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="max-w-[14rem] break-words">{{
+                promotionDisplayName(row)
+              }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="level">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('level')"
+              >
+                {{ 'ADMIN.PROMOTION.COL_LEVEL' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('level') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row">{{ levelLabelKey(row.level) | translate }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="discount">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('discount')"
+              >
+                {{ 'ADMIN.PROMOTION.COL_DISCOUNT' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('discount') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row">{{ discountLabel(row) }}</td>
+            </ng-container>
+
+            <ng-container matColumnDef="dates">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none whitespace-nowrap"
+                (click)="changeSort('startDate')"
+              >
+                {{ 'ADMIN.PROMOTION.COL_DATES' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('startDate') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">
+                {{ row.startDate | date: 'short' }} — {{ row.endDate | date: 'short' }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="active">
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('isActive')"
+              >
+                {{ 'ADMIN.PROMOTION.COL_ACTIVE' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('isActive') }}</span>
+              </th>
+              <td mat-cell *matCellDef="let row">
+                {{ row.isActive ? ('ADMIN.CATEGORY.YES' | translate) : ('ADMIN.CATEGORY.NO' | translate) }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="image">
+              <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PROMOTION.COL_IMAGE' | translate }}</th>
+              <td mat-cell *matCellDef="let row" class="max-w-[6rem]">
+                <app-media-image-thumb [imageKey]="row.imageKey" />
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap">{{
+                'ADMIN.TABLE.ACTIONS' | translate
+              }}</th>
+              <td mat-cell *matCellDef="let row">
+                <div class="flex flex-col lg:flex-row flex-wrap gap-2 py-2 min-w-[8rem]">
+                  <button matButton="outlined" type="button" (click)="openEdit(row)">
+                    {{ 'ADMIN.TABLE.EDIT' | translate }}
+                  </button>
+                  <button matButton="tonal" type="button" (click)="confirmDelete(row)">
+                    {{ 'ADMIN.TABLE.DELETE' | translate }}
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
+
+        <div
+          class="flex flex-col sm:flex-row flex-wrap justify-between items-stretch sm:items-center gap-3"
+        >
+          <button
+            matButton="outlined"
+            type="button"
+            class="w-full sm:w-auto"
+            (click)="prevPage()"
+            [disabled]="page() <= 1"
+          >
+            {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
+          </button>
+          <span class="text-sm text-on-surface opacity-80 text-center order-first sm:order-none">
+            {{ page() }} / {{ totalPages() }}
+          </span>
+          <button
+            matButton="outlined"
+            type="button"
+            class="w-full sm:w-auto"
+            (click)="nextPage()"
+            [disabled]="page() >= totalPages()"
+          >
+            {{ 'ADMIN.TABLE.NEXT' | translate }}
+          </button>
+        </div>
+      }
+    }
+  </section>
+</main>

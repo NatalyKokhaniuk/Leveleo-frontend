@@ -1,0 +1,283 @@
+<div
+  class="w-full max-w-full min-w-0 max-h-[90vh] overflow-y-auto overflow-x-hidden box-border p-6"
+>
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else {
+    <div class="auth-modal-container items-stretch text-left w-full max-w-full min-w-0">
+      <div class="icon-wrapper icon-info mx-auto">
+        <mat-icon class="status-icon">local_offer</mat-icon>
+      </div>
+      <h2 class="modal-title text-center w-full">
+        {{
+          (data.mode === 'create'
+            ? 'ADMIN.PROMOTION.FORM_CREATE_TITLE'
+            : 'ADMIN.PROMOTION.FORM_EDIT_TITLE'
+          ) | translate
+        }}
+      </h2>
+
+      <p class="modal-desc text-left w-full max-w-full break-words">
+        {{ 'ADMIN.PROMOTION.TRANSLATIONS_HINT' | translate }}
+      </p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" class="w-full max-w-full min-w-0 space-y-1">
+        <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-2 w-full">
+          {{ 'ADMIN.CATEGORY.SECTION_EN' | translate }}
+        </p>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.CATEGORY.NAME_EN' | translate }}</mat-label>
+          <input matInput formControlName="nameEn" autocomplete="off" />
+          @if (form.get('nameEn')?.hasError('required') && form.get('nameEn')?.touched) {
+            <mat-error>{{ 'ADMIN.CATEGORY.NAME_EN_REQUIRED' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.CATEGORY.DESCRIPTION_EN' | translate }}</mat-label>
+          <textarea matInput formControlName="descriptionEn" rows="2"></textarea>
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.PROMOTION.SLUG' | translate }}</mat-label>
+          <input matInput formControlName="slug" autocomplete="off" />
+          @if (form.get('slug')?.hasError('required') && form.get('slug')?.touched) {
+            <mat-error>{{ 'ADMIN.PROMOTION.SLUG_REQUIRED' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+          {{ 'ADMIN.CATEGORY.SECTION_UK' | translate }}
+        </p>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.CATEGORY.NAME_UK' | translate }}</mat-label>
+          <input matInput formControlName="nameUk" autocomplete="off" />
+          @if (form.get('nameUk')?.hasError('required') && form.get('nameUk')?.touched) {
+            <mat-error>{{ 'ADMIN.CATEGORY.NAME_UK_REQUIRED' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.CATEGORY.DESCRIPTION_UK' | translate }}</mat-label>
+          <textarea matInput formControlName="descriptionUk" rows="2"></textarea>
+        </mat-form-field>
+
+        <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+          {{ 'ADMIN.PROMOTION.SECTION_IMAGE' | translate }}
+        </p>
+
+        <div class="flex flex-col gap-3 items-start w-full pb-2">
+          <div
+            class="relative w-28 h-28 rounded-xl overflow-hidden shrink-0 border border-solid cursor-pointer group"
+            style="border-color: var(--color-outline-variant); background: var(--color-surface-hover)"
+            [class.opacity-60]="saving() || isUploadingImage()"
+            [class.pointer-events-none]="saving() || isUploadingImage()"
+            (click)="onImageClick()"
+          >
+            @if (isUploadingImage()) {
+              <div class="w-full h-full flex items-center justify-center">
+                <mat-spinner diameter="36"></mat-spinner>
+              </div>
+            } @else if (imagePreviewUrl()) {
+              <img [src]="imagePreviewUrl()!" alt="" class="w-full h-full object-contain" />
+            } @else if (hasImageKey()) {
+              <div
+                class="w-full h-full flex items-center justify-center"
+                style="color: var(--color-primary)"
+              >
+                <mat-icon class="!w-12 !h-12 text-[3rem]">image</mat-icon>
+              </div>
+            } @else {
+              <div
+                class="w-full h-full flex items-center justify-center text-4xl"
+                style="color: var(--color-text-tertiary)"
+              >
+                <mat-icon class="!w-12 !h-12 text-[3rem]">add_photo_alternate</mat-icon>
+              </div>
+            }
+            <div
+              class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+              style="background: rgba(0, 0, 0, 0.45); color: white"
+            >
+              <mat-icon>photo_camera</mat-icon>
+            </div>
+          </div>
+
+          <input
+            id="promotion-image-input"
+            type="file"
+            accept="image/*"
+            class="hidden"
+            (change)="onImageSelected($event)"
+          />
+
+          <div class="flex flex-wrap gap-2">
+            <button
+              matButton
+              type="button"
+              (click)="onImageClick()"
+              [disabled]="saving() || isUploadingImage()"
+            >
+              {{ 'ADMIN.PROMOTION.UPLOAD_IMAGE' | translate }}
+            </button>
+            @if (hasImageKey()) {
+              <button
+                matButton
+                type="button"
+                (click)="removeImage()"
+                [disabled]="saving() || isUploadingImage()"
+              >
+                {{ 'ADMIN.PROMOTION.REMOVE_IMAGE' | translate }}
+              </button>
+            }
+          </div>
+          <p class="text-xs m-0" style="color: var(--color-text-tertiary)">
+            {{ 'ADMIN.PROMOTION.IMAGE_HINT' | translate }}
+          </p>
+        </div>
+
+        <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+          {{ 'ADMIN.PROMOTION.SECTION_LEVEL_DISCOUNT' | translate }}
+        </p>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.PROMOTION.LEVEL' | translate }}</mat-label>
+          <mat-select formControlName="level">
+            @for (opt of levelOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.labelKey | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.PROMOTION.DISCOUNT_TYPE' | translate }}</mat-label>
+          <mat-select formControlName="discountType">
+            @for (opt of discountOptions; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.labelKey | translate }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.PROMOTION.DISCOUNT_VALUE' | translate }}</mat-label>
+          <input matInput type="number" formControlName="discountValue" min="0" step="0.01" />
+          @if (form.get('discountValue')?.hasError('required') && form.get('discountValue')?.touched) {
+            <mat-error>{{ 'ADMIN.PROMOTION.DISCOUNT_VALUE_REQUIRED' | translate }}</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.PROMOTION.START_DATE' | translate }}</mat-label>
+          <input matInput type="datetime-local" formControlName="startDate" />
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ADMIN.PROMOTION.END_DATE' | translate }}</mat-label>
+          <input matInput type="datetime-local" formControlName="endDate" />
+        </mat-form-field>
+
+        @if (form.hasError('datesOrder')) {
+          <p class="text-sm m-0" style="color: var(--color-error)">
+            {{ 'ADMIN.PROMOTION.DATES_ORDER_ERROR' | translate }}
+          </p>
+        }
+
+        @if (levelIsProduct()) {
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+            {{ 'ADMIN.PROMOTION.SECTION_PRODUCT_CONDITIONS' | translate }}
+          </p>
+          <p class="text-xs m-0 pb-2" style="color: var(--color-text-tertiary)">
+            {{ 'ADMIN.PROMOTION.PRODUCT_CONDITIONS_HINT' | translate }}
+          </p>
+          <p class="text-xs font-medium opacity-90 pt-1 w-full">
+            {{ 'ADMIN.PROMOTION.PRODUCT_IDS' | translate }}
+          </p>
+          <app-promotion-entity-ids-picker formControlName="productIdsCsv" kind="product" />
+          <p class="text-xs font-medium opacity-90 pt-3 w-full">
+            {{ 'ADMIN.PROMOTION.CATEGORY_IDS' | translate }}
+          </p>
+          <app-promotion-entity-ids-picker formControlName="productCategoryIdsCsv" kind="category" />
+        }
+
+        @if (levelIsCart()) {
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+            {{ 'ADMIN.PROMOTION.SECTION_CART_CONDITIONS' | translate }}
+          </p>
+          <p class="text-xs m-0 pb-2" style="color: var(--color-text-tertiary)">
+            {{ 'ADMIN.PROMOTION.CART_CONDITIONS_HINT' | translate }}
+          </p>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PROMOTION.CART_MIN_TOTAL' | translate }}</mat-label>
+            <input matInput type="number" formControlName="cartMinTotal" min="0" step="0.01" />
+          </mat-form-field>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PROMOTION.CART_MIN_QTY' | translate }}</mat-label>
+            <input matInput type="number" formControlName="cartMinQty" min="0" step="1" />
+          </mat-form-field>
+          <p class="text-xs font-medium opacity-90 pt-1 w-full">
+            {{ 'ADMIN.PROMOTION.CART_PRODUCT_IDS' | translate }}
+          </p>
+          <app-promotion-entity-ids-picker formControlName="cartProductIdsCsv" kind="product" />
+          <p class="text-xs font-medium opacity-90 pt-3 w-full">
+            {{ 'ADMIN.PROMOTION.CART_CATEGORY_IDS' | translate }}
+          </p>
+          <app-promotion-entity-ids-picker formControlName="cartCategoryIdsCsv" kind="category" />
+        }
+
+        <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-4 w-full">
+          {{ 'ADMIN.PROMOTION.SECTION_COUPON' | translate }}
+        </p>
+
+        <div class="flex flex-col gap-2 py-2">
+          <mat-checkbox formControlName="isCoupon">{{
+            'ADMIN.PROMOTION.IS_COUPON' | translate
+          }}</mat-checkbox>
+          <mat-checkbox formControlName="isPersonal">{{
+            'ADMIN.PROMOTION.IS_PERSONAL' | translate
+          }}</mat-checkbox>
+        </div>
+
+        @if (form.get('isCoupon')?.value) {
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PROMOTION.COUPON_CODE' | translate }}</mat-label>
+            <input matInput formControlName="couponCode" autocomplete="off" />
+          </mat-form-field>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PROMOTION.MAX_USAGES' | translate }}</mat-label>
+            <input matInput type="number" formControlName="maxUsages" min="1" step="1" />
+          </mat-form-field>
+        }
+
+        @if (error(); as err) {
+          <div class="error-banner">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ err }}</span>
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button
+            matButton="filled"
+            color="primary"
+            class="w-full"
+            type="submit"
+            [disabled]="saving() || form.invalid || isUploadingImage()"
+          >
+            @if (saving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ADMIN.PROMOTION.SAVE' | translate }}
+            }
+          </button>
+          <button matButton class="w-full" type="button" (click)="cancel()" [disabled]="saving()">
+            {{ 'AUTH.CANCEL' | translate }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</div>
