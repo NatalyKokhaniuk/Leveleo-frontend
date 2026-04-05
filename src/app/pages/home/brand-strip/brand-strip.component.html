@@ -1,0 +1,41 @@
+@if (!loading() && brands().length > 0) {
+  <section
+    class="home-brand-strip w-full max-w-none box-border px-4 sm:px-6 md:px-10 lg:px-14 flex flex-col gap-4"
+    [attr.aria-label]="'HOME.BRANDS_SECTION' | translate"
+  >
+    <div
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6 w-full transition-all duration-300"
+    >
+      @for (brand of visibleBrands(); track brand.id; let i = $index) {
+        <a
+          [routerLink]="['/products', 'brand', brand.slug]"
+          class="bg-surface rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-outline-variant/20 min-h-[7.5rem]"
+        >
+          <mat-icon class="!text-4xl !w-12 !h-12 mb-3 text-primary shrink-0">
+            {{ iconFor(brand, i) }}
+          </mat-icon>
+          <span class="font-medium text-sm md:text-base text-on-surface line-clamp-2 [overflow-wrap:anywhere]">
+            {{ label(brand) }}
+          </span>
+        </a>
+      }
+    </div>
+
+    @if (showToggle()) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="home-brand-strip__toggle w-full !min-h-12 !rounded-2xl border-outline-variant flex items-center justify-center gap-2"
+        (click)="toggle()"
+        [attr.aria-expanded]="expanded()"
+      >
+        <span>{{ (expanded() ? 'HOME.BRANDS_SHOW_LESS' : 'HOME.BRANDS_SHOW_MORE') | translate }}</span>
+        @if (expanded()) {
+          <mat-icon>expand_less</mat-icon>
+        } @else {
+          <mat-icon>expand_more</mat-icon>
+        }
+      </button>
+    }
+  </section>
+}

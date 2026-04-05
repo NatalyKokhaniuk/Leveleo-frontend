@@ -1,0 +1,11 @@
+/* Вирівнювання перемикача теми та мови по одній горизонтальній осі (центр іконок). */
+.theme-lang-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-lang-cluster mat-slide-toggle {
+  display: inline-flex;
+  align-items: center;
+}

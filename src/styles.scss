@@ -188,12 +188,12 @@ a {
   overflow: visible !important;
 }
 
-/* Каталог: quick view — квадрат, прокрутка лише всередині вкладки (не на всьому вікні). */
+/* Каталог: quick view — широке вікно, прокрутка лише всередині вкладки. */
 .mat-mdc-dialog-container.product-quick-view-panel {
-  width: min(92vmin, 520px) !important;
+  width: min(96vw - 24px, 1040px) !important;
   max-width: calc(100vw - 24px) !important;
-  height: min(92vmin, 520px) !important;
-  max-height: min(92vmin, calc(100vh - 24px)) !important;
+  height: min(88vh, 820px) !important;
+  max-height: min(88vh, calc(100vh - 24px)) !important;
   box-sizing: border-box;
 }
 

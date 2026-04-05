@@ -3,8 +3,10 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { take } from 'rxjs';
+import { forkJoin, take } from 'rxjs';
+import { ComparisonStateService } from '../../comparison/comparison-state.service';
 import { FavoritesStateService } from '../../favorites/favorites-state.service';
+import { CartStateService } from '../../shopping-cart/cart-state.service';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -13,6 +15,8 @@ export class AuthHandlerService {
   private router = inject(Router);
   private auth = inject(AuthService);
   private favorites = inject(FavoritesStateService);
+  private cart = inject(CartStateService);
+  private comparison = inject(ComparisonStateService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
 
@@ -229,7 +233,11 @@ export class AuthHandlerService {
   private exchangeSocialToken(tempToken: string): void {
     this.auth.exchangeTempToken({ tempToken }).subscribe({
       next: () => {
-        this.favorites.hydrateAfterAuthRestore().subscribe();
+        forkJoin([
+          this.favorites.hydrateAfterAuthRestore(),
+          this.cart.hydrateAfterAuthRestore(),
+          this.comparison.hydrateAfterAuthRestore(),
+        ]).subscribe();
       },
       error: () => {
         this.openSimpleResult('change-password-error');

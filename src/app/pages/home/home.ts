@@ -5,6 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { ActivatedRoute } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
+import { HomeBrandStripComponent } from './brand-strip/brand-strip.component';
 import { CarouselComponent } from './carousel/carousel';
 import { QuickLinksComponent } from './quick-links/quick-links';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
@@ -18,6 +19,7 @@ import { AuthHandlerService } from '../../core/auth/services/auth-handler.servic
     MatCardModule,
     MatChipsModule,
     CarouselComponent,
+    HomeBrandStripComponent,
     QuickLinksComponent,
   ],
   templateUrl: './home.html',

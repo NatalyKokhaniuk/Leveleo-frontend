@@ -10,6 +10,7 @@ import {
 } from '../../core/favorites/favorites-storage';
 import { FavoritesStateService } from '../../core/favorites/favorites-state.service';
 import { ProductResponseDto } from '../../features/products/product.types';
+import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
 
 @Component({
@@ -22,6 +23,7 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
     MatButtonModule,
     MatIconModule,
     ProductDetailTabsComponent,
+    ProductCommerceToolbarComponent,
   ],
   templateUrl: './favorites.html',
   styleUrl: './favorites.scss',

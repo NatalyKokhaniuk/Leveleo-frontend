@@ -1,9 +1,9 @@
 <h2
   matDialogTitle
-  class="!flex !items-start !justify-between !gap-3 !m-0 !pb-2 !pt-1 !min-h-0 min-w-0 max-w-full w-full overflow-x-hidden box-border shrink-0"
+  class="!flex !items-start !justify-between !gap-3 !m-0 !pb-3 !pt-5 !min-h-0 min-w-0 max-w-full w-full overflow-x-hidden box-border shrink-0"
 >
   <span
-    class="min-w-0 flex-1 text-lg font-fixel font-semibold text-on-surface leading-snug break-words [overflow-wrap:anywhere] pr-1"
+    class="min-w-0 flex-1 text-xl sm:text-2xl font-fixel font-semibold text-on-surface leading-snug break-words [overflow-wrap:anywhere] pr-2"
   >
     {{ displayName() }}
   </span>
@@ -28,3 +28,10 @@
     [hideTitleInDetailsTab]="true"
   />
 </mat-dialog-content>
+
+<mat-dialog-actions
+  align="start"
+  class="!flex !flex-wrap !w-full !justify-start !gap-2 !py-3 !px-0 !m-0 border-t border-outline-variant/40 shrink-0"
+>
+  <app-product-commerce-toolbar class="w-full min-w-0" [productId]="data.product.id" />
+</mat-dialog-actions>

@@ -48,6 +48,8 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   @Input() dialogLayout = false;
   /** Назва показується в заголовку діалогу — прибрати дубль у вкладці «Деталі». */
   @Input() hideTitleInDetailsTab = false;
+  /** Більший відступ між зірками рейтингу (наприклад, сторінка обраного). */
+  @Input() roomyRating = false;
 
   private lang = signal(this.translate.currentLang || 'uk');
 

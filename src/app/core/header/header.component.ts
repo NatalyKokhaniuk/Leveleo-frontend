@@ -17,11 +17,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { filter, fromEvent, take } from 'rxjs';
 import { AuthService } from '../auth/services/auth.service';
+import { CartStateService } from '../shopping-cart/cart-state.service';
 import { ThemeService } from '../services/theme.service';
 import { AuthButtonsComponent } from './auth-buttons/auth-buttons.component';
 import { UserMenuComponent } from './user-menu/user-menu.component';
@@ -44,18 +46,21 @@ import { UserMenuComponent } from './user-menu/user-menu.component';
     UserMenuComponent,
     AuthButtonsComponent,
     MatBadgeModule,
+    MatSnackBarModule,
   ],
   templateUrl: './header.component.html',
+  styleUrl: './header.component.scss',
 })
 export class HeaderComponent {
-  cartItemsCount = signal(5); //для прикладу, потім реалізувати
-  openShoppingCart() {
-    throw new Error('Method not implemented.');
-  }
   themeService = inject(ThemeService);
   translate = inject(TranslateService);
   router = inject(Router);
   private authService = inject(AuthService);
+  private cartState = inject(CartStateService);
+  private snackBar = inject(MatSnackBar);
+
+  /** Сума кількостей у кошику — для бейджа. */
+  cartItemsCount = this.cartState.totalUnits;
   private elementRef = inject(ElementRef);
   private platformId = inject(PLATFORM_ID);
   private el = inject(ElementRef);
@@ -139,6 +144,16 @@ export class HeaderComponent {
 
   openComparison() {
     this.router.navigate(['/comparison']);
+  }
+
+  openShoppingCart(): void {
+    if (!this.authService.isAuthenticated()) {
+      this.translate.get('CART.GUEST_SNACK').subscribe((msg) => {
+        this.snackBar.open(msg, undefined, { duration: 4500 });
+      });
+      return;
+    }
+    void this.router.navigate(['/cart']);
   }
 
   openSearch() {

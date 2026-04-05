@@ -38,6 +38,15 @@
     "FILTER_SORT": "Сортування",
     "FILTER_RESET": "Скинути фільтри",
     "FILTER_APPLY": "Застосувати",
+    "FILTER_ATTRIBUTES_SECTION": "Атрибути",
+    "FILTER_ATTR_APPLY": "Застосувати фільтри за атрибутами",
+    "FILTER_ATTR_BOOL_ANY": "Будь-яке",
+    "FILTER_ATTR_BOOL_YES": "Так",
+    "FILTER_ATTR_BOOL_NO": "Ні",
+    "FILTER_ATTR_INT_FROM": "Від",
+    "FILTER_ATTR_INT_TO": "До",
+    "FILTER_ATTR_DEC_FROM": "Від",
+    "FILTER_ATTR_DEC_TO": "До",
     "FILTERS_SECTION": "Фільтри товарів",
     "SORT_PRICE_ASC": "Ціна: від дешевших",
     "SORT_PRICE_DESC": "Ціна: від дорожчих",
@@ -46,7 +55,11 @@
     "TAB_DETAILS": "Деталі",
     "TAB_REVIEWS": "Відгуки",
     "REVIEWS_EMPTY": "Відгуків ще немає.",
-    "REVIEW_NO_COMMENT": "Без тексту коментаря."
+    "REVIEW_NO_COMMENT": "Без тексту коментаря.",
+    "ADD_TO_CART": "Додати в кошик",
+    "REMOVE_FROM_CART": "Видалити з кошика",
+    "CART_INCREASE": "Збільшити кількість",
+    "CART_DECREASE": "Зменшити кількість"
   },
   "FAVORITES": {
     "TITLE": "Обране",
@@ -55,6 +68,24 @@
     "EMPTY": "Ви ще не додали жодного товару до обраного.",
     "LOAD_ERROR": "Не вдалося завантажити обране. Спробуйте пізніше.",
     "REMOVE": "Прибрати з обраного"
+  },
+  "COMPARISON": {
+    "TITLE": "Порівняння",
+    "DESCRIPTION": "Товари для порівняння характеристик.",
+    "BACK_TO_PRODUCTS": "Назад до вибору товарів",
+    "EMPTY": "Немає товарів у порівнянні.",
+    "LOAD_ERROR": "Не вдалося завантажити список. Спробуйте пізніше.",
+    "REMOVE": "Прибрати з порівняння",
+    "GUEST_ONLY": "Увійдіть або зареєструйтесь, щоб порівняти товари."
+  },
+  "CART": {
+    "TITLE": "Кошик",
+    "DESCRIPTION": "Товари, які ви додали до кошика.",
+    "BACK_TO_PRODUCTS": "Назад до вибору товарів",
+    "EMPTY": "Кошик порожній.",
+    "LOAD_ERROR": "Не вдалося завантажити кошик. Спробуйте пізніше.",
+    "GUEST_ONLY": "Увійдіть або зареєструйтесь, щоб придбати товари.",
+    "GUEST_SNACK": "Увійдіть або зареєструйтесь, щоб придбати товари."
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Попередній слайд",
@@ -72,6 +103,7 @@
     "ADDRESS": "Чернівці, Україна",
     "DESCRIPTION": "Інтернет-магазин музичних інструментів",
     "CATALOG": "Каталог",
+    "CATALOG_PAGE": "Дерево каталогу",
     "CATALOG_EMPTY": "Категорій поки немає",
     "INFO": "Інформація",
     "SUBSCRIBE": "Підписка",
@@ -96,6 +128,17 @@
     "SOCIAL_TELEGRAM": "Telegram",
     "SOCIAL_YOUTUBE": "YouTube"
   },
+  "CATALOG": {
+    "TITLE": "Каталог",
+    "DESCRIPTION": "Ознайомтесь із категоріями, підкатегоріями та типами атрибутів товарів. Посилання ведуть до списку товарів.",
+    "PANEL_LABEL": "Категорії та атрибути товарів",
+    "CATEGORIES": "Категорії",
+    "ATTRIBUTES": "Типи атрибутів",
+    "LOAD_ERROR": "Не вдалося завантажити дані каталогу.",
+    "EMPTY_CATEGORIES": "Категорій ще немає.",
+    "EMPTY_ATTRIBUTES": "Груп атрибутів ще немає.",
+    "NO_ATTRS_IN_GROUP": "У цій групі ще немає атрибутів."
+  },
   "NEWSLETTER": {
     "UNSUBSCRIBE_MISSING_TOKEN": "Посилання недійсне",
     "UNSUBSCRIBE_MISSING_TOKEN_DESC": "Для відписки потрібен коректний параметр у посиланні з листа.",
@@ -104,7 +147,10 @@
   },
   "HOME": {
     "WELCOME": "Ласкаво просимо",
-    "DESCRIPTION": "Чистий каркас для вашого Angular-проєкту."
+    "DESCRIPTION": "Чистий каркас для вашого Angular-проєкту.",
+    "BRANDS_SECTION": "Товари за брендом",
+    "BRANDS_SHOW_MORE": "Інші бренди",
+    "BRANDS_SHOW_LESS": "Згорнути бренди"
   },
 
   "CONTACTS": {

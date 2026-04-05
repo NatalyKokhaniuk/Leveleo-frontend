@@ -40,8 +40,8 @@
       </mat-form-field>
     </div>
 
-    <div class="flex flex-col sm:flex-row gap-4 flex-wrap items-end">
-      <mat-form-field class="min-w-[120px] max-w-[200px]">
+    <div class="flex flex-col sm:flex-row gap-4 flex-wrap items-center">
+      <mat-form-field class="min-w-[120px] max-w-[200px]" subscriptSizing="dynamic">
         <mat-label>{{ 'PRODUCTS.FILTER_PRICE_FROM' | translate }}</mat-label>
         <input
           matInput
@@ -51,7 +51,7 @@
           (ngModelChange)="priceFromStr.set($event)"
         />
       </mat-form-field>
-      <mat-form-field class="min-w-[120px] max-w-[200px]">
+      <mat-form-field class="min-w-[120px] max-w-[200px]" subscriptSizing="dynamic">
         <mat-label>{{ 'PRODUCTS.FILTER_PRICE_TO' | translate }}</mat-label>
         <input
           matInput
@@ -68,6 +68,130 @@
         {{ 'PRODUCTS.FILTER_RESET' | translate }}
       </button>
     </div>
+
+    @if (attributeFilterBlocks().length > 0) {
+      <div
+        class="flex flex-col gap-4 border-t border-outline-variant/40 pt-4 mt-2"
+        [attr.aria-label]="'PRODUCTS.FILTER_ATTRIBUTES_SECTION' | translate"
+      >
+        <h3 class="text-sm font-semibold text-on-surface/90 font-fixel">
+          {{ 'PRODUCTS.FILTER_ATTRIBUTES_SECTION' | translate }}
+        </h3>
+        <div class="flex flex-col gap-4 transition-all duration-300">
+        @for (block of visibleAttributeBlocks(); track block.group.id) {
+          <div class="rounded-xl border border-outline-variant/35 bg-surface/40 p-3 sm:p-4 flex flex-col gap-3">
+            <h4 class="text-xs font-medium uppercase tracking-wide text-on-surface/70">
+              {{ groupLabel(block.group) }}
+            </h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              @for (a of block.attributes; track a.id) {
+                @switch (attrKind(a)) {
+                  @case ('string') {
+                    <mat-form-field class="w-full" subscriptSizing="dynamic">
+                      <mat-label>{{ attrLabel(a) }}</mat-label>
+                      <input
+                        matInput
+                        type="text"
+                        [ngModel]="stringDraft()[a.id] ?? ''"
+                        (ngModelChange)="setStringDraft(a.id, $event)"
+                      />
+                    </mat-form-field>
+                  }
+                  @case ('bool') {
+                    <mat-form-field class="w-full" subscriptSizing="dynamic">
+                      <mat-label>{{ attrLabel(a) }}</mat-label>
+                      <mat-select [value]="boolSelectValue(a.id)" (selectionChange)="setBoolDraft(a.id, $event.value)">
+                        <mat-option value="">{{ 'PRODUCTS.FILTER_ATTR_BOOL_ANY' | translate }}</mat-option>
+                        <mat-option value="true">{{ 'PRODUCTS.FILTER_ATTR_BOOL_YES' | translate }}</mat-option>
+                        <mat-option value="false">{{ 'PRODUCTS.FILTER_ATTR_BOOL_NO' | translate }}</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  }
+                  @case ('int') {
+                    <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
+                      <span class="text-xs font-medium text-on-surface/80">{{ attrLabel(a) }}</span>
+                      <div class="flex flex-wrap gap-2 items-center">
+                        <mat-form-field class="min-w-[100px] flex-1" subscriptSizing="dynamic">
+                          <mat-label>{{ 'PRODUCTS.FILTER_ATTR_INT_FROM' | translate }}</mat-label>
+                          <input
+                            matInput
+                            type="text"
+                            inputmode="numeric"
+                            [ngModel]="intFromDraft()[a.id] ?? ''"
+                            (ngModelChange)="setIntFromDraft(a.id, $event)"
+                          />
+                        </mat-form-field>
+                        <mat-form-field class="min-w-[100px] flex-1" subscriptSizing="dynamic">
+                          <mat-label>{{ 'PRODUCTS.FILTER_ATTR_INT_TO' | translate }}</mat-label>
+                          <input
+                            matInput
+                            type="text"
+                            inputmode="numeric"
+                            [ngModel]="intToDraft()[a.id] ?? ''"
+                            (ngModelChange)="setIntToDraft(a.id, $event)"
+                          />
+                        </mat-form-field>
+                      </div>
+                    </div>
+                  }
+                  @case ('dec') {
+                    <div class="flex flex-col gap-2 sm:col-span-2 lg:col-span-3">
+                      <span class="text-xs font-medium text-on-surface/80">{{ attrLabel(a) }}</span>
+                      <div class="flex flex-wrap gap-2 items-center">
+                        <mat-form-field class="min-w-[100px] flex-1" subscriptSizing="dynamic">
+                          <mat-label>{{ 'PRODUCTS.FILTER_ATTR_DEC_FROM' | translate }}</mat-label>
+                          <input
+                            matInput
+                            type="text"
+                            inputmode="decimal"
+                            [ngModel]="decFromDraft()[a.id] ?? ''"
+                            (ngModelChange)="setDecFromDraft(a.id, $event)"
+                          />
+                        </mat-form-field>
+                        <mat-form-field class="min-w-[100px] flex-1" subscriptSizing="dynamic">
+                          <mat-label>{{ 'PRODUCTS.FILTER_ATTR_DEC_TO' | translate }}</mat-label>
+                          <input
+                            matInput
+                            type="text"
+                            inputmode="decimal"
+                            [ngModel]="decToDraft()[a.id] ?? ''"
+                            (ngModelChange)="setDecToDraft(a.id, $event)"
+                          />
+                        </mat-form-field>
+                      </div>
+                    </div>
+                  }
+                }
+              }
+            </div>
+          </div>
+        }
+        </div>
+
+        @if (showAttributeFiltersToggle()) {
+          <button
+            mat-stroked-button
+            type="button"
+            class="w-full !min-h-12 !rounded-2xl border-outline-variant flex items-center justify-center gap-2"
+            (click)="toggleAttributeFilters()"
+            [attr.aria-expanded]="attrFiltersExpanded()"
+          >
+            <span>{{ (attrFiltersExpanded() ? 'HOME.BRANDS_SHOW_LESS' : 'HOME.BRANDS_SHOW_MORE') | translate }}</span>
+            @if (attrFiltersExpanded()) {
+              <mat-icon>expand_less</mat-icon>
+            } @else {
+              <mat-icon>expand_more</mat-icon>
+            }
+          </button>
+        }
+
+        <div class="flex flex-wrap gap-2">
+          <button mat-flat-button type="button" color="primary" (click)="applyAttributeFilters()">
+            {{ 'PRODUCTS.FILTER_ATTR_APPLY' | translate }}
+          </button>
+        </div>
+      </div>
+    }
   </section>
 
   @if (loading()) {

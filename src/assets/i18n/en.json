@@ -38,6 +38,15 @@
     "FILTER_SORT": "Sort",
     "FILTER_RESET": "Reset filters",
     "FILTER_APPLY": "Apply",
+    "FILTER_ATTRIBUTES_SECTION": "Attributes",
+    "FILTER_ATTR_APPLY": "Apply attribute filters",
+    "FILTER_ATTR_BOOL_ANY": "Any",
+    "FILTER_ATTR_BOOL_YES": "Yes",
+    "FILTER_ATTR_BOOL_NO": "No",
+    "FILTER_ATTR_INT_FROM": "From",
+    "FILTER_ATTR_INT_TO": "To",
+    "FILTER_ATTR_DEC_FROM": "From",
+    "FILTER_ATTR_DEC_TO": "To",
     "FILTERS_SECTION": "Product filters",
     "SORT_PRICE_ASC": "Price: low to high",
     "SORT_PRICE_DESC": "Price: high to low",
@@ -46,7 +55,11 @@
     "TAB_DETAILS": "Details",
     "TAB_REVIEWS": "Reviews",
     "REVIEWS_EMPTY": "No reviews yet.",
-    "REVIEW_NO_COMMENT": "No comment text."
+    "REVIEW_NO_COMMENT": "No comment text.",
+    "ADD_TO_CART": "Add to cart",
+    "REMOVE_FROM_CART": "Remove from cart",
+    "CART_INCREASE": "Increase quantity",
+    "CART_DECREASE": "Decrease quantity"
   },
   "FAVORITES": {
     "TITLE": "Favourites",
@@ -55,6 +68,24 @@
     "EMPTY": "You have not added any products to favourites yet.",
     "LOAD_ERROR": "Could not load favourites. Please try again later.",
     "REMOVE": "Remove from favourites"
+  },
+  "COMPARISON": {
+    "TITLE": "Comparison",
+    "DESCRIPTION": "Products you are comparing.",
+    "BACK_TO_PRODUCTS": "Back to product selection",
+    "EMPTY": "No products in comparison.",
+    "LOAD_ERROR": "Could not load comparison. Please try again later.",
+    "REMOVE": "Remove from comparison",
+    "GUEST_ONLY": "Sign in or register to compare products."
+  },
+  "CART": {
+    "TITLE": "Shopping cart",
+    "DESCRIPTION": "Items you added to your cart.",
+    "BACK_TO_PRODUCTS": "Back to product selection",
+    "EMPTY": "Your cart is empty.",
+    "LOAD_ERROR": "Could not load cart. Please try again later.",
+    "GUEST_ONLY": "Sign in or register to purchase products.",
+    "GUEST_SNACK": "Sign in or register to purchase products."
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Previous slide",
@@ -497,6 +528,7 @@
     "ADDRESS": "Chernivtsi, Ukraine",
     "DESCRIPTION": "Online music instruments store",
     "CATALOG": "Catalog",
+    "CATALOG_PAGE": "Catalog tree",
     "CATALOG_EMPTY": "No categories yet",
     "INFO": "Information",
     "SUBSCRIBE": "Subscribe",
@@ -521,6 +553,17 @@
     "SOCIAL_TELEGRAM": "Telegram",
     "SOCIAL_YOUTUBE": "YouTube"
   },
+  "CATALOG": {
+    "TITLE": "Catalog",
+    "DESCRIPTION": "Browse categories, subcategories, and product attribute types. Follow links to open the product list.",
+    "PANEL_LABEL": "Categories and product attributes",
+    "CATEGORIES": "Categories",
+    "ATTRIBUTES": "Attribute types",
+    "LOAD_ERROR": "Could not load catalog data.",
+    "EMPTY_CATEGORIES": "No categories yet.",
+    "EMPTY_ATTRIBUTES": "No attribute groups yet.",
+    "NO_ATTRS_IN_GROUP": "No attributes in this group."
+  },
   "NEWSLETTER": {
     "UNSUBSCRIBE_MISSING_TOKEN": "Invalid link",
     "UNSUBSCRIBE_MISSING_TOKEN_DESC": "Unsubscribe requires a valid token from the email link.",
@@ -529,7 +572,10 @@
   },
   "HOME": {
     "WELCOME": "Welcome",
-    "DESCRIPTION": "A clean foundation for your Angular project."
+    "DESCRIPTION": "A clean foundation for your Angular project.",
+    "BRANDS_SECTION": "Shop by brand",
+    "BRANDS_SHOW_MORE": "More brands",
+    "BRANDS_SHOW_LESS": "Fewer brands"
   },
 
   "CONTACTS": {

@@ -9,6 +9,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
 import { ProductResponseDto } from '../../../features/products/product.types';
+import { ProductCommerceToolbarComponent } from '../product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../product-detail-tabs/product-detail-tabs.component';
 
 export interface ProductQuickViewDialogData {
@@ -24,6 +25,7 @@ export interface ProductQuickViewDialogData {
     MatIconModule,
     TranslateModule,
     ProductDetailTabsComponent,
+    ProductCommerceToolbarComponent,
   ],
   templateUrl: './product-quick-view-dialog.component.html',
   styleUrl: './product-quick-view-dialog.component.scss',

@@ -1,37 +1,26 @@
-<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-12">
+<main class="pt-32 px-4 md:px-10 w-full max-w-6xl mx-auto flex flex-col gap-12">
 
   <!-- TITLE -->
-  <section class="text-center">
-    <h1 class="text-3xl md:text-4xl font-bold mb-4" style="color: var(--color-text)">
+  <section class="text-center w-full">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4 text-on-surface">
       {{ 'CONTACTS.MAINTITLE' | translate }}
     </h1>
-    <p class="max-w-2xl mx-auto modal-desc max-w-none">
+    <p class="max-w-2xl mx-auto modal-desc text-center text-on-surface/85">
       {{ 'CONTACTS.SUBTITLE' | translate }}
     </p>
   </section>
 
   <!-- CONTENT -->
-  <section class="grid md:grid-cols-2 gap-10 items-center">
+  <section class="flex flex-col gap-4 w-full">
+    <h2 class="text-2xl font-semibold text-on-surface">
+      {{ 'CONTACTS.WHO_WE_ARE_TITLE' | translate }}
+    </h2>
+    <p class="modal-desc max-w-none text-on-surface/90">{{ 'CONTACTS.WHO_WE_ARE_TEXT' | translate }}</p>
 
-    <div class="flex flex-col gap-4">
-      <h2 class="text-2xl font-semibold" style="color: var(--color-text)">
-        {{ 'CONTACTS.WHO_WE_ARE_TITLE' | translate }}
-      </h2>
-      <p class="modal-desc max-w-none">{{ 'CONTACTS.WHO_WE_ARE_TEXT' | translate }}</p>
-
-      <h2 class="text-2xl font-semibold mt-4" style="color: var(--color-text)">
-        {{ 'CONTACTS.MISSION_TITLE' | translate }}
-      </h2>
-      <p class="modal-desc max-w-none">{{ 'CONTACTS.MISSION_TEXT' | translate }}</p>
-    </div>
-
-    <div
-      class="h-64 rounded-2xl flex items-center justify-center border border-solid border-outline-variant"
-      style="background: var(--color-surface-hover)"
-    >
-      <span class="modal-desc">Image</span>
-    </div>
-
+    <h2 class="text-2xl font-semibold mt-4 text-on-surface">
+      {{ 'CONTACTS.MISSION_TITLE' | translate }}
+    </h2>
+    <p class="modal-desc max-w-none text-on-surface/90">{{ 'CONTACTS.MISSION_TEXT' | translate }}</p>
   </section>
 
   <!-- CONTACT FORM (як у модальних: лейбл на полі, одна колонка) -->

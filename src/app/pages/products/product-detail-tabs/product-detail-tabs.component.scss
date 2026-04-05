@@ -36,6 +36,19 @@
   gap: 0.75rem;
 }
 
+/* Quick view на вузькому екрані: квадратне фото */
+@media (max-width: 767.98px) {
+  .product-detail-tabs--dialog .product-detail-tabs__media--square {
+    width: min(100%, 280px);
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    margin-left: auto;
+    margin-right: auto;
+    flex: none;
+    align-self: center;
+  }
+}
+
 @media (min-width: 768px) {
   .product-detail-tabs__root {
     flex-direction: row;
@@ -56,9 +69,17 @@
   }
 
   .product-detail-tabs--dialog .product-detail-tabs__media {
-    flex: 0 0 min(36%, 200px);
-    max-width: min(36%, 200px);
     align-self: stretch;
+  }
+
+  .product-detail-tabs--dialog .product-detail-tabs__media--square {
+    flex: 0 0 clamp(200px, 36vw, 380px);
+    width: clamp(200px, 36vw, 380px);
+    max-width: min(42%, 380px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .product-detail-tabs__media {
@@ -105,6 +126,23 @@
 
 .product-detail-tabs--dialog .product-detail-tabs__img {
   max-height: min(32vh, 220px);
+}
+
+.product-detail-tabs--dialog .product-detail-tabs__media--square .product-detail-tabs__img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+
+.product-detail-tabs__rating-row--roomy {
+  gap: 0.375rem;
+}
+
+@media (min-width: 640px) {
+  .product-detail-tabs__rating-row--roomy {
+    gap: 0.5rem;
+  }
 }
 
 .product-detail-tabs__tabs-wrap {

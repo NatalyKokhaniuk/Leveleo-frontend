@@ -1,0 +1,47 @@
+<div class="product-commerce-toolbar flex flex-wrap items-center gap-2 min-w-0">
+  <button
+    matIconButton
+    type="button"
+    class="shrink-0"
+    [disabled]="busy"
+    (click)="onCompare()"
+    [attr.aria-pressed]="inComparison()"
+    [attr.aria-label]="'HEADER.COMPARISON' | translate"
+    [class.text-primary]="inComparison()"
+  >
+    <mat-icon>balance</mat-icon>
+  </button>
+
+  @if (!isAuthed() || qty() === 0) {
+    <button matButton="filled" color="primary" type="button" class="!min-h-10" [disabled]="busy" (click)="onAddToCart()">
+      {{ 'PRODUCTS.ADD_TO_CART' | translate }}
+    </button>
+  } @else {
+    <div class="flex flex-wrap items-center gap-1 min-w-0">
+      <button
+        matIconButton
+        type="button"
+        class="shrink-0"
+        [disabled]="busy"
+        (click)="dec()"
+        [attr.aria-label]="'PRODUCTS.CART_DECREASE' | translate"
+      >
+        <mat-icon>remove</mat-icon>
+      </button>
+      <span class="tabular-nums min-w-[2ch] text-center text-on-surface font-medium px-1">{{ qty() }}</span>
+      <button
+        matIconButton
+        type="button"
+        class="shrink-0"
+        [disabled]="busy"
+        (click)="inc()"
+        [attr.aria-label]="'PRODUCTS.CART_INCREASE' | translate"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
+      <button matButton="outlined" type="button" class="!min-h-10 ml-1" [disabled]="busy" (click)="onRemoveFromCart()">
+        {{ 'PRODUCTS.REMOVE_FROM_CART' | translate }}
+      </button>
+    </div>
+  }
+</div>

@@ -75,7 +75,14 @@
       }
 
       <!-- CART -->
-      <button matIconButton (click)="openShoppingCart()" matBadge="{{ cartItemsCount() }}">
+      <button
+        matIconButton
+        type="button"
+        (click)="openShoppingCart()"
+        [matBadge]="cartItemsCount()"
+        [matBadgeHidden]="cartItemsCount() === 0"
+        matBadgeSize="small"
+      >
         <mat-icon>shopping_cart_checkout</mat-icon>
       </button>
 
@@ -178,12 +185,12 @@
     </div>
 
     <!-- THEME + LANG DESKTOP -->
-    <div class="hidden sm:flex gap-2 items-center">
+    <div class="hidden sm:flex theme-lang-cluster">
       <mat-slide-toggle [checked]="isDark" (change)="toggleTheme()">
         <mat-icon>{{ isDark ? 'dark_mode' : 'light_mode' }}</mat-icon>
       </mat-slide-toggle>
 
-      <mat-button-toggle-group>
+      <mat-button-toggle-group class="shrink-0">
         <mat-button-toggle value="en" (click)="switchLang('en')">EN</mat-button-toggle>
         <mat-button-toggle value="uk" (click)="switchLang('uk')">UA</mat-button-toggle>
       </mat-button-toggle-group>

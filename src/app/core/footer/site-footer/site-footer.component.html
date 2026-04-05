@@ -12,6 +12,9 @@
       <mat-icon>location_on</mat-icon>
       {{ 'FOOTER.ADDRESS' | translate }}
     </div>
+    <a routerLink="/catalog" class="text-sm font-medium hover:underline opacity-90">
+      {{ 'FOOTER.CATALOG_PAGE' | translate }}
+    </a>
   </div>
 
   <!-- 🖥 DESKTOP FOOTER -->
@@ -51,11 +54,18 @@
       <div>
         <h3 class="font-semibold mb-4">{{ 'FOOTER.CATALOG' | translate }}</h3>
         <ul class="flex flex-col gap-2">
-          @for (item of catalogLinks(); track item.queryParams['categoryId']) {
+          <li>
+            <a
+              routerLink="/catalog"
+              class="hover:underline opacity-90 hover:opacity-100 transition font-medium"
+            >
+              {{ 'FOOTER.CATALOG_PAGE' | translate }}
+            </a>
+          </li>
+          @for (item of catalogLinks(); track item.slug) {
             <li>
               <a
                 [routerLink]="item.link"
-                [queryParams]="item.queryParams"
                 class="hover:underline opacity-80 hover:opacity-100 transition"
               >
                 {{ item.name }}

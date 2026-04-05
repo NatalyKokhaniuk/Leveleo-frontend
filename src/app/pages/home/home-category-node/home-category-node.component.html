@@ -1,0 +1,15 @@
+<div class="home-category-node">
+  <a
+    [routerLink]="['/products', 'category', node.category.slug]"
+    class="block py-1.5 text-sm text-on-surface hover:text-primary transition-colors rounded-md -mx-1 px-1 hover:bg-surface-container-high/60"
+  >
+    {{ label(node.category) }}
+  </a>
+  @if (node.children.length > 0) {
+    <div class="ml-2 pl-2 border-l border-outline-variant/50 space-y-0.5 mt-0.5">
+      @for (ch of node.children; track ch.category.id) {
+        <app-home-category-node [node]="ch" [lang]="lang" />
+      }
+    </div>
+  }
+</div>

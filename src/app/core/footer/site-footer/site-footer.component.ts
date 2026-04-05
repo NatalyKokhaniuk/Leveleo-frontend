@@ -63,7 +63,7 @@ export class SiteFooterComponent implements OnInit {
   /** Кореневі активні категорії з API. */
   private rootCategories = signal<CategoryResponseDto[]>([]);
 
-  /** Посилання каталогу: назва за поточною мовою, query `categoryId`. */
+  /** Посилання каталогу: один фільтр — шлях `/products/category/:slug`. */
   catalogLinks = computed(() => {
     const l = this.lang();
     return [...this.rootCategories()]
@@ -74,8 +74,8 @@ export class SiteFooterComponent implements OnInit {
       )
       .map((c) => ({
         name: categoryLocalizedName(c, l),
-        link: '/products',
-        queryParams: { categoryId: c.id },
+        slug: c.slug,
+        link: ['/products', 'category', c.slug],
       }));
   });
 

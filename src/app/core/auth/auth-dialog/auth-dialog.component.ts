@@ -9,12 +9,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { TranslateModule } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
 import { IconComponent } from '../../../shared/components/icon.component';
 import { PasswordStrengthComponent } from '../../../shared/components/password-strength.component';
 import { strongPasswordValidator } from '../../../shared/validators/password.validator';
 import { EmailUnconfirmedDialogComponent } from '../email-unconfirmed-dialog/email-unconfirmed-dialog.component';
 import { LoginRequest, RegisterRequest } from '../models/auth.types';
+import { ComparisonStateService } from '../../comparison/comparison-state.service';
 import { FavoritesStateService } from '../../favorites/favorites-state.service';
+import { CartStateService } from '../../shopping-cart/cart-state.service';
 import { AuthService } from '../services/auth.service';
 import { FacebookAuthService } from '../services/facebookAuthService';
 import { GoogleAuthService } from '../services/googleAuthService';
@@ -45,6 +48,8 @@ export interface AuthDialogData {
 export class AuthDialogComponent {
   private auth = inject(AuthService);
   private favorites = inject(FavoritesStateService);
+  private cart = inject(CartStateService);
+  private comparison = inject(ComparisonStateService);
   private google = inject(GoogleAuthService);
   private facebook = inject(FacebookAuthService);
   private fb = inject(FormBuilder);
@@ -127,7 +132,11 @@ export class AuthDialogComponent {
           this.twoFaMethod.set(res.method ?? null);
           this.isLoading.set(false);
         } else {
-          this.favorites.hydrateAfterAuthRestore().subscribe({
+          forkJoin([
+            this.favorites.hydrateAfterAuthRestore(),
+            this.cart.hydrateAfterAuthRestore(),
+            this.comparison.hydrateAfterAuthRestore(),
+          ]).subscribe({
             next: () => this.dialogRef.close(true),
             error: () => this.dialogRef.close(true),
           });
@@ -167,7 +176,11 @@ export class AuthDialogComponent {
       })
       .subscribe({
         next: () => {
-          this.favorites.hydrateAfterAuthRestore().subscribe({
+          forkJoin([
+            this.favorites.hydrateAfterAuthRestore(),
+            this.cart.hydrateAfterAuthRestore(),
+            this.comparison.hydrateAfterAuthRestore(),
+          ]).subscribe({
             next: () => this.dialogRef.close(true),
             error: () => this.dialogRef.close(true),
           });

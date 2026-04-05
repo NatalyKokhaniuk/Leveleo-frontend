@@ -1,0 +1,103 @@
+<div
+  class="home-catalog-sidebar w-full"
+  [attr.aria-label]="'CATALOG.PANEL_LABEL' | translate"
+>
+  <div
+    class="home-catalog-sidebar__sheet w-full rounded-2xl border border-outline-variant/40 bg-surface-container/80 backdrop-blur-sm shadow-sm overflow-hidden"
+  >
+    <div class="overflow-x-hidden p-4 sm:p-5 md:p-6 space-y-6">
+      @if (loading()) {
+        <div class="flex justify-center py-10">
+          <mat-spinner diameter="36" />
+        </div>
+      } @else if (loadError()) {
+        <p class="text-sm text-on-surface/70 text-center py-4">{{ 'CATALOG.LOAD_ERROR' | translate }}</p>
+      } @else {
+        <!-- Категорії -->
+        <section [attr.aria-labelledby]="'home-catalog-categories-heading'">
+          <div class="flex items-center gap-2 mb-3">
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/12 text-primary shrink-0"
+            >
+              <mat-icon class="!text-xl">category</mat-icon>
+            </span>
+            <h2
+              id="home-catalog-categories-heading"
+              class="text-sm font-semibold uppercase tracking-wide text-on-surface/90 font-fixel"
+            >
+              {{ 'CATALOG.CATEGORIES' | translate }}
+            </h2>
+          </div>
+          @if (categoryRoots().length === 0) {
+            <p class="text-sm text-on-surface/60 pl-1">{{ 'CATALOG.EMPTY_CATEGORIES' | translate }}</p>
+          } @else {
+            <div class="space-y-1 pl-0.5">
+              @for (root of categoryRoots(); track root.category.id) {
+                <app-home-category-node [node]="root" [lang]="lang()" />
+              }
+            </div>
+          }
+        </section>
+
+        <div class="h-px bg-outline-variant/35" role="presentation"></div>
+
+        <!-- Атрибути за групами -->
+        <section [attr.aria-labelledby]="'home-catalog-attrs-heading'">
+          <div class="flex items-center gap-2 mb-3">
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary/12 text-secondary shrink-0"
+            >
+              <mat-icon class="!text-xl">tune</mat-icon>
+            </span>
+            <h2
+              id="home-catalog-attrs-heading"
+              class="text-sm font-semibold uppercase tracking-wide text-on-surface/90 font-fixel"
+            >
+              {{ 'CATALOG.ATTRIBUTES' | translate }}
+            </h2>
+          </div>
+
+          @if (attributeBlocks().length === 0) {
+            <p class="text-sm text-on-surface/60 pl-1">{{ 'CATALOG.EMPTY_ATTRIBUTES' | translate }}</p>
+          } @else {
+            <div class="space-y-2">
+              @for (block of attributeBlocks(); track block.group.id) {
+                <details class="home-catalog-sidebar__details group rounded-xl border border-outline-variant/30 bg-surface/60 open:shadow-sm">
+                  <summary
+                    class="cursor-pointer list-none flex items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium text-on-surface select-none rounded-xl hover:bg-surface-container-high/50 transition-colors [&::-webkit-details-marker]:hidden"
+                  >
+                    <span class="line-clamp-2">{{ groupLabel(block.group) }}</span>
+                    <mat-icon
+                      class="!text-lg shrink-0 text-on-surface/50 transition-transform group-open:rotate-180"
+                    >
+                      expand_more
+                    </mat-icon>
+                  </summary>
+                  @if (block.attributes.length > 0) {
+                    <ul class="px-3 pb-3 pt-0 space-y-1 border-t border-outline-variant/20">
+                      @for (attr of block.attributes; track attr.id) {
+                        <li>
+                          <a
+                            routerLink="/products"
+                            class="flex items-center gap-2 py-1.5 text-sm text-on-surface/85 hover:text-primary transition-colors rounded-md -mx-1 px-1 hover:bg-surface-container-high/50"
+                          >
+                            <span class="w-1 h-1 rounded-full bg-outline-variant shrink-0"></span>
+                            <span class="line-clamp-2">{{ attrLabel(attr) }}</span>
+                          </a>
+                        </li>
+                      }
+                    </ul>
+                  } @else {
+                    <p class="px-3 pb-2 text-xs text-on-surface/50">
+                      {{ 'CATALOG.NO_ATTRS_IN_GROUP' | translate }}
+                    </p>
+                  }
+                </details>
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+  </div>
+</div>

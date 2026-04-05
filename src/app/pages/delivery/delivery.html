@@ -2,23 +2,23 @@
 
   <!-- TITLE -->
   <section class="text-center">
-    <h1 class="text-3xl md:text-4xl font-bold mb-4">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4 text-on-surface">
       {{ 'DELIVERY.TITLE' | translate }}
     </h1>
-    <p class="text-gray-500 max-w-3xl mx-auto">
+    <p class="text-on-surface/75 max-w-3xl mx-auto">
       {{ 'DELIVERY.SUBTITLE' | translate }}
     </p>
   </section>
 
   <!-- DELIVERY METHODS -->
   <section class="flex flex-col gap-8">
-    <h2 class="text-2xl font-semibold">{{ 'DELIVERY.METHODS_TITLE' | translate }}</h2>
+    <h2 class="text-2xl font-semibold text-on-surface">{{ 'DELIVERY.METHODS_TITLE' | translate }}</h2>
 
-    <div class="space-y-6">
+    <div class="space-y-6 text-on-surface/90">
       <div>
-        <h3 class="font-semibold">{{ 'DELIVERY.SELF_PICKUP.TITLE' | translate }}</h3>
+        <h3 class="font-semibold text-on-surface">{{ 'DELIVERY.SELF_PICKUP.TITLE' | translate }}</h3>
         <p>{{ 'DELIVERY.SELF_PICKUP.DESCRIPTION' | translate }}</p>
-        <ul class="list-disc list-inside text-gray-600">
+        <ul class="list-disc list-inside text-on-surface/90 mt-2 marker:text-primary">
           <li *ngFor="let item of ['DELIVERY.SELF_PICKUP.PAYMENT_1','DELIVERY.SELF_PICKUP.PAYMENT_2','DELIVERY.SELF_PICKUP.PAYMENT_3']">
             {{ item | translate }}
           </li>
@@ -26,9 +26,9 @@
       </div>
 
       <div>
-        <h3 class="font-semibold">{{ 'DELIVERY.COURIER.TITLE' | translate }}</h3>
+        <h3 class="font-semibold text-on-surface">{{ 'DELIVERY.COURIER.TITLE' | translate }}</h3>
         <p>{{ 'DELIVERY.COURIER.DESCRIPTION' | translate }}</p>
-        <ul class="list-disc list-inside text-gray-600">
+        <ul class="list-disc list-inside text-on-surface/90 mt-2 marker:text-primary">
           <li *ngFor="let item of ['DELIVERY.COURIER.PAYMENT_1','DELIVERY.COURIER.PAYMENT_2','DELIVERY.COURIER.PAYMENT_3']">
             {{ item | translate }}
           </li>
@@ -36,27 +36,27 @@
       </div>
 
       <div>
-        <h3 class="font-semibold">{{ 'DELIVERY.NOVA_BRANCH.TITLE' | translate }}</h3>
+        <h3 class="font-semibold text-on-surface">{{ 'DELIVERY.NOVA_BRANCH.TITLE' | translate }}</h3>
         <p>{{ 'DELIVERY.NOVA_BRANCH.DESCRIPTION' | translate }}</p>
       </div>
 
       <div>
-        <h3 class="font-semibold">{{ 'DELIVERY.NOVA_ADDRESS.TITLE' | translate }}</h3>
+        <h3 class="font-semibold text-on-surface">{{ 'DELIVERY.NOVA_ADDRESS.TITLE' | translate }}</h3>
         <p>{{ 'DELIVERY.NOVA_ADDRESS.DESCRIPTION' | translate }}</p>
       </div>
     </div>
   </section>
 
   <!-- PRODUCT CHECK -->
-  <section class="flex flex-col gap-4">
-    <h2 class="text-2xl font-semibold">{{ 'DELIVERY.CHECK_TITLE' | translate }}</h2>
+  <section class="flex flex-col gap-4 text-on-surface/90">
+    <h2 class="text-2xl font-semibold text-on-surface">{{ 'DELIVERY.CHECK_TITLE' | translate }}</h2>
     <p>{{ 'DELIVERY.CHECK_TEXT' | translate }}</p>
   </section>
 
   <!-- PAYMENT METHODS -->
-  <section class="flex flex-col gap-4">
-    <h2 class="text-2xl font-semibold">{{ 'DELIVERY.PAYMENT_TITLE' | translate }}</h2>
-    <ul class="list-disc list-inside text-gray-600 space-y-2">
+  <section class="flex flex-col gap-4 text-on-surface/90">
+    <h2 class="text-2xl font-semibold text-on-surface">{{ 'DELIVERY.PAYMENT_TITLE' | translate }}</h2>
+    <ul class="list-disc list-inside space-y-2 marker:text-primary">
       <li>{{ 'DELIVERY.PAYMENT.PRIVAT24' | translate }}</li>
       <li>{{ 'DELIVERY.PAYMENT.LIQPAY' | translate }}</li>
       <li>{{ 'DELIVERY.PAYMENT.CASH' | translate }}</li>
@@ -65,9 +65,11 @@
   </section>
 
   <!-- IMPORTANT NOTE -->
-  <section class="flex flex-col gap-2">
-    <p class="text-red-600 font-semibold">{{ 'DELIVERY.IMPORTANT_TITLE' | translate }}</p>
-    <p>{{ 'DELIVERY.IMPORTANT_TEXT' | translate }}</p>
+  <section class="flex flex-col gap-2 rounded-2xl border border-outline-variant bg-[var(--mat-sys-error-container)] p-4 md:p-6">
+    <p class="font-semibold text-[var(--mat-sys-on-error-container)]">
+      {{ 'DELIVERY.IMPORTANT_TITLE' | translate }}
+    </p>
+    <p class="text-[var(--mat-sys-on-error-container)]">{{ 'DELIVERY.IMPORTANT_TEXT' | translate }}</p>
   </section>
 
 </main>

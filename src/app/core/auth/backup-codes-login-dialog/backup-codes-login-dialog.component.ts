@@ -7,7 +7,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
+import { forkJoin } from 'rxjs';
+import { ComparisonStateService } from '../../comparison/comparison-state.service';
 import { FavoritesStateService } from '../../favorites/favorites-state.service';
+import { CartStateService } from '../../shopping-cart/cart-state.service';
 import { AuthService } from '../services/auth.service';
 
 export interface BackupCodesLoginDialogData {
@@ -33,6 +36,8 @@ export interface BackupCodesLoginDialogData {
 export class BackupCodesLoginDialogComponent {
   private auth = inject(AuthService);
   private favorites = inject(FavoritesStateService);
+  private cart = inject(CartStateService);
+  private comparison = inject(ComparisonStateService);
   private fb = inject(FormBuilder);
   data = inject<BackupCodesLoginDialogData>(MAT_DIALOG_DATA);
   dialogRef = inject(MatDialogRef<BackupCodesLoginDialogComponent>);
@@ -60,7 +65,11 @@ export class BackupCodesLoginDialogComponent {
       .subscribe({
         next: () => {
           this.isLoading.set(false);
-          this.favorites.hydrateAfterAuthRestore().subscribe({
+          forkJoin([
+            this.favorites.hydrateAfterAuthRestore(),
+            this.cart.hydrateAfterAuthRestore(),
+            this.comparison.hydrateAfterAuthRestore(),
+          ]).subscribe({
             next: () => this.dialogRef.close(true),
             error: () => this.dialogRef.close(true),
           });

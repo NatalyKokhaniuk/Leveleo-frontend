@@ -2,10 +2,10 @@
 
   <!-- HEADER -->
   <section class="text-center">
-    <h1 class="text-4xl font-bold mb-3">
+    <h1 class="text-4xl font-bold mb-3 text-on-surface">
       {{ 'ABOUT.TITLE' | translate }}
     </h1>
-    <p class="text-gray-500 max-w-2xl mx-auto">
+    <p class="text-on-surface/70 max-w-2xl mx-auto">
       {{ 'ABOUT.SUBTITLE' | translate }}
     </p>
   </section>
@@ -13,56 +13,70 @@
   <!-- WHO WE ARE -->
   <section class="grid md:grid-cols-2 gap-10 items-center">
     <div>
-      <h2 class="text-2xl font-semibold mb-3">
+      <h2 class="text-2xl font-semibold mb-3 text-on-surface">
         {{ 'ABOUT.INTRO_TITLE' | translate }}
       </h2>
-      <p class="text-gray-700">
+      <p class="text-on-surface/90">
         {{ 'ABOUT.INTRO_TEXT' | translate }}
       </p>
     </div>
 
-    <div class="bg-gray-200 rounded-2xl h-64 flex items-center justify-center">
-      <span class="text-gray-500">Image</span>
+    <div
+      class="rounded-2xl min-h-[16rem] flex items-center justify-center bg-surface-container border border-outline-variant p-8"
+    >
+      <button
+        type="button"
+        class="cursor-pointer flex items-center justify-center w-full"
+        (click)="goHome()"
+        (keydown.enter)="goHome()"
+        [attr.aria-label]="'HEADER.HOME' | translate"
+      >
+        @if (currentTheme() === 'dark') {
+          <img class="h-28 w-auto max-w-full object-contain" src="/assets/images/Logo_dark.png" alt="" />
+        } @else {
+          <img class="h-28 w-auto max-w-full object-contain" src="/assets/images/Logo_light.png" alt="" />
+        }
+      </button>
     </div>
   </section>
 
   <!-- CATALOG -->
   <section>
-    <h2 class="text-2xl font-semibold mb-3">
+    <h2 class="text-2xl font-semibold mb-3 text-on-surface">
       {{ 'ABOUT.CATALOG_TITLE' | translate }}
     </h2>
-    <p class="text-gray-700">
+    <p class="text-on-surface/90">
       {{ 'ABOUT.CATALOG_TEXT' | translate }}
     </p>
   </section>
 
   <!-- PRICING -->
   <section>
-    <h2 class="text-2xl font-semibold mb-3">
+    <h2 class="text-2xl font-semibold mb-3 text-on-surface">
       {{ 'ABOUT.PRICING_TITLE' | translate }}
     </h2>
-    <p class="text-gray-700">
+    <p class="text-on-surface/90">
       {{ 'ABOUT.PRICING_TEXT' | translate }}
     </p>
   </section>
 
   <!-- SUPPORT -->
   <section>
-    <h2 class="text-2xl font-semibold mb-3">
+    <h2 class="text-2xl font-semibold mb-3 text-on-surface">
       {{ 'ABOUT.SUPPORT_TITLE' | translate }}
     </h2>
-    <p class="text-gray-700">
+    <p class="text-on-surface/90">
       {{ 'ABOUT.SUPPORT_TEXT' | translate }}
     </p>
   </section>
 
   <!-- ADVANTAGES -->
-  <section class="bg-gray-50 p-6 md:p-10 rounded-2xl shadow">
-    <h2 class="text-2xl font-semibold mb-5">
+  <section class="bg-primary-container/60 border border-outline-variant p-6 md:p-10 rounded-2xl shadow-sm">
+    <h2 class="text-2xl font-semibold mb-5 text-on-surface">
       {{ 'ABOUT.ADVANTAGES_TITLE' | translate }}
     </h2>
 
-    <ul class="grid md:grid-cols-2 gap-3 list-disc pl-5 text-gray-700">
+    <ul class="grid md:grid-cols-2 gap-3 list-disc pl-5 text-on-surface/90 marker:text-primary">
       <li *ngFor="let item of ('ABOUT.ADVANTAGES' | translate)">
         {{ item }}
       </li>
@@ -71,10 +85,10 @@
 
   <!-- MISSION -->
   <section class="text-center">
-    <h2 class="text-2xl font-semibold mb-3">
+    <h2 class="text-2xl font-semibold mb-3 text-on-surface">
       {{ 'ABOUT.MISSION_TITLE' | translate }}
     </h2>
-    <p class="text-gray-700 max-w-3xl mx-auto">
+    <p class="text-on-surface/90 max-w-3xl mx-auto">
       {{ 'ABOUT.MISSION_TEXT' | translate }}
     </p>
   </section>

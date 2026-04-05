@@ -113,12 +113,32 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/delivery/delivery').then((m) => m.DeliveryComponent),
   },
   {
+    path: 'catalog',
+    loadComponent: () => import('./pages/catalog/catalog').then((m) => m.CatalogPage),
+  },
+  {
+    path: 'products/brand/:brandSlug',
+    loadComponent: () => import('./pages/products/products').then((m) => m.Products),
+  },
+  {
+    path: 'products/category/:categorySlug',
+    loadComponent: () => import('./pages/products/products').then((m) => m.Products),
+  },
+  {
     path: 'products',
     loadComponent: () => import('./pages/products/products').then((m) => m.Products),
   },
   {
     path: 'favorites',
     loadComponent: () => import('./pages/favorites/favorites').then((m) => m.FavoritesPage),
+  },
+  {
+    path: 'comparison',
+    loadComponent: () => import('./pages/comparison/comparison').then((m) => m.ComparisonPage),
+  },
+  {
+    path: 'cart',
+    loadComponent: () => import('./pages/cart/cart').then((m) => m.CartPage),
   },
   {
     path: 'profile',
