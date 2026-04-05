@@ -3,6 +3,9 @@ import { Directive, ElementRef, HostListener, inject } from '@angular/core';
 const INTERACTIVE =
   'button, a[href], a[routerLink], input, textarea, select, label, mat-icon, [mat-icon-button], .mat-mdc-icon-button, .mat-mdc-button-base, [mat-sort-header], .mat-sort-header, .cdk-column-actions button';
 
+/** Не запускати drag-scroll по рядку заголовків (сортування / кліки по назвах стовпців). */
+const TABLE_HEADER_ROW = 'thead, .mat-mdc-header-row';
+
 /**
  * Горизонтальний скрол контейнера перетягуванням (grab / grabbing).
  * Pointer capture — працює, коли курсор виходить за межі таблиці під час перетягування.
@@ -24,6 +27,9 @@ export class HorizontalDragScrollDirective {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     const t = e.target as HTMLElement | null;
     if (t?.closest(INTERACTIVE)) {
+      return;
+    }
+    if (t?.closest(TABLE_HEADER_ROW)) {
       return;
     }
     this.active = true;

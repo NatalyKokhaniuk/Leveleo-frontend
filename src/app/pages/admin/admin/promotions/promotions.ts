@@ -10,6 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { TranslateModule } from '@ngx-translate/core';
 import { PromotionService } from '../../../../features/promotions/promotion.service';
+import { toPromotionLevel } from '../../../../features/promotions/promotion-enum.util';
 import {
   DiscountType,
   PromotionLevel,
@@ -95,7 +96,7 @@ export class AdminPromotionsComponent {
           p.couponCode ?? '',
         ];
         for (const tr of p.translations ?? []) {
-          chunks.push(tr.name, tr.description ?? '');
+          chunks.push(tr.name ?? '', tr.description ?? '');
         }
         return chunks.join(' ').toLowerCase().includes(term);
       });
@@ -113,8 +114,8 @@ export class AdminPromotionsComponent {
             vb = promotionLabel(b);
             break;
           case 'level':
-            va = a.level;
-            vb = b.level;
+            va = toPromotionLevel(a.level);
+            vb = toPromotionLevel(b.level);
             break;
           case 'discount':
             va = a.discountValue ?? 0;
@@ -242,7 +243,7 @@ export class AdminPromotionsComponent {
     const ref = this.dialog.open(PromotionDeleteDialogComponent, {
       panelClass: 'auth-dialog',
       maxWidth: '400px',
-      data: { id: row.id, name: row.name } satisfies PromotionDeleteDialogData,
+      data: { id: row.id, name: promotionLabel(row) } satisfies PromotionDeleteDialogData,
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
@@ -267,8 +268,9 @@ export class AdminPromotionsComponent {
     return value?.trim() ? value : '—';
   }
 
-  levelLabelKey(level: PromotionLevel): string {
-    return level === PromotionLevel.Product
+  /** API може надсилати рівень числом або рядком («Product» / «Cart»). */
+  levelLabelKey(level: PromotionLevel | string | unknown): string {
+    return toPromotionLevel(level) === PromotionLevel.Product
       ? 'ADMIN.PROMOTION.LEVEL_PRODUCT'
       : 'ADMIN.PROMOTION.LEVEL_CART';
   }

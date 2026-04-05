@@ -26,6 +26,7 @@ import {
   taskTypeLabel,
   taskTypeOptionLabel,
 } from './task-labels';
+import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 
 /** Імена enum як у C# / JSON (рядки). */
 const STATUS_NAMES = ['Pending', 'InProgress', 'Completed', 'Cancelled'] as const;
@@ -57,6 +58,7 @@ const PRIORITY_NAMES = ['Low', 'Normal', 'High', 'Critical'] as const;
     MatTableModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    HorizontalDragScrollDirective,
   ],
   templateUrl: './tasks.html',
 })
@@ -84,6 +86,54 @@ export class AdminTasksComponent {
   actionLoadingId = signal<string | null>(null);
 
   displayedColumns: string[] = ['title', 'type', 'priority', 'status', 'assignedTo', 'createdAt', 'actions'];
+
+  sortKey = signal<
+    'title' | 'type' | 'priority' | 'status' | 'assignedTo' | 'createdAt' | null
+  >(null);
+  sortDir = signal<'asc' | 'desc'>('asc');
+
+  /** Сортування поточної сторінки на клієнті (дані з API вже сторінковані). */
+  sortedItems = computed(() => {
+    const list = [...this.items()];
+    const key = this.sortKey();
+    if (!key) return list;
+    const dir = this.sortDir() === 'asc' ? 1 : -1;
+    return list.sort((a, b) => {
+      let va: string | number = '';
+      let vb: string | number = '';
+      switch (key) {
+        case 'title':
+          va = a.title.toLowerCase();
+          vb = b.title.toLowerCase();
+          break;
+        case 'type':
+          va = a.type;
+          vb = b.type;
+          break;
+        case 'priority':
+          va = a.priority;
+          vb = b.priority;
+          break;
+        case 'status':
+          va = a.status;
+          vb = b.status;
+          break;
+        case 'assignedTo':
+          va = this.assigneeDisplay(a).toLowerCase();
+          vb = this.assigneeDisplay(b).toLowerCase();
+          break;
+        case 'createdAt':
+          va = new Date(a.createdAt).getTime();
+          vb = new Date(b.createdAt).getTime();
+          break;
+        default:
+          return 0;
+      }
+      if (va < vb) return -1 * dir;
+      if (va > vb) return 1 * dir;
+      return 0;
+    });
+  });
 
   totalPages = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.pageSize)));
 
@@ -227,6 +277,20 @@ export class AdminTasksComponent {
     const id = row.assignedTo?.trim();
     if (!id) return '—';
     return this.assigneeNames()[id] ?? id;
+  }
+
+  changeSort(key: 'title' | 'type' | 'priority' | 'status' | 'assignedTo' | 'createdAt'): void {
+    if (this.sortKey() === key) {
+      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
+    } else {
+      this.sortKey.set(key);
+      this.sortDir.set('asc');
+    }
+  }
+
+  sortIndicator(key: 'title' | 'type' | 'priority' | 'status' | 'assignedTo' | 'createdAt'): string {
+    if (this.sortKey() !== key) return '';
+    return this.sortDir() === 'asc' ? '↑' : '↓';
   }
 
   private mapError(err: unknown): string {

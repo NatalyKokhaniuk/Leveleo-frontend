@@ -72,7 +72,7 @@
       <p class="modal-desc text-center max-w-none py-8">{{ 'ADMIN.TASKS_PAGE.EMPTY' | translate }}</p>
     } @else {
       <div class="flex flex-col gap-4 md:hidden">
-        @for (row of items(); track row.id) {
+        @for (row of sortedItems(); track row.id) {
           <div
             class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-3 min-w-0"
           >
@@ -118,10 +118,21 @@
         }
       </div>
 
-      <div class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
-        <table mat-table [dataSource]="items()" class="w-full">
+      <div
+        appHorizontalDragScroll
+        class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant"
+      >
+        <table mat-table [dataSource]="sortedItems()" class="w-full admin-mat-table">
           <ng-container matColumnDef="title">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TASKS_PAGE.COL_TITLE' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('title')"
+            >
+              {{ 'ADMIN.TASKS_PAGE.COL_TITLE' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('title') }}</span>
+            </th>
             <td mat-cell *matCellDef="let row" class="max-w-[18rem]">
               <a
                 [routerLink]="['/admin/tasks', row.id]"
@@ -132,29 +143,69 @@
           </ng-container>
 
           <ng-container matColumnDef="type">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TASKS_PAGE.COL_TYPE' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('type')"
+            >
+              {{ 'ADMIN.TASKS_PAGE.COL_TYPE' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('type') }}</span>
+            </th>
             <td mat-cell *matCellDef="let row">{{ typeLabel(row) }}</td>
           </ng-container>
 
           <ng-container matColumnDef="priority">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TASKS_PAGE.COL_PRIORITY' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('priority')"
+            >
+              {{ 'ADMIN.TASKS_PAGE.COL_PRIORITY' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('priority') }}</span>
+            </th>
             <td mat-cell *matCellDef="let row">{{ priorityLabel(row) }}</td>
           </ng-container>
 
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TASKS_PAGE.COL_STATUS' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('status')"
+            >
+              {{ 'ADMIN.TASKS_PAGE.COL_STATUS' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('status') }}</span>
+            </th>
             <td mat-cell *matCellDef="let row">{{ statusLabel(row) }}</td>
           </ng-container>
 
           <ng-container matColumnDef="assignedTo">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TASKS_PAGE.COL_ASSIGNED' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none"
+              (click)="changeSort('assignedTo')"
+            >
+              {{ 'ADMIN.TASKS_PAGE.COL_ASSIGNED' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('assignedTo') }}</span>
+            </th>
             <td mat-cell *matCellDef="let row" class="max-w-[12rem] break-words text-sm">{{
               assigneeDisplay(row)
             }}</td>
           </ng-container>
 
           <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TASKS_PAGE.COL_CREATED' | translate }}</th>
+            <th
+              mat-header-cell
+              *matHeaderCellDef
+              class="cursor-pointer select-none whitespace-nowrap"
+              (click)="changeSort('createdAt')"
+            >
+              {{ 'ADMIN.TASKS_PAGE.COL_CREATED' | translate }}
+              <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('createdAt') }}</span>
+            </th>
             <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">{{
               row.createdAt | date: 'short'
             }}</td>

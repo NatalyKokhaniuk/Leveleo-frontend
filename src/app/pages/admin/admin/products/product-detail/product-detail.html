@@ -221,7 +221,7 @@
                 <tr class="border-b border-outline-variant text-left">
                   <th class="py-2 pr-2">{{ 'ADMIN.PRODUCT.ATTR_COL_NAME' | translate }}</th>
                   <th class="py-2 pr-2">{{ 'ADMIN.PRODUCT.ATTR_COL_VALUE' | translate }}</th>
-                  <th class="py-2">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+                  <th class="py-2 text-center">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -229,13 +229,15 @@
                   <tr class="border-b border-outline-variant/60">
                     <td class="py-2 pr-2">{{ attrLabel(row.productAttributeId) }}</td>
                     <td class="py-2 pr-2">{{ displayValue(row) }}</td>
-                    <td class="py-2">
-                      <button mat-icon-button type="button" (click)="openEditAttributeValue(row)">
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button mat-icon-button type="button" color="warn" (click)="deleteAttributeValue(row)">
-                        <mat-icon>delete</mat-icon>
-                      </button>
+                    <td class="py-2 text-center align-middle">
+                      <div class="inline-flex flex-wrap items-center justify-center gap-0">
+                        <button mat-icon-button type="button" (click)="openEditAttributeValue(row)">
+                          <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button type="button" color="warn" (click)="deleteAttributeValue(row)">
+                          <mat-icon>delete</mat-icon>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 }

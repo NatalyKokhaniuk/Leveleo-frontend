@@ -1,0 +1,12 @@
+@use '../../../../styles/auth-modal-shared' as *;
+
+:host {
+  display: block;
+}
+
+.auth-modal-container .modal-title,
+.auth-modal-container .modal-desc {
+  width: 100%;
+  text-align: center;
+  text-wrap: balance;
+}

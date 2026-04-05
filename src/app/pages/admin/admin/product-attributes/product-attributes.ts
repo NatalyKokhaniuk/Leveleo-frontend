@@ -23,6 +23,7 @@ import {
   ProductAttributeFormDialogData,
 } from './product-attribute-form-dialog/product-attribute-form-dialog.component';
 import { ProductAttributeDeleteDialogComponent } from './product-attribute-delete-dialog/product-attribute-delete-dialog.component';
+import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 
 export type ProductAttributeSortKey =
   | 'name'
@@ -46,6 +47,7 @@ export type ProductAttributeSortKey =
     MatTableModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    HorizontalDragScrollDirective,
   ],
   templateUrl: './product-attributes.html',
 })

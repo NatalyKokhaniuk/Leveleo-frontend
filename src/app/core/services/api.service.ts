@@ -1,5 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { Observable } from 'rxjs';
 import { IApiService } from './api.service.interface';
 
 @Injectable({ providedIn: 'root' })
@@ -17,6 +18,16 @@ export class ApiService implements IApiService {
 
   post<T>(path: string, body: unknown) {
     return this.http.post<T>(`${this.base}${path}`, body, this.options);
+  }
+
+  /**
+   * POST з сирим JSON-тілом (напр. `JSON.stringify(email)` для ASP.NET `[FromBody] string email`).
+   */
+  postRawJson(path: string, jsonBody: string): Observable<unknown> {
+    return this.http.post(`${this.base}${path}`, jsonBody, {
+      ...this.options,
+      headers: new HttpHeaders({ 'Content-Type': 'application/json' }),
+    });
   }
 
   put<T>(path: string, body: unknown) {

@@ -1,0 +1,19 @@
+<div class="w-[calc(100vw-20px)] md:w-96 max-w-full p-6">
+  <div class="auth-modal-container">
+    <div class="icon-wrapper icon-warning mx-auto">
+      <mat-icon class="status-icon">warning</mat-icon>
+    </div>
+    <h2 class="modal-title text-center">{{ titleKey() | translate }}</h2>
+    <p class="modal-desc max-w-none text-center mx-auto">
+      {{ messageKey() | translate: messageParams() }}
+    </p>
+    <div class="modal-actions">
+      <button matButton="filled" color="warn" class="w-full" type="button" (click)="ref.close(true)">
+        {{ 'ADMIN.TABLE.DELETE' | translate }}
+      </button>
+      <button matButton class="w-full" type="button" (click)="ref.close(false)">
+        {{ 'AUTH.CANCEL' | translate }}
+      </button>
+    </div>
+  </div>
+</div>

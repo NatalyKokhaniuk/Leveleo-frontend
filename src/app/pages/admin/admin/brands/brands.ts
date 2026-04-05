@@ -16,6 +16,7 @@ import {
 } from './brand-form-dialog/brand-form-dialog.component';
 import { BrandDeleteDialogComponent } from './brand-delete-dialog/brand-delete-dialog.component';
 import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
+import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 
 export type BrandSortKey = 'name' | 'slug' | 'description' | 'logoKey' | 'metaTitle';
 
@@ -33,6 +34,7 @@ export type BrandSortKey = 'name' | 'slug' | 'description' | 'logoKey' | 'metaTi
     MatProgressSpinnerModule,
     MatDialogModule,
     MediaImageThumbComponent,
+    HorizontalDragScrollDirective,
   ],
   templateUrl: './brands.html',
 })

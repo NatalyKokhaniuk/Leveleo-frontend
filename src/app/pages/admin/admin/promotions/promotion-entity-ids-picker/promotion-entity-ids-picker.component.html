@@ -6,7 +6,6 @@
       matInput
       [formControl]="searchCtrl"
       [matAutocomplete]="auto"
-      [disabled]="disabled"
       autocomplete="off"
     />
     @if (searchLoading()) {
@@ -53,12 +52,7 @@
   @if (advancedOpen()) {
     <mat-form-field class="w-full" subscriptSizing="dynamic">
       <mat-label>{{ 'ADMIN.PROMOTION.PICKER_ADVANCED_LABEL' | translate }}</mat-label>
-      <textarea
-        matInput
-        rows="3"
-        [formControl]="advancedCsv"
-        [disabled]="disabled"
-      ></textarea>
+      <textarea matInput rows="3" [formControl]="advancedCsv"></textarea>
       <mat-hint>{{ 'ADMIN.PROMOTION.PICKER_ADVANCED_HINT' | translate }}</mat-hint>
     </mat-form-field>
     <button

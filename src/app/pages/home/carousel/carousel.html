@@ -24,16 +24,20 @@
 
   <!-- LEFT -->
   <button
+    type="button"
     (click)="prev()"
-    class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
+    class="carousel-nav-btn absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+    [attr.aria-label]="'CAROUSEL.PREV_SLIDE' | translate"
   >
     <mat-icon>chevron_left</mat-icon>
   </button>
 
   <!-- RIGHT -->
   <button
+    type="button"
     (click)="next()"
-    class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full"
+    class="carousel-nav-btn absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+    [attr.aria-label]="'CAROUSEL.NEXT_SLIDE' | translate"
   >
     <mat-icon>chevron_right</mat-icon>
   </button>

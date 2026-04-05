@@ -187,6 +187,55 @@ a {
   height: auto !important;
   overflow: visible !important;
 }
+
+/* Каталог: модалка товару — без горизонтальної прокрутки (контент + viewport). */
+.mat-mdc-dialog-container.product-quick-view-panel {
+  max-width: min(720px, calc(100vw - 24px)) !important;
+  width: 100% !important;
+  box-sizing: border-box;
+}
+
+.mat-mdc-dialog-container.product-quick-view-panel .mat-mdc-dialog-surface {
+  overflow-x: hidden !important;
+  overflow-y: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.mat-mdc-dialog-container.product-quick-view-panel .mat-mdc-dialog-content {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+/** Paired «Edit» / «Delete» text buttons in admin tables — same minimum width, centered label */
+.admin-table-edit-delete-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+  justify-content: center;
+}
+.admin-table-edit-delete-group > .mat-mdc-button-base {
+  min-width: 7.5rem;
+  justify-content: center;
+}
+.admin-table-edit-delete-group.flex-row > .mat-mdc-button-base {
+  flex: 1 1 7.5rem;
+}
+
+/* Admin mat-table: align header cells to the same visual height (sort arrows, multi-line labels). */
+.admin-mat-table {
+  .mat-mdc-header-row {
+    height: auto;
+  }
+  th.mat-mdc-header-cell {
+    vertical-align: middle;
+    min-height: 3.25rem;
+    box-sizing: border-box;
+  }
+}
+
 @layer utilities {
   .bg-primary-container {
     background-color: var(--mat-sys-primary-container);

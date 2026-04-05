@@ -1,13 +1,31 @@
-<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-12">
+<main class="products-page pt-32 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-10 pb-16 min-w-0">
+  <header class="flex flex-col gap-2">
+    <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'PRODUCTS.TITLE' | translate }}</h1>
+    <p class="modal-desc text-left max-w-2xl">{{ 'PRODUCTS.DESCRIPTION' | translate }}</p>
+  </header>
 
-<h1>{{ 'PRODUCTS.TITLE' | translate }}</h1>
-
-<p>
-{{ 'PRODUCTS.DESCRIPTION' | translate }}
-</p>
-
-<a routerLink="/product/123">
-{{ 'PRODUCTS.OPEN_PRODUCT' | translate }}
-</a>
-
+  @if (loading()) {
+    <div class="flex justify-center py-20">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (loadError()) {
+    <p class="text-center text-on-surface/80 py-12">{{ 'PRODUCTS.LOAD_ERROR' | translate }}</p>
+  } @else if (items().length === 0) {
+    <p class="text-center text-on-surface/80 py-12">{{ 'PRODUCTS.EMPTY' | translate }}</p>
+  } @else {
+    <div
+      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 min-w-0"
+    >
+      @for (p of items(); track p.id) {
+        <div class="min-w-0 max-w-full">
+        <app-product-card
+          [product]="p"
+          [isFavorite]="favoriteFor(p.id)"
+          (favoriteToggled)="toggleFavorite(p.id)"
+          (openDetail)="openQuickView(p)"
+        />
+        </div>
+      }
+    </div>
+  }
 </main>

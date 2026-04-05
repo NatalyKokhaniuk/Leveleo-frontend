@@ -30,10 +30,12 @@ export class AdminComponent {
     { key: 'REVIEWS', icon: 'rate_review', link: '/admin/reviews' },
   ];
 
-  /** USERS і SUBSCRIPTIONS — лише для Admin. */
+  /** USERS — лише Admin; підписки — Admin і Moderator (видалення лише в UI для Admin). */
   showMenuItem(item: { key: string }): boolean {
     if (item.key === 'USERS' && !this.userservice.isAdmin()) return false;
-    if (item.key === 'SUBSCRIPTIONS' && !this.userservice.isAdmin()) return false;
+    if (item.key === 'SUBSCRIPTIONS' && !this.userservice.hasAnyRole(['Admin', 'Moderator'])) {
+      return false;
+    }
     return true;
   }
 }

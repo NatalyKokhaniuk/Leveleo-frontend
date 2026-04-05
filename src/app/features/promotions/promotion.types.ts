@@ -37,7 +37,8 @@ export interface PromotionTranslationDto {
 /** Відповідь API — додайте productConditions/cartConditions/coupon у MapToDto на бекенді для повного редагування. */
 export interface PromotionResponseDto {
   id: string;
-  name: string;
+  /** У списку може бути null, якщо назва лише в translations або лише slug. */
+  name: string | null;
   slug: string;
   description?: string | null;
   imageKey?: string | null;

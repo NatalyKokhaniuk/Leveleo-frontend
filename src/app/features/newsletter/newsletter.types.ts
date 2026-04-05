@@ -20,3 +20,9 @@ export interface ActiveSubscriberDto {
   hasAccount: boolean;
   fullName?: string | null;
 }
+
+/** POST /api/newsletter/unsubscribe (тіло як у публічної відписки). */
+export interface NewsletterUnsubscribeRequestDto {
+  email: string;
+  unsubscribeToken?: string | null;
+}

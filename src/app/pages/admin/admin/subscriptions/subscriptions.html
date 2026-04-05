@@ -66,49 +66,129 @@
                 }}</span>
                 <span class="text-sm">{{ yesNo(row.hasAccount) }}</span>
               </div>
+              @if (auth.isAdmin()) {
+                <div class="admin-table-edit-delete-group flex flex-col gap-2 pt-2 border-t border-outline-variant">
+                  <button
+                    matButton="filled"
+                    type="button"
+                    class="w-full"
+                    color="warn"
+                    (click)="confirmRemove(row)"
+                    [disabled]="deletingId() === row.id"
+                  >
+                    @if (deletingId() === row.id) {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.DELETE' | translate }}
+                    }
+                  </button>
+                </div>
+              }
             </div>
           }
         </div>
 
-        <div class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
+        <div
+          appHorizontalDragScroll
+          class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant"
+        >
           <table mat-table [dataSource]="paginatedSubscribers()" class="w-full">
             <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_EMAIL' | translate }}</th>
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('email')"
+              >
+                {{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_EMAIL' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('email') }}</span>
+              </th>
               <td mat-cell *matCellDef="let row" class="max-w-[14rem] break-all text-sm">{{ row.email }}</td>
             </ng-container>
 
             <ng-container matColumnDef="fullName">
-              <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_NAME' | translate }}</th>
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('fullName')"
+              >
+                {{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_NAME' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('fullName') }}</span>
+              </th>
               <td mat-cell *matCellDef="let row" class="max-w-[12rem] break-words">{{
                 dash(row.fullName)
               }}</td>
             </ng-container>
 
             <ng-container matColumnDef="subscribedAt">
-              <th mat-header-cell *matHeaderCellDef>{{
-                'ADMIN.SUBSCRIPTIONS_PAGE.COL_SUBSCRIBED' | translate
-              }}</th>
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none whitespace-nowrap"
+                (click)="changeSort('subscribedAt')"
+              >
+                {{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_SUBSCRIBED' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('subscribedAt') }}</span>
+              </th>
               <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">{{
                 row.subscribedAt | date: 'short'
               }}</td>
             </ng-container>
 
             <ng-container matColumnDef="source">
-              <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_SOURCE' | translate }}</th>
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('source')"
+              >
+                {{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_SOURCE' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('source') }}</span>
+              </th>
               <td mat-cell *matCellDef="let row" class="max-w-[10rem] break-words text-sm">{{
                 dash(row.source)
               }}</td>
             </ng-container>
 
             <ng-container matColumnDef="hasAccount">
-              <th mat-header-cell *matHeaderCellDef>{{
-                'ADMIN.SUBSCRIPTIONS_PAGE.COL_ACCOUNT' | translate
-              }}</th>
+              <th
+                mat-header-cell
+                *matHeaderCellDef
+                class="cursor-pointer select-none"
+                (click)="changeSort('hasAccount')"
+              >
+                {{ 'ADMIN.SUBSCRIPTIONS_PAGE.COL_ACCOUNT' | translate }}
+                <span class="inline-block min-w-[0.75rem]">{{ sortIndicator('hasAccount') }}</span>
+              </th>
               <td mat-cell *matCellDef="let row">{{ yesNo(row.hasAccount) }}</td>
             </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef class="text-center whitespace-nowrap">{{
+                'ADMIN.TABLE.ACTIONS' | translate
+              }}</th>
+              <td mat-cell *matCellDef="let row" class="text-center align-middle">
+                <div class="inline-flex justify-center">
+                  <button
+                    matButton="filled"
+                    type="button"
+                    color="warn"
+                    (click)="confirmRemove(row)"
+                    [disabled]="deletingId() === row.id"
+                  >
+                    @if (deletingId() === row.id) {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.DELETE' | translate }}
+                    }
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns()"></tr>
           </table>
         </div>
 

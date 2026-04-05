@@ -36,6 +36,7 @@ import {
   ProductAttributeValueDialogComponent,
   ProductAttributeValueDialogData,
 } from '../product-attribute-value-dialog/product-attribute-value-dialog.component';
+import { AdminConfirmDeleteDialogComponent } from '../../../admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
 import { ProductDeleteDialogComponent } from '../product-delete-dialog/product-delete-dialog.component';
 
 @Component({
@@ -292,11 +293,17 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
   removeGalleryImage(img: ProductImageDto): void {
     const pid = this.product()?.id;
     if (!pid) return;
-    this.productMedia.deleteImage(pid, img.id).subscribe({
-      next: () => this.images.update((list) => list.filter((i) => i.id !== img.id)),
-      error: () =>
-        this.snack.open(this.translate.instant('ADMIN.PRODUCT.MEDIA_DELETE_ERROR'), 'OK', { duration: 5000 }),
-    });
+    this.dialog
+      .open(AdminConfirmDeleteDialogComponent, { width: 'min(440px, 100vw)', data: {} })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.productMedia.deleteImage(pid, img.id).subscribe({
+          next: () => this.images.update((list) => list.filter((i) => i.id !== img.id)),
+          error: () =>
+            this.snack.open(this.translate.instant('ADMIN.PRODUCT.MEDIA_DELETE_ERROR'), 'OK', { duration: 5000 }),
+        });
+      });
   }
 
   uploadVideo(event: Event): void {
@@ -322,11 +329,17 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
   removeVideo(v: ProductVideoDto): void {
     const pid = this.product()?.id;
     if (!pid) return;
-    this.productMedia.deleteVideo(pid, v.id).subscribe({
-      next: () => this.videos.update((list) => list.filter((x) => x.id !== v.id)),
-      error: () =>
-        this.snack.open(this.translate.instant('ADMIN.PRODUCT.MEDIA_DELETE_ERROR'), 'OK', { duration: 5000 }),
-    });
+    this.dialog
+      .open(AdminConfirmDeleteDialogComponent, { width: 'min(440px, 100vw)', data: {} })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.productMedia.deleteVideo(pid, v.id).subscribe({
+          next: () => this.videos.update((list) => list.filter((x) => x.id !== v.id)),
+          error: () =>
+            this.snack.open(this.translate.instant('ADMIN.PRODUCT.MEDIA_DELETE_ERROR'), 'OK', { duration: 5000 }),
+        });
+      });
   }
 
   openAddAttributeValue(): void {
@@ -370,13 +383,19 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
   }
 
   deleteAttributeValue(row: ProductAttributeValueResponseDto): void {
-    this.attributeValueService.delete(row.id).subscribe({
-      next: () => this.attributeValues.update((list) => list.filter((x) => x.id !== row.id)),
-      error: () =>
-        this.snack.open(this.translate.instant('ADMIN.PRODUCT.ATTR_VALUE_DELETE_ERROR'), 'OK', {
-          duration: 5000,
-        }),
-    });
+    this.dialog
+      .open(AdminConfirmDeleteDialogComponent, { width: 'min(440px, 100vw)', data: {} })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.attributeValueService.delete(row.id).subscribe({
+          next: () => this.attributeValues.update((list) => list.filter((x) => x.id !== row.id)),
+          error: () =>
+            this.snack.open(this.translate.instant('ADMIN.PRODUCT.ATTR_VALUE_DELETE_ERROR'), 'OK', {
+              duration: 5000,
+            }),
+        });
+      });
   }
 
   applyStockDelta(): void {

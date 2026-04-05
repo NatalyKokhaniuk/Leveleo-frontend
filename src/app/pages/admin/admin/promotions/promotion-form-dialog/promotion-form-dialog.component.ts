@@ -190,7 +190,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       p.translations?.find((t) => t.languageCode.toLowerCase() === code.toLowerCase());
     const uk = tr('uk');
     this.form.patchValue({
-      nameEn: p.name,
+      nameEn: p.name ?? '',
       descriptionEn: p.description ?? '',
       nameUk: uk?.name ?? '',
       descriptionUk: uk?.description ?? '',
@@ -219,8 +219,12 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     return s.trim() === '' ? null : s.trim();
   }
 
-  private numOrNull(s: string): number | null {
-    const t = s.trim();
+  /** `type="number"` у шаблоні дає number | null, не рядок. */
+  private numOrNull(s: string | number | null | undefined): number | null {
+    if (s == null || s === '') {
+      return null;
+    }
+    const t = String(s).trim();
     if (!t) {
       return null;
     }
@@ -228,7 +232,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     return Number.isFinite(n) ? n : null;
   }
 
-  private intOrNull(s: string): number | null {
+  private intOrNull(s: string | number | null | undefined): number | null {
     const n = this.numOrNull(s);
     if (n === null) {
       return null;

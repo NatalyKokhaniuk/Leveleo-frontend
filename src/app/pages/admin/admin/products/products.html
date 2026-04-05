@@ -97,9 +97,9 @@
       </mat-form-field>
     </div>
 
-    <div class="flex flex-col gap-3 border-t border-outline-variant pt-4">
+      <div class="flex flex-col gap-3 border-t border-outline-variant pt-4">
       <span class="text-sm font-medium">{{ 'ADMIN.PRODUCT.ATTR_FILTERS' | translate }}</span>
-      <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-stretch sm:items-end min-w-0">
+      <div class="flex flex-col sm:flex-row gap-3 flex-wrap items-stretch sm:items-center min-w-0">
         <mat-form-field class="w-full shrink-0 sm:w-auto sm:min-w-[220px]">
           <mat-label>{{ 'ADMIN.PRODUCT.ATTR_SELECT' | translate }}</mat-label>
           <mat-select
@@ -170,7 +170,12 @@
             }
           }
         }
-        <button mat-stroked-button type="button" class="mt-1 shrink-0 self-start sm:self-end" (click)="addAttributeFilter()">
+        <button
+          mat-stroked-button
+          type="button"
+          class="shrink-0 w-full sm:w-auto"
+          (click)="addAttributeFilter()"
+        >
           {{ 'ADMIN.PRODUCT.ATTR_ADD' | translate }}
         </button>
       </div>
@@ -178,11 +183,16 @@
         <div class="flex flex-wrap gap-2">
           @for (f of attributeFilters(); track f.attributeId) {
             <span
-              class="inline-flex items-center gap-1 rounded-full border border-outline-variant px-3 py-1 text-sm"
+              class="inline-flex items-center gap-1.5 rounded-full border border-outline-variant pl-3 pr-1 py-0.5 text-sm"
             >
               {{ attrFilterChipLabel(f) }}
-              <button type="button" mat-icon-button class="!w-7 !h-7" (click)="removeAttributeFilter(f.attributeId)">
-                <mat-icon class="text-base">close</mat-icon>
+              <button
+                type="button"
+                mat-icon-button
+                class="!w-8 !h-8 shrink-0 flex items-center justify-center"
+                (click)="removeAttributeFilter(f.attributeId)"
+              >
+                <mat-icon class="!m-0 !text-[18px] leading-none flex items-center justify-center">close</mat-icon>
               </button>
             </span>
           }
@@ -206,7 +216,7 @@
         class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0"
         appHorizontalDragScroll
       >
-        <table mat-table [dataSource]="displayedItems()" class="w-full min-w-[960px]">
+        <table mat-table [dataSource]="displayedItems()" class="w-full min-w-[960px] admin-mat-table">
           <ng-container matColumnDef="image">
             <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap w-14">{{
               'ADMIN.PRODUCT.COL_IMAGE' | translate
@@ -330,9 +340,11 @@
             }}</td>
           </ng-container>
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
-            <td mat-cell *matCellDef="let row">
-              <div class="flex flex-wrap gap-1">
+            <th mat-header-cell *matHeaderCellDef class="text-center">{{
+              'ADMIN.TABLE.ACTIONS' | translate
+            }}</th>
+            <td mat-cell *matCellDef="let row" class="text-center align-middle">
+              <div class="inline-flex flex-wrap gap-1 justify-center">
                 <a
                   mat-icon-button
                   [routerLink]="['/admin/products', row.id]"

@@ -70,11 +70,13 @@
                 <span class="text-xs opacity-70">{{ 'ADMIN.BRAND.COL_META_TITLE' | translate }}</span>
                 <span class="text-sm break-words">{{ dash(row.metaTitle) }}</span>
               </div>
-              <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant">
-                <button matButton="outlined" type="button" class="w-full" (click)="openEdit(row)">
+              <div
+                class="admin-table-edit-delete-group flex flex-row flex-wrap gap-2 pt-2 border-t border-outline-variant"
+              >
+                <button matButton="outlined" type="button" class="flex-1 min-w-[7.5rem]" (click)="openEdit(row)">
                   {{ 'ADMIN.TABLE.EDIT' | translate }}
                 </button>
-                <button matButton="tonal" type="button" class="w-full" (click)="confirmDelete(row)">
+                <button matButton="tonal" type="button" class="flex-1 min-w-[7.5rem]" (click)="confirmDelete(row)">
                   {{ 'ADMIN.TABLE.DELETE' | translate }}
                 </button>
               </div>
@@ -82,7 +84,10 @@
           }
         </div>
 
-        <div class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
+        <div
+          appHorizontalDragScroll
+          class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant"
+        >
           <table mat-table [dataSource]="paginatedBrands()" class="w-full">
             <ng-container matColumnDef="name">
               <th
@@ -156,11 +161,13 @@
             </ng-container>
 
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap">{{
+              <th mat-header-cell *matHeaderCellDef class="whitespace-nowrap text-center">{{
                 'ADMIN.TABLE.ACTIONS' | translate
               }}</th>
-              <td mat-cell *matCellDef="let row">
-                <div class="flex flex-col lg:flex-row flex-wrap gap-2 py-2 min-w-[8rem]">
+              <td mat-cell *matCellDef="let row" class="text-center align-middle">
+                <div
+                  class="admin-table-edit-delete-group flex flex-col lg:flex-row flex-wrap gap-2 py-2 min-w-[8rem] justify-center"
+                >
                   <button matButton="outlined" type="button" (click)="openEdit(row)">
                     {{ 'ADMIN.TABLE.EDIT' | translate }}
                   </button>

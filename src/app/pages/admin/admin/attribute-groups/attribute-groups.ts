@@ -15,6 +15,7 @@ import {
   AttributeGroupFormDialogData,
 } from './attribute-group-form-dialog/attribute-group-form-dialog.component';
 import { AttributeGroupDeleteDialogComponent } from './attribute-group-delete-dialog/attribute-group-delete-dialog.component';
+import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 
 export type AttributeGroupSortKey = 'name' | 'slug' | 'description';
 
@@ -31,6 +32,7 @@ export type AttributeGroupSortKey = 'name' | 'slug' | 'description';
     MatTableModule,
     MatProgressSpinnerModule,
     MatDialogModule,
+    HorizontalDragScrollDirective,
   ],
   templateUrl: './attribute-groups.html',
 })

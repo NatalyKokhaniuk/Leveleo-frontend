@@ -16,6 +16,7 @@ import {
 } from './category-form-dialog/category-form-dialog.component';
 import { CategoryDeleteDialogComponent } from './category-delete-dialog/category-delete-dialog.component';
 import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
+import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 
 export type CategorySortKey = 'name' | 'slug' | 'fullPath' | 'parent' | 'isActive';
 
@@ -33,6 +34,7 @@ export type CategorySortKey = 'name' | 'slug' | 'fullPath' | 'parent' | 'isActiv
     MatProgressSpinnerModule,
     MatDialogModule,
     MediaImageThumbComponent,
+    HorizontalDragScrollDirective,
   ],
   templateUrl: './categories.html',
 })

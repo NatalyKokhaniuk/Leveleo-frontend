@@ -27,7 +27,8 @@ export class PromotionService {
   }
 
   /**
-   * Бекенд може очікувати обгортку з полем `dto` (модель з [FromBody] і властивістю Dto).
+   * Бекенд очікує обгортку з полем `dto` (ASP.NET: модель з [FromBody], властивість Dto).
+   * Плоский JSON дає 400: «The dto field is required».
    */
   update(id: string, dto: UpdatePromotionDto): Observable<PromotionResponseDto> {
     return this.api.put<PromotionResponseDto>(`${this.base}/${id}`, { dto });

@@ -6,14 +6,21 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
 import { UserDto } from '../../../core/auth/services/users';
+import { HorizontalDragScrollDirective } from '../../../shared/directives/horizontal-drag-scroll.directive';
+
+export interface TableColumnSelectOption {
+  value: string;
+  labelKey: string;
+}
 
 export interface TableColumn {
   key: keyof UserDto;
-  label: string;
+  /** i18n key for column header and mobile field label */
+  labelKey: string;
   sortable?: boolean;
   filterable?: boolean;
   type?: 'text' | 'select';
-  options?: string[];
+  options?: TableColumnSelectOption[];
 }
 
 @Component({
@@ -26,6 +33,7 @@ export interface TableColumn {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    HorizontalDragScrollDirective,
   ],
   templateUrl: './data-table.component.html',
 })
@@ -39,7 +47,11 @@ export class DataTableComponent {
 
   search = signal('');
   filters = signal<Record<string, any>>({});
-  roleOptions = ['Admin', 'Moderator', 'User'];
+  readonly roleFilterOptions: TableColumnSelectOption[] = [
+    { value: 'Admin', labelKey: 'ADMIN.USER.ROLE_ADMIN' },
+    { value: 'Moderator', labelKey: 'ADMIN.USER.ROLE_MODERATOR' },
+    { value: 'User', labelKey: 'ADMIN.USER.ROLE_USER' },
+  ];
   page = signal(1);
   pageSize = 5;
 

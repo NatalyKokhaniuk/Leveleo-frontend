@@ -12,8 +12,8 @@
       class="border border-outline-variant rounded-xl px-3 py-2 w-full sm:w-auto sm:min-w-[10rem] bg-surface-container"
     >
       <option value="">{{ 'ADMIN.TABLE.FILTER_ROLE_ALL' | translate }}</option>
-      @for (opt of roleOptions; track opt) {
-        <option [value]="opt">{{ opt }}</option>
+      @for (opt of roleFilterOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.labelKey | translate }}</option>
       }
     </select>
   </div>
@@ -26,14 +26,16 @@
       >
         @for (col of columns; track col.key) {
           <div class="flex flex-col gap-1 min-w-0">
-            <span class="text-xs opacity-70">{{ col.label }}</span>
+            <span class="text-xs opacity-70">{{ col.labelKey | translate }}</span>
             @if (col.type === 'select') {
               <select
                 (change)="onSelectChange(row, col.key, $any($event.target).value)"
                 class="border border-outline-variant rounded-lg px-2 py-2 w-full bg-surface-container"
               >
-                @for (opt of col.options ?? []; track opt) {
-                  <option [value]="opt" [selected]="row.roles[0] === opt">{{ opt }}</option>
+                @for (opt of col.options ?? []; track opt.value) {
+                  <option [value]="opt.value" [selected]="row.roles[0] === opt.value">{{
+                    opt.labelKey | translate
+                  }}</option>
                 }
               </select>
             } @else {
@@ -41,7 +43,9 @@
             }
           </div>
         }
-        <div class="flex flex-col gap-2 pt-2 border-t border-outline-variant">
+        <div
+          class="admin-table-edit-delete-group flex flex-col gap-2 pt-2 border-t border-outline-variant"
+        >
           <button
             matButton="outlined"
             type="button"
@@ -85,19 +89,19 @@
   </div>
 
   <!-- Desktop: таблиця -->
-  <div class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
+  <div appHorizontalDragScroll class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
     <table class="w-full text-sm min-w-0">
       <thead class="border-b border-outline-variant">
         <tr>
           @for (col of columns; track col.key) {
             <th class="p-3 md:p-4 text-left cursor-pointer whitespace-nowrap" (click)="changeSort(col.key)">
-              {{ col.label }}
+              {{ col.labelKey | translate }}
               @if (sortKey() === col.key) {
                 <span>{{ sortDir() === 'asc' ? '↑' : '↓' }}</span>
               }
             </th>
           }
-          <th class="p-3 md:p-4 whitespace-nowrap">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+          <th class="p-3 md:p-4 whitespace-nowrap text-center">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
         </tr>
       </thead>
 
@@ -111,8 +115,10 @@
                     (change)="onSelectChange(row, col.key, $any($event.target).value)"
                     class="border border-outline-variant rounded-lg px-2 py-1 w-full min-w-0 max-w-full bg-surface-container"
                   >
-                    @for (opt of col.options ?? []; track opt) {
-                      <option [value]="opt" [selected]="row.roles[0] === opt">{{ opt }}</option>
+                    @for (opt of col.options ?? []; track opt.value) {
+                      <option [value]="opt.value" [selected]="row.roles[0] === opt.value">{{
+                        opt.labelKey | translate
+                      }}</option>
                     }
                   </select>
                 } @else {
@@ -120,8 +126,10 @@
                 }
               </td>
             }
-            <td class="p-3 md:p-4 align-top">
-              <div class="flex flex-col lg:flex-row flex-wrap gap-2 min-w-[7rem]">
+            <td class="p-3 md:p-4 align-middle text-center">
+              <div
+                class="admin-table-edit-delete-group flex flex-col lg:flex-row flex-wrap gap-2 min-w-[7rem] mx-auto justify-center"
+              >
                 <button matButton="outlined" type="button" (click)="emitAction('delete', row)">
                   {{ 'ADMIN.TABLE.DELETE' | translate }}
                 </button>

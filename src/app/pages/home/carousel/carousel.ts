@@ -16,6 +16,7 @@ import { MatIconModule } from '@angular/material/icon';
   standalone: true,
   imports: [CommonModule, RouterLink, TranslateModule, MatIconModule],
   templateUrl: './carousel.html',
+  styleUrl: './carousel.scss',
 })
 export class CarouselComponent implements OnInit, OnDestroy {
 

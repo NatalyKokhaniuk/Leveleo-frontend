@@ -22,7 +22,7 @@ export const routes: Routes = [
     path: 'admin/subscriptions',
     loadComponent: () =>
       import('./pages/admin/admin/subscriptions/subscriptions').then((m) => m.AdminSubscriptionsComponent),
-    canActivate: [adminGuard],
+    canActivate: [adminOrModeratorGuard],
   },
   {
     path: 'admin/categories',
