@@ -10,8 +10,9 @@ import {
   SimpleChanges,
 } from '@angular/core';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MediaUrlCacheService } from '../../../core/services/media-url-cache.service';
+import { productLocalizedName } from '../../../features/products/product-display-i18n';
 import { ProductResponseDto } from '../../../features/products/product.types';
 
 @Component({
@@ -23,6 +24,10 @@ import { ProductResponseDto } from '../../../features/products/product.types';
 })
 export class ProductCardComponent implements OnInit, OnChanges {
   private mediaUrlCache = inject(MediaUrlCacheService);
+  private translate = inject(TranslateService);
+
+  /** Поточна мова UI — для назви з перекладів товару. */
+  private lang = signal(this.translate.currentLang || 'uk');
 
   @Input({ required: true }) product!: ProductResponseDto;
   @Input() isFavorite = false;
@@ -35,9 +40,16 @@ export class ProductCardComponent implements OnInit, OnChanges {
   imageLoading = signal(false);
 
   ngOnInit(): void {
+    this.translate.onLangChange.subscribe(() => {
+      this.lang.set(this.translate.currentLang || 'uk');
+    });
     if (this.product) {
       this.loadImage();
     }
+  }
+
+  displayName(): string {
+    return productLocalizedName(this.product, this.lang());
   }
 
   ngOnChanges(changes: SimpleChanges): void {

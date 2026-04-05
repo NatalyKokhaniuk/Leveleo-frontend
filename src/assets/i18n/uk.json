@@ -28,7 +28,33 @@
     "REMOVE_FAVORITES": "Прибрати з обраного",
     "OPEN_PRODUCT": "Переглянути товар",
     "MODAL_CLOSE": "Закрити",
-    "CURRENCY": "₴"
+    "CURRENCY": "₴",
+    "FILTER_CATEGORY": "Категорія",
+    "FILTER_BRAND": "Бренд",
+    "FILTER_ALL": "Усі",
+    "FILTER_PRICE_FROM": "Ціна від",
+    "FILTER_PRICE_TO": "Ціна до",
+    "FILTER_SEARCH": "Пошук",
+    "FILTER_SORT": "Сортування",
+    "FILTER_RESET": "Скинути фільтри",
+    "FILTER_APPLY": "Застосувати",
+    "FILTERS_SECTION": "Фільтри товарів",
+    "SORT_PRICE_ASC": "Ціна: від дешевших",
+    "SORT_PRICE_DESC": "Ціна: від дорожчих",
+    "SORT_RATING": "За рейтингом",
+    "SORT_SOLD": "За продажами",
+    "TAB_DETAILS": "Деталі",
+    "TAB_REVIEWS": "Відгуки",
+    "REVIEWS_EMPTY": "Відгуків ще немає.",
+    "REVIEW_NO_COMMENT": "Без тексту коментаря."
+  },
+  "FAVORITES": {
+    "TITLE": "Обране",
+    "DESCRIPTION": "Товари, які ви зберегли.",
+    "BACK_TO_PRODUCTS": "Назад до вибору товарів",
+    "EMPTY": "Ви ще не додали жодного товару до обраного.",
+    "LOAD_ERROR": "Не вдалося завантажити обране. Спробуйте пізніше.",
+    "REMOVE": "Прибрати з обраного"
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Попередній слайд",
@@ -46,6 +72,7 @@
     "ADDRESS": "Чернівці, Україна",
     "DESCRIPTION": "Інтернет-магазин музичних інструментів",
     "CATALOG": "Каталог",
+    "CATALOG_EMPTY": "Категорій поки немає",
     "INFO": "Інформація",
     "SUBSCRIBE": "Підписка",
     "SUBMIT": "Підписатися",
@@ -64,7 +91,10 @@
     "EMAIL": "Ваш email",
     "SUBSCRIBE_BTN": "Підписатися",
     "NEWSLETTER_SUCCESS": "Дякуємо за підписку на розсилку!",
-    "NEWSLETTER_ERROR": "Не вдалося оформити підписку. Спробуйте пізніше."
+    "NEWSLETTER_ERROR": "Не вдалося оформити підписку. Спробуйте пізніше.",
+    "SOCIAL_FACEBOOK": "Facebook",
+    "SOCIAL_TELEGRAM": "Telegram",
+    "SOCIAL_YOUTUBE": "YouTube"
   },
   "NEWSLETTER": {
     "UNSUBSCRIBE_MISSING_TOKEN": "Посилання недійсне",

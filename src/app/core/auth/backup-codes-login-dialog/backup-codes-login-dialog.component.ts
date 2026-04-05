@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
+import { FavoritesStateService } from '../../favorites/favorites-state.service';
 import { AuthService } from '../services/auth.service';
 
 export interface BackupCodesLoginDialogData {
@@ -31,6 +32,7 @@ export interface BackupCodesLoginDialogData {
 })
 export class BackupCodesLoginDialogComponent {
   private auth = inject(AuthService);
+  private favorites = inject(FavoritesStateService);
   private fb = inject(FormBuilder);
   data = inject<BackupCodesLoginDialogData>(MAT_DIALOG_DATA);
   dialogRef = inject(MatDialogRef<BackupCodesLoginDialogComponent>);
@@ -58,7 +60,10 @@ export class BackupCodesLoginDialogComponent {
       .subscribe({
         next: () => {
           this.isLoading.set(false);
-          this.dialogRef.close(true);
+          this.favorites.hydrateAfterAuthRestore().subscribe({
+            next: () => this.dialogRef.close(true),
+            error: () => this.dialogRef.close(true),
+          });
         },
         error: (err) => {
           this.error.set(err.error?.errorCode || 'INVALID_BACKUP_CODE');

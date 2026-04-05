@@ -1,35 +1,41 @@
 <article
-  class="product-card flex flex-col bg-transparent rounded-2xl border border-outline-variant/25 overflow-hidden overflow-x-hidden max-w-full min-w-0 transition-shadow hover:shadow-md"
+  class="product-card product-card--interactive flex flex-col bg-transparent rounded-2xl border border-outline-variant/25 overflow-hidden overflow-x-hidden max-w-full min-w-0"
 >
   <div class="relative min-w-0 max-w-full">
     <button
       type="button"
-      class="block w-full max-w-full min-w-0 text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-2xl overflow-x-hidden"
+      class="product-card__main-btn block w-full max-w-full min-w-0 text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-2xl overflow-x-hidden"
       (click)="onCardClick()"
       (keydown)="onCardKeydown($event)"
       [attr.aria-label]="'PRODUCTS.OPEN_PRODUCT' | translate"
     >
       <div
-        class="product-card__media relative aspect-[4/3] w-full bg-surface-container/35 flex items-center justify-center overflow-hidden"
+        class="product-card__media relative w-full bg-surface-container/35 flex flex-col items-stretch justify-center overflow-hidden"
       >
         @if (imageLoading()) {
-          <span class="text-on-surface/50 text-sm">…</span>
+          <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
+            <span class="text-on-surface/50 text-sm">…</span>
+          </div>
         } @else if (imageUrl()) {
-          <img
-            [src]="imageUrl()!"
-            [alt]="product.name"
-            class="product-card__img w-full h-full object-cover"
-            loading="lazy"
-          />
+          <div class="product-card__media-scroll">
+            <img
+              [src]="imageUrl()!"
+              [alt]="displayName()"
+              class="product-card__img"
+              loading="lazy"
+            />
+          </div>
         } @else {
-          <mat-icon class="product-card__placeholder !w-16 !h-16 text-on-surface/30" aria-hidden="true"
-            >image_not_supported</mat-icon
-          >
+          <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
+            <mat-icon class="product-card__placeholder !w-16 !h-16 text-on-surface/30" aria-hidden="true"
+              >image_not_supported</mat-icon
+            >
+          </div>
         }
 
         @if (promotionLabel(); as promoName) {
           <span
-            class="product-card__promo absolute top-2 right-2 z-[1] max-w-[min(72%,12rem)] truncate rounded-md bg-red-600 px-2 py-1 text-center text-xs font-medium text-white shadow-sm pointer-events-none"
+            class="product-card__promo absolute top-2 right-2 z-[1] max-w-[min(72%,12rem)] truncate rounded-md px-2 py-1 text-center text-xs font-medium shadow-sm pointer-events-none"
             [title]="promoName"
           >
             {{ promoName }}
@@ -41,18 +47,17 @@
         <h2
           class="text-base font-medium text-on-surface line-clamp-2 min-h-[2.75rem] break-words hyphens-auto"
         >
-          {{ product.name }}
+          {{ displayName() }}
         </h2>
 
         <div
-          class="flex flex-wrap items-center gap-0.5 min-w-0"
+          class="product-card__rating flex flex-nowrap items-center gap-1 min-w-0 overflow-visible"
           [attr.aria-label]="product.averageRating + ' / 5'"
         >
           @for (s of [0, 1, 2, 3, 4]; track s) {
             <mat-icon
-              class="!w-[1.125rem] !h-[1.125rem] text-[1.125rem] leading-none pointer-events-none"
-              [class.text-amber-500]="starFilled(s)"
-              [class.text-on-surface/25]="!starFilled(s)"
+              class="product-card__star shrink-0 !w-5 !h-5 text-[1.25rem] leading-none pointer-events-none inline-flex items-center justify-center"
+              [class.product-card__star--fill]="starFilled(s)"
             >
               {{ starFilled(s) ? 'star' : 'star_border' }}
             </mat-icon>
@@ -79,16 +84,18 @@
 
     <button
       type="button"
-      class="product-card__fav absolute left-3 top-3 z-[2] inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface/85 text-on-surface shadow backdrop-blur-sm border border-outline-variant/30 hover:bg-surface-container-high transition-colors"
+      class="product-card__fav absolute left-3 top-3 z-[2] inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface/85 text-on-surface shadow backdrop-blur-sm border border-outline-variant/30"
       (click)="onFavoriteClick($event)"
       [attr.aria-pressed]="isFavorite"
       [attr.aria-label]="
         (isFavorite ? 'PRODUCTS.REMOVE_FAVORITES' : 'PRODUCTS.ADD_FAVORITES') | translate
       "
     >
-      <mat-icon [class.text-red-500]="isFavorite" class="!text-[22px] w-[22px] h-[22px]">{{
-        isFavorite ? 'favorite' : 'favorite_border'
-      }}</mat-icon>
+      <mat-icon
+        class="!text-[22px] w-[22px] h-[22px]"
+        [class.product-card__fav-icon--on]="isFavorite"
+        >{{ isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon
+      >
     </button>
   </div>
 </article>

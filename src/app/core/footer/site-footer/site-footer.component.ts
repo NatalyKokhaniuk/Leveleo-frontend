@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -10,10 +10,18 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { CategoryService } from '../../../features/categories/category.service';
+import { CategoryResponseDto } from '../../../features/categories/category.types';
+import { categoryLocalizedName } from '../../../features/categories/category-display-i18n';
 import { NewsletterService } from '../../../features/newsletter/newsletter.service';
+import { ThemeService } from '../../services/theme.service';
 
+/**
+ * Підвал сайту. Селектор `app-site-footer` (раніше `app-footer`).
+ * Посилання «Каталог» будуються з кореневих категорій API + переклади.
+ */
 @Component({
-  selector: 'app-footer',
+  selector: 'app-site-footer',
   standalone: true,
   imports: [
     CommonModule,
@@ -27,15 +35,20 @@ import { NewsletterService } from '../../../features/newsletter/newsletter.servi
     MatSnackBarModule,
     MatProgressSpinnerModule,
   ],
-  templateUrl: './footer.html',
-  styleUrl: './footer.component.scss',
+  templateUrl: './site-footer.component.html',
+  styleUrl: './site-footer.component.scss',
 })
-export class FooterComponent {
+export class SiteFooterComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private newsletter = inject(NewsletterService);
   private snack = inject(MatSnackBar);
+  private categoryService = inject(CategoryService);
+  private themeService = inject(ThemeService);
   translate = inject(TranslateService);
+
+  /** Як у хедері: світла/темна тема → відповідний логотип. */
+  currentTheme = this.themeService.theme;
 
   year = new Date().getFullYear();
   subscribeSubmitting = signal(false);
@@ -44,29 +57,65 @@ export class FooterComponent {
     email: ['', [Validators.required, Validators.email]],
   });
 
-  links = {
-    catalog: [
-      { label: 'FOOTER.GUITARS', link: '/products/guitars' },
-      { label: 'FOOTER.KEYBOARDS', link: '/products/keyboards' },
-      { label: 'FOOTER.DJ', link: '/products/dj' },
-      { label: 'FOOTER.STUDIO', link: '/products/studio' },
-    ],
-    info: [
-      { label: 'FOOTER.ABOUT', link: '/contacts' },
-      { label: 'FOOTER.DELIVERY', link: '/delivery' },
-      { label: 'FOOTER.RETURN', link: '/returns' },
-      { label: 'FOOTER.CONTACTS', link: '/terms' },
-    ],
-  };
+  /** Мовний ключ для перерахунку підписів каталогу. */
+  private lang = signal(this.translate.currentLang || 'uk');
 
-  onSubscribe() {
+  /** Кореневі активні категорії з API. */
+  private rootCategories = signal<CategoryResponseDto[]>([]);
+
+  /** Посилання каталогу: назва за поточною мовою, query `categoryId`. */
+  catalogLinks = computed(() => {
+    const l = this.lang();
+    return [...this.rootCategories()]
+      .sort((a, b) =>
+        categoryLocalizedName(a, l).localeCompare(categoryLocalizedName(b, l), undefined, {
+          sensitivity: 'base',
+        }),
+      )
+      .map((c) => ({
+        name: categoryLocalizedName(c, l),
+        link: '/products',
+        queryParams: { categoryId: c.id },
+      }));
+  });
+
+  readonly infoLinks = [
+    { label: 'FOOTER.ABOUT', link: '/contacts' },
+    { label: 'FOOTER.DELIVERY', link: '/delivery' },
+    { label: 'FOOTER.RETURN', link: '/returns' },
+    { label: 'FOOTER.CONTACTS', link: '/terms' },
+  ];
+
+  goHome(): void {
+    this.router.navigate(['/']);
+  }
+
+  ngOnInit(): void {
+    this.translate.onLangChange.subscribe(() => {
+      this.lang.set(this.translate.currentLang || 'uk');
+    });
+
+    this.categoryService.getAll().subscribe({
+      next: (list) => {
+        const roots = list
+          .filter((c) => c.isActive && (c.parentId == null || String(c.parentId).trim() === ''))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        this.rootCategories.set(roots);
+      },
+      error: () => this.rootCategories.set([]),
+    });
+  }
+
+  onSubscribe(): void {
     if (this.subscribeForm.invalid) {
       this.subscribeForm.markAllAsTouched();
       return;
     }
     const raw = this.subscribeForm.get('email')?.value;
     const email = typeof raw === 'string' ? raw.trim() : '';
-    if (!email) return;
+    if (!email) {
+      return;
+    }
 
     this.subscribeSubmitting.set(true);
     this.newsletter.subscribe({ email, source: this.newsletterSourceFromRoute() }).subscribe({
@@ -93,7 +142,6 @@ export class FooterComponent {
     });
   }
 
-  /** Джерело підписки для бекенду — шлях з адресного рядка (без query/hash). */
   private newsletterSourceFromRoute(): string {
     const path = this.router.url.split('?')[0].split('#')[0];
     if (!path || path === '/') {

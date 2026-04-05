@@ -1,8 +1,74 @@
-<main class="products-page pt-32 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-10 pb-16 min-w-0">
+<main class="products-page pt-32 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-8 pb-16 min-w-0">
   <header class="flex flex-col gap-2">
     <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'PRODUCTS.TITLE' | translate }}</h1>
     <p class="modal-desc text-left max-w-2xl">{{ 'PRODUCTS.DESCRIPTION' | translate }}</p>
   </header>
+
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4 min-w-0"
+    [attr.aria-label]="'PRODUCTS.FILTERS_SECTION' | translate"
+  >
+    <div class="flex flex-col lg:flex-row gap-4 flex-wrap">
+      <mat-form-field class="flex-1 min-w-[200px]">
+        <mat-label>{{ 'PRODUCTS.FILTER_CATEGORY' | translate }}</mat-label>
+        <mat-select [value]="categoryId() ?? ''" (selectionChange)="onCategoryChange($event.value)">
+          <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
+          @for (c of filterCategories(); track c.id) {
+            <mat-option [value]="c.id">{{ categoryLabel(c) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="flex-1 min-w-[200px]">
+        <mat-label>{{ 'PRODUCTS.FILTER_BRAND' | translate }}</mat-label>
+        <mat-select [value]="brandId() ?? ''" (selectionChange)="onBrandChange($event.value)">
+          <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
+          @for (b of brands(); track b.id) {
+            <mat-option [value]="b.id">{{ brandLabel(b) }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field class="min-w-[200px]">
+        <mat-label>{{ 'PRODUCTS.FILTER_SORT' | translate }}</mat-label>
+        <mat-select [value]="sortBy()" (selectionChange)="onSortChange($event.value)">
+          <mat-option [value]="ProductSortBy.PriceAsc">{{ 'PRODUCTS.SORT_PRICE_ASC' | translate }}</mat-option>
+          <mat-option [value]="ProductSortBy.PriceDesc">{{ 'PRODUCTS.SORT_PRICE_DESC' | translate }}</mat-option>
+          <mat-option [value]="ProductSortBy.AverageRatingDesc">{{ 'PRODUCTS.SORT_RATING' | translate }}</mat-option>
+          <mat-option [value]="ProductSortBy.TotalSoldDesc">{{ 'PRODUCTS.SORT_SOLD' | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-4 flex-wrap items-end">
+      <mat-form-field class="min-w-[120px] max-w-[200px]">
+        <mat-label>{{ 'PRODUCTS.FILTER_PRICE_FROM' | translate }}</mat-label>
+        <input
+          matInput
+          type="text"
+          inputmode="decimal"
+          [ngModel]="priceFromStr()"
+          (ngModelChange)="priceFromStr.set($event)"
+        />
+      </mat-form-field>
+      <mat-form-field class="min-w-[120px] max-w-[200px]">
+        <mat-label>{{ 'PRODUCTS.FILTER_PRICE_TO' | translate }}</mat-label>
+        <input
+          matInput
+          type="text"
+          inputmode="decimal"
+          [ngModel]="priceToStr()"
+          (ngModelChange)="priceToStr.set($event)"
+        />
+      </mat-form-field>
+      <button mat-flat-button type="button" color="primary" (click)="onPriceFiltersApply()">
+        {{ 'PRODUCTS.FILTER_APPLY' | translate }}
+      </button>
+      <button mat-stroked-button type="button" (click)="resetFilters()">
+        {{ 'PRODUCTS.FILTER_RESET' | translate }}
+      </button>
+    </div>
+  </section>
 
   @if (loading()) {
     <div class="flex justify-center py-20">
@@ -18,12 +84,12 @@
     >
       @for (p of items(); track p.id) {
         <div class="min-w-0 max-w-full">
-        <app-product-card
-          [product]="p"
-          [isFavorite]="favoriteFor(p.id)"
-          (favoriteToggled)="toggleFavorite(p.id)"
-          (openDetail)="openQuickView(p)"
-        />
+          <app-product-card
+            [product]="p"
+            [isFavorite]="favoriteFor(p.id)"
+            (favoriteToggled)="toggleFavorite(p.id)"
+            (openDetail)="openQuickView(p)"
+          />
         </div>
       }
     </div>

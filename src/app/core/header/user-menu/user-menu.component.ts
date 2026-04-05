@@ -7,6 +7,8 @@ import { Router } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { AuthHandlerService } from '../../auth/services/auth-handler.service';
 import { AuthService } from '../../auth/services/auth.service';
+import { FavoritesStateService } from '../../favorites/favorites-state.service';
+import { catchError, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-user-menu',
@@ -19,11 +21,18 @@ export class UserMenuComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
   private authHandler = inject(AuthHandlerService);
+  private favorites = inject(FavoritesStateService);
 
   currentUser = this.auth.currentUser;
 
   logout() {
-    this.auth.logout().subscribe(() => this.router.navigate(['/']));
+    const chain = this.auth.isAuthenticated()
+      ? this.favorites.exportServerFavoritesToLocalStorage().pipe(
+          catchError(() => of(void 0)),
+          switchMap(() => this.auth.logout()),
+        )
+      : this.auth.logout();
+    chain.subscribe(() => this.router.navigate(['/']));
   }
 
   changePassword() {

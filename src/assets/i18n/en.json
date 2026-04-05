@@ -28,7 +28,33 @@
     "REMOVE_FAVORITES": "Remove from favourites",
     "OPEN_PRODUCT": "View product",
     "MODAL_CLOSE": "Close",
-    "CURRENCY": "UAH"
+    "CURRENCY": "UAH",
+    "FILTER_CATEGORY": "Category",
+    "FILTER_BRAND": "Brand",
+    "FILTER_ALL": "All",
+    "FILTER_PRICE_FROM": "Price from",
+    "FILTER_PRICE_TO": "Price to",
+    "FILTER_SEARCH": "Search",
+    "FILTER_SORT": "Sort",
+    "FILTER_RESET": "Reset filters",
+    "FILTER_APPLY": "Apply",
+    "FILTERS_SECTION": "Product filters",
+    "SORT_PRICE_ASC": "Price: low to high",
+    "SORT_PRICE_DESC": "Price: high to low",
+    "SORT_RATING": "Rating",
+    "SORT_SOLD": "Bestsellers",
+    "TAB_DETAILS": "Details",
+    "TAB_REVIEWS": "Reviews",
+    "REVIEWS_EMPTY": "No reviews yet.",
+    "REVIEW_NO_COMMENT": "No comment text."
+  },
+  "FAVORITES": {
+    "TITLE": "Favourites",
+    "DESCRIPTION": "Products you saved.",
+    "BACK_TO_PRODUCTS": "Back to product selection",
+    "EMPTY": "You have not added any products to favourites yet.",
+    "LOAD_ERROR": "Could not load favourites. Please try again later.",
+    "REMOVE": "Remove from favourites"
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Previous slide",
@@ -471,6 +497,7 @@
     "ADDRESS": "Chernivtsi, Ukraine",
     "DESCRIPTION": "Online music instruments store",
     "CATALOG": "Catalog",
+    "CATALOG_EMPTY": "No categories yet",
     "INFO": "Information",
     "SUBSCRIBE": "Subscribe",
     "SUBMIT": "Subscribe",
@@ -489,7 +516,10 @@
     "EMAIL": "Your email",
     "SUBSCRIBE_BTN": "Subscribe",
     "NEWSLETTER_SUCCESS": "Thank you for subscribing to our newsletter!",
-    "NEWSLETTER_ERROR": "Could not subscribe. Please try again later."
+    "NEWSLETTER_ERROR": "Could not subscribe. Please try again later.",
+    "SOCIAL_FACEBOOK": "Facebook",
+    "SOCIAL_TELEGRAM": "Telegram",
+    "SOCIAL_YOUTUBE": "YouTube"
   },
   "NEWSLETTER": {
     "UNSUBSCRIBE_MISSING_TOKEN": "Invalid link",

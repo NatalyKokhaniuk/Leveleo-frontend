@@ -1,11 +1,12 @@
 <h2
   matDialogTitle
-  class="!flex !items-start !justify-between gap-3 !pr-0 min-w-0 max-w-full w-full overflow-x-hidden box-border"
+  class="!flex !items-start !justify-between !gap-3 !m-0 !pb-2 !pt-1 !min-h-0 min-w-0 max-w-full w-full overflow-x-hidden box-border shrink-0"
 >
   <span
-    class="flex-1 min-w-0 line-clamp-2 text-left font-fixel text-lg md:text-xl break-words [overflow-wrap:anywhere]"
-    >{{ data.product.name }}</span
+    class="min-w-0 flex-1 text-lg font-fixel font-semibold text-on-surface leading-snug break-words [overflow-wrap:anywhere] pr-1"
   >
+    {{ displayName() }}
+  </span>
   <button
     matIconButton
     type="button"
@@ -18,67 +19,12 @@
 </h2>
 
 <mat-dialog-content
-  class="!max-h-[min(78vh,720px)] max-w-full min-w-0 !overflow-x-hidden !overflow-y-auto"
+  class="product-quick-view__content !m-0 !pt-0 !pb-2 max-w-full min-w-0 !overflow-hidden flex flex-col flex-1 min-h-0"
 >
-  <div class="flex flex-col gap-6 min-w-0 max-w-full overflow-x-hidden">
-    <div
-      class="relative w-full max-w-full min-w-0 rounded-xl overflow-hidden bg-surface-container/40 min-h-[200px] flex items-center justify-center"
-    >
-      @if (imageLoading()) {
-        <mat-spinner diameter="40"></mat-spinner>
-      } @else if (imageUrl()) {
-        <img
-          [src]="imageUrl()!"
-          [alt]="data.product.name"
-          class="w-full max-w-full h-auto max-h-[min(48vh,400px)] object-contain"
-        />
-      } @else {
-        <mat-icon class="!w-20 !h-20 text-on-surface/25">image_not_supported</mat-icon>
-      }
-
-      @if (promotionLabel(); as promoName) {
-        <span
-          class="absolute top-3 right-3 max-w-[min(100%-1.5rem,14rem)] truncate rounded-md bg-red-600 px-2 py-1 text-xs font-medium text-white shadow"
-        >
-          {{ promoName }}
-        </span>
-      }
-    </div>
-
-    <div class="flex flex-col gap-4 min-w-0 max-w-full overflow-x-hidden py-1">
-      <div class="flex flex-wrap items-center gap-0.5">
-        @for (s of [0, 1, 2, 3, 4]; track s) {
-          <mat-icon
-            class="!w-6 !h-6 text-[1.5rem] shrink-0"
-            [class.text-amber-500]="starFilled(s)"
-            [class.text-on-surface/25]="!starFilled(s)"
-          >
-            {{ starFilled(s) ? 'star' : 'star_border' }}
-          </mat-icon>
-        }
-        @if (data.product.ratingCount > 0) {
-          <span class="text-sm text-on-surface/70">({{ data.product.ratingCount }})</span>
-        }
-      </div>
-
-      <div class="flex flex-wrap items-baseline gap-2 min-w-0">
-        <span class="text-2xl font-semibold text-primary break-words">
-          {{ displayPrice() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
-        </span>
-        @if (hasDiscount()) {
-          <span class="text-base text-on-surface/50 line-through">
-            {{ listPrice() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
-          </span>
-        }
-      </div>
-
-      @if (data.product.description) {
-        <p
-          class="text-sm text-on-surface/90 whitespace-pre-wrap leading-relaxed break-words [overflow-wrap:anywhere]"
-        >
-          {{ data.product.description }}
-        </p>
-      }
-    </div>
-  </div>
+  <app-product-detail-tabs
+    [product]="data.product"
+    [compact]="true"
+    [dialogLayout]="true"
+    [hideTitleInDetailsTab]="true"
+  />
 </mat-dialog-content>

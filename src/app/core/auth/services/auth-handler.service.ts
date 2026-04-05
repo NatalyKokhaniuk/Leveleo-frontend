@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { take } from 'rxjs';
+import { FavoritesStateService } from '../../favorites/favorites-state.service';
 import { AuthService } from './auth.service';
 
 @Injectable({ providedIn: 'root' })
@@ -11,6 +12,7 @@ export class AuthHandlerService {
   private dialog = inject(MatDialog);
   private router = inject(Router);
   private auth = inject(AuthService);
+  private favorites = inject(FavoritesStateService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
 
@@ -226,7 +228,9 @@ export class AuthHandlerService {
 
   private exchangeSocialToken(tempToken: string): void {
     this.auth.exchangeTempToken({ tempToken }).subscribe({
-      next: () => {},
+      next: () => {
+        this.favorites.hydrateAfterAuthRestore().subscribe();
+      },
       error: () => {
         this.openSimpleResult('change-password-error');
       },

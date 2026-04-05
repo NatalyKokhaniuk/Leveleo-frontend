@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { catchError, from, switchMap, throwError } from 'rxjs';
 import { AuthService } from '../auth/services/auth.service';
 
+/** Не перенаправляти на сторінку логіну при 401 — лише оновити сесію або вийти локально. */
 export const httpInterceptor: HttpInterceptorFn = (req, next) => {
   const platformId = inject(PLATFORM_ID);
   const authService = inject(AuthService);
@@ -25,8 +26,15 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
     });
   }
 
+  /** Підписані URL медіа можуть бути доступні анонімно; 401 тут не повинен викликати refresh/logout. */
+  const isMediaSignedUrlRequest =
+    req.url.includes('/media/') && req.url.includes('/url');
+
   return next(authReq).pipe(
     catchError((error) => {
+      if (error.status === 401 && isMediaSignedUrlRequest) {
+        return throwError(() => error);
+      }
       if (error.status === 401 && !isRefreshRequest) {
         return from(authService.refreshToken()).pipe(
           switchMap(() => {
@@ -43,7 +51,6 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
           catchError((refreshErr) => {
             // підписати logout — інакше cold Observable не виконається (куки/сесія на сервері)
             authService.logout().subscribe();
-            router.navigate(['/login']);
             return throwError(() => refreshErr);
           }),
         );

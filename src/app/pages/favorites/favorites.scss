@@ -1,0 +1,26 @@
+:host {
+  display: block;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.favorites-page {
+  box-sizing: border-box;
+}
+
+.favorites-row {
+  box-sizing: border-box;
+}
+
+::ng-deep .favorites-remove-btn.mat-mdc-outlined-button {
+  color: color-mix(in srgb, var(--mat-sys-error) 92%, var(--mat-sys-on-surface));
+  border-color: color-mix(in srgb, var(--mat-sys-error) 55%, var(--mat-sys-outline));
+}
+
+::ng-deep .favorites-remove-btn.mat-mdc-outlined-button .mat-icon {
+  color: color-mix(in srgb, var(--mat-sys-error) 88%, var(--mat-sys-on-surface));
+}
+
+::ng-deep .favorites-remove-btn.mat-mdc-outlined-button:hover {
+  background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+}

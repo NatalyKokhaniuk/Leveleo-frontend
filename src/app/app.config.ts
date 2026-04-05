@@ -17,6 +17,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { firstValueFrom } from 'rxjs';
 import { routes } from './app.routes';
 import { AuthService } from './core/auth/services/auth.service';
+import { FavoritesStateService } from './core/favorites/favorites-state.service';
 import { httpInterceptor } from './core/interceptors/interceptor';
 
 export const appConfig: ApplicationConfig = {
@@ -37,6 +38,10 @@ export const appConfig: ApplicationConfig = {
     provideAppInitializer(() => {
       const auth = inject(AuthService);
       return firstValueFrom(auth.restoreSession());
+    }),
+    provideAppInitializer(() => {
+      const fav = inject(FavoritesStateService);
+      return firstValueFrom(fav.hydrateAfterAuthRestore());
     }),
   ],
 };

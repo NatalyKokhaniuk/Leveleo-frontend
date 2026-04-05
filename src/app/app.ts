@@ -1,14 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { FooterComponent } from './core/footer/footer/footer';
 import { ScrollToTopComponent } from './core/footer/footer.component';
+import { SiteFooterComponent } from './core/footer/site-footer/site-footer.component';
 import { HeaderComponent } from './core/header/header.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, ScrollToTopComponent],
+  imports: [RouterOutlet, HeaderComponent, SiteFooterComponent, ScrollToTopComponent],
   templateUrl: './app.html',
 })
 export class App implements OnInit {

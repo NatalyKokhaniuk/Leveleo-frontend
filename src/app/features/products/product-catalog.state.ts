@@ -24,6 +24,20 @@ export class ProductCatalogStateService {
   readonly cachedItems = this.items.asReadonly();
 
   /**
+   * Чи є актуальний кеш для цього фільтра (TTL не минув).
+   * Використовуйте перед показом спінера на /products: при поверненні на сторінку
+   * з тим самим фільтром список береться з пам’яті (~кілька десятків DTO), без HTTP.
+   */
+  isFreshCache(filter: ProductFilterDto): boolean {
+    const key = encodeProductFilters(filter);
+    const now = Date.now();
+    const last = this.fetchedAt();
+    const sameKey = this.filterKey() === key;
+    const fresh = last != null && now - last < this.defaultTtlMs;
+    return sameKey && fresh && last != null;
+  }
+
+  /**
    * Повертає список товарів (з кешу або з API).
    */
   load(

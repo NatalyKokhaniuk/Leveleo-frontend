@@ -14,6 +14,7 @@ import { PasswordStrengthComponent } from '../../../shared/components/password-s
 import { strongPasswordValidator } from '../../../shared/validators/password.validator';
 import { EmailUnconfirmedDialogComponent } from '../email-unconfirmed-dialog/email-unconfirmed-dialog.component';
 import { LoginRequest, RegisterRequest } from '../models/auth.types';
+import { FavoritesStateService } from '../../favorites/favorites-state.service';
 import { AuthService } from '../services/auth.service';
 import { FacebookAuthService } from '../services/facebookAuthService';
 import { GoogleAuthService } from '../services/googleAuthService';
@@ -43,6 +44,7 @@ export interface AuthDialogData {
 })
 export class AuthDialogComponent {
   private auth = inject(AuthService);
+  private favorites = inject(FavoritesStateService);
   private google = inject(GoogleAuthService);
   private facebook = inject(FacebookAuthService);
   private fb = inject(FormBuilder);
@@ -125,8 +127,10 @@ export class AuthDialogComponent {
           this.twoFaMethod.set(res.method ?? null);
           this.isLoading.set(false);
         } else {
-          this.dialogRef.close(true);
-          // isLoading cleared by complete
+          this.favorites.hydrateAfterAuthRestore().subscribe({
+            next: () => this.dialogRef.close(true),
+            error: () => this.dialogRef.close(true),
+          });
         }
       },
       error: (err) => {
@@ -162,7 +166,12 @@ export class AuthDialogComponent {
         code: this.twoFaForm.value.code!,
       })
       .subscribe({
-        next: () => this.dialogRef.close(true),
+        next: () => {
+          this.favorites.hydrateAfterAuthRestore().subscribe({
+            next: () => this.dialogRef.close(true),
+            error: () => this.dialogRef.close(true),
+          });
+        },
         error: (err) => {
           this.twoFaError.set(err.error?.errorCode || 'INVALID_2FA_CODE');
           this.isLoading.set(false);

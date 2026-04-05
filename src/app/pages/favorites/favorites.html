@@ -1,0 +1,49 @@
+<main class="favorites-page pt-28 px-4 md:px-10 max-w-5xl mx-auto flex flex-col gap-8 pb-16 min-w-0 w-full overflow-x-hidden">
+  <header class="flex flex-col gap-2 min-w-0">
+    <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'FAVORITES.TITLE' | translate }}</h1>
+    <p class="modal-desc text-left max-w-2xl">{{ 'FAVORITES.DESCRIPTION' | translate }}</p>
+    <a
+      routerLink="/products"
+      class="inline-flex items-center gap-2 text-primary hover:underline text-sm font-medium w-fit focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+    >
+      <mat-icon class="text-lg w-5 h-5 shrink-0" aria-hidden="true">arrow_back</mat-icon>
+      {{ 'FAVORITES.BACK_TO_PRODUCTS' | translate }}
+    </a>
+  </header>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (loadError()) {
+    <p class="text-center text-on-surface/80 py-12">{{ 'FAVORITES.LOAD_ERROR' | translate }}</p>
+  } @else if (items().length === 0) {
+    <p class="text-center text-on-surface/80 py-12">{{ 'FAVORITES.EMPTY' | translate }}</p>
+  } @else {
+    <ul class="flex flex-col gap-6 list-none p-0 m-0 w-full min-w-0">
+      @for (p of items(); track p.id) {
+        <li
+          class="favorites-row rounded-2xl border border-outline-variant/25 bg-surface-container-lowest/50 p-4 md:p-5 w-full min-w-0 max-w-full overflow-hidden"
+        >
+          <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
+            <div class="min-w-0 w-full max-w-full overflow-hidden">
+              <app-product-detail-tabs [product]="p" />
+            </div>
+            <div class="flex justify-end shrink-0">
+              <button
+                mat-stroked-button
+                type="button"
+                class="favorites-remove-btn"
+                (click)="remove(p.id)"
+                [attr.aria-label]="'FAVORITES.REMOVE' | translate"
+              >
+                <mat-icon class="!mr-1">favorite_remove</mat-icon>
+                {{ 'FAVORITES.REMOVE' | translate }}
+              </button>
+            </div>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</main>

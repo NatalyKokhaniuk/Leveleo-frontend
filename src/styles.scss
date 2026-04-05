@@ -188,23 +188,29 @@ a {
   overflow: visible !important;
 }
 
-/* Каталог: модалка товару — без горизонтальної прокрутки (контент + viewport). */
+/* Каталог: quick view — квадрат, прокрутка лише всередині вкладки (не на всьому вікні). */
 .mat-mdc-dialog-container.product-quick-view-panel {
-  max-width: min(720px, calc(100vw - 24px)) !important;
-  width: 100% !important;
+  width: min(92vmin, 520px) !important;
+  max-width: calc(100vw - 24px) !important;
+  height: min(92vmin, 520px) !important;
+  max-height: min(92vmin, calc(100vh - 24px)) !important;
   box-sizing: border-box;
 }
 
 .mat-mdc-dialog-container.product-quick-view-panel .mat-mdc-dialog-surface {
-  overflow-x: hidden !important;
-  overflow-y: auto;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100% !important;
   max-width: 100%;
   box-sizing: border-box;
 }
 
 .mat-mdc-dialog-container.product-quick-view-panel .mat-mdc-dialog-content {
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
   max-width: 100%;
   box-sizing: border-box;
 }

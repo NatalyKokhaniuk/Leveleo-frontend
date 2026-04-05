@@ -1,6 +1,5 @@
 <!-- FOOTER -->
 <footer class="bg-on-primary text-primary rounded-t-[40px] px-6 py-8 md:py-10">
-
   <!-- 📱 MOBILE CONTACTS -->
   <div class="md:hidden flex flex-col items-center text-center gap-4">
     <h2 class="text-lg font-semibold">{{ 'FOOTER.STORE_NAME' | translate }}</h2>
@@ -18,27 +17,53 @@
   <!-- 🖥 DESKTOP FOOTER -->
   <div class="hidden md:block">
     <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-8">
-
-      <!-- LOGO + DESCRIPTION + SOCIAL -->
+      <!-- LOGO + DESCRIPTION + SOCIAL (логотип як у хедері: тема → Logo_dark / Logo_light) -->
       <div class="flex flex-col gap-4">
-        <img src="/assets/images/Logo_light.png" class="h-10 w-fit" />
+        <div
+          class="cursor-pointer flex items-center w-fit"
+          (click)="goHome()"
+          (keydown.enter)="goHome()"
+          tabindex="0"
+          role="link"
+          [attr.aria-label]="'HEADER.HOME' | translate"
+        >
+          @if (currentTheme() === 'dark') {
+            <img class="h-12.5 w-fit" src="/assets/images/Logo_dark.png" alt="" />
+          } @else {
+            <img class="h-12.5 w-fit" src="/assets/images/Logo_light.png" alt="" />
+          }
+        </div>
         <p class="text-sm opacity-70">{{ 'FOOTER.DESCRIPTION' | translate }}</p>
         <div class="flex gap-3 mt-2">
-          <button mat-icon-button><mat-icon>facebook</mat-icon></button>
-          <button mat-icon-button><mat-icon>telegram</mat-icon></button>
-          <button mat-icon-button><mat-icon>instagram</mat-icon></button>
+          <button mat-icon-button type="button">
+            <mat-icon>facebook</mat-icon>
+          </button>
+          <button mat-icon-button type="button">
+            <mat-icon>telegram</mat-icon>
+          </button>
+          <button mat-icon-button type="button">
+            <mat-icon>video_library</mat-icon>
+          </button>
         </div>
       </div>
 
-      <!-- CATALOG -->
+      <!-- CATALOG (кореневі категорії з API) -->
       <div>
         <h3 class="font-semibold mb-4">{{ 'FOOTER.CATALOG' | translate }}</h3>
         <ul class="flex flex-col gap-2">
-          <li *ngFor="let item of links.catalog">
-            <a [routerLink]="item.link" class="hover:underline opacity-80 hover:opacity-100 transition">
-              {{ item.label | translate }}
-            </a>
-          </li>
+          @for (item of catalogLinks(); track item.queryParams['categoryId']) {
+            <li>
+              <a
+                [routerLink]="item.link"
+                [queryParams]="item.queryParams"
+                class="hover:underline opacity-80 hover:opacity-100 transition"
+              >
+                {{ item.name }}
+              </a>
+            </li>
+          } @empty {
+            <li class="text-sm opacity-60">{{ 'FOOTER.CATALOG_EMPTY' | translate }}</li>
+          }
         </ul>
       </div>
 
@@ -46,11 +71,13 @@
       <div>
         <h3 class="font-semibold mb-4">{{ 'FOOTER.INFO' | translate }}</h3>
         <ul class="flex flex-col gap-2">
-          <li *ngFor="let item of links.info">
-            <a [routerLink]="item.link" class="hover:underline opacity-80 hover:opacity-100 transition">
-              {{ item.label | translate }}
-            </a>
-          </li>
+          @for (item of infoLinks; track item.link) {
+            <li>
+              <a [routerLink]="item.link" class="hover:underline opacity-80 hover:opacity-100 transition">
+                {{ item.label | translate }}
+              </a>
+            </li>
+          }
         </ul>
       </div>
 
@@ -90,13 +117,17 @@
             <mat-icon>phone</mat-icon>
             {{ 'FOOTER.PHONE' | translate }}
           </a>
-          <a href="https://maps.google.com/?q=Chernivtsi" target="_blank" class="flex items-center gap-2 hover:underline">
+          <a
+            href="https://maps.google.com/?q=Chernivtsi"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="flex items-center gap-2 hover:underline"
+          >
             <mat-icon>location_on</mat-icon>
             {{ 'FOOTER.ADDRESS' | translate }}
           </a>
         </div>
       </div>
-
     </div>
 
     <!-- BOTTOM -->
