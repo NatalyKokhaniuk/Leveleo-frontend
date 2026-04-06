@@ -3,6 +3,7 @@ import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
+  FormControl,
   ReactiveFormsModule,
   ValidationErrors,
   Validators,
@@ -21,8 +22,8 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { forkJoin, Observable } from 'rxjs';
-import { finalize, switchMap } from 'rxjs/operators';
+import { from, Observable, throwError } from 'rxjs';
+import { catchError, concatMap, finalize, map, switchMap } from 'rxjs/operators';
 import { MediaService } from '../../../../../core/services/media.service';
 import { PromotionService } from '../../../../../features/promotions/promotion.service';
 import {
@@ -49,14 +50,39 @@ export interface PromotionFormDialogData {
   promotion: PromotionResponseDto | null;
 }
 
-function datesOrderValidator(group: AbstractControl): ValidationErrors | null {
-  const start = group.get('startDate')?.value;
-  const end = group.get('endDate')?.value;
-  if (!start || !end) {
+/**
+ * Значення `datetime-local` без зони — парсимо як локальний календарний час.
+ * `new Date("...T..:..")` у частини браузерів трактує рядок інакше й дає зсув відносно API.
+ */
+function parseDatetimeLocalInput(value: unknown): Date | null {
+  if (typeof value !== 'string' || !value.trim()) {
     return null;
   }
-  if (new Date(start as string) >= new Date(end as string)) {
-    return { datesOrder: true };
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(value.trim());
+  if (!m) {
+    return null;
+  }
+  const y = Number(m[1]);
+  const mo = Number(m[2]) - 1;
+  const d = Number(m[3]);
+  const hh = Number(m[4]);
+  const mm = Number(m[5]);
+  const ss = m[6] != null ? Number(m[6]) : 0;
+  const dt = new Date(y, mo, d, hh, mm, ss, 0);
+  return Number.isNaN(dt.getTime()) ? null : dt;
+}
+
+/** Лише однаковий момент часу — невалідно; різний порядок у полях виправляється при відправці. */
+function datesEqualValidator(group: AbstractControl): ValidationErrors | null {
+  const start = group.get('startDate')?.value;
+  const end = group.get('endDate')?.value;
+  const ds = parseDatetimeLocalInput(start);
+  const de = parseDatetimeLocalInput(end);
+  if (!ds || !de) {
+    return null;
+  }
+  if (ds.getTime() === de.getTime()) {
+    return { datesEqual: true };
   }
   return null;
 }
@@ -121,7 +147,10 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       imageKey: [''],
       level: [PromotionLevel.Product, Validators.required],
       discountType: [DiscountType.Percentage, Validators.required],
-      discountValue: [0, [Validators.required, Validators.min(0)]],
+      /** `null` — порожнє поле; `0` на blur скидається в `null` (`onDiscountBlur`). */
+      discountValue: new FormControl<number | null>(null, {
+        validators: [Validators.required, Validators.min(0)],
+      }),
       startDate: ['', Validators.required],
       endDate: ['', Validators.required],
       productIdsCsv: [''],
@@ -135,7 +164,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       couponCode: [''],
       maxUsages: [''],
     },
-    { validators: [datesOrderValidator] },
+    { validators: [datesEqualValidator] },
   );
 
   constructor() {
@@ -163,6 +192,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       this.form.patchValue({
         startDate: this.toDatetimeLocal(now),
         endDate: this.toDatetimeLocal(week),
+        discountValue: null,
       });
     }
 
@@ -184,6 +214,13 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
 
+  /** Порівняння значень mat-select з API (число / рядок enum). */
+  compareLevel = (a: unknown, b: unknown): boolean =>
+    toPromotionLevel(a) === toPromotionLevel(b);
+
+  compareDiscountType = (a: unknown, b: unknown): boolean =>
+    toDiscountType(a) === toDiscountType(b);
+
   private patchFromPromotion(p: PromotionResponseDto): void {
     this.promotionSnapshot = p;
     const tr = (code: string) =>
@@ -198,7 +235,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       imageKey: p.imageKey ?? '',
       level: toPromotionLevel(p.level),
       discountType: toDiscountType(p.discountType ?? DiscountType.Percentage),
-      discountValue: p.discountValue ?? 0,
+      discountValue: this.coerceDiscountValueForForm(p.discountValue),
       startDate: this.toDatetimeLocal(new Date(p.startDate)),
       endDate: this.toDatetimeLocal(new Date(p.endDate)),
       productIdsCsv: optionalJsonToCsv(p.productConditions?.productIds),
@@ -213,6 +250,24 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       couponCode: p.couponCode ?? '',
       maxUsages: p.maxUsages != null ? String(p.maxUsages) : '',
     });
+  }
+
+  /**
+   * API може дати число, рядок (decimal), null; у полі не ховаємо законне 0 — лише відсутнє значення.
+   */
+  private coerceDiscountValueForForm(v: unknown): number | null {
+    if (v === null || v === undefined) {
+      return null;
+    }
+    if (typeof v === 'number' && Number.isFinite(v)) {
+      return v;
+    }
+    const s = String(v).trim();
+    if (s === '') {
+      return null;
+    }
+    const n = Number(s.replace(',', '.'));
+    return Number.isFinite(n) ? n : null;
   }
 
   private emptyToNull(s: string): string | null {
@@ -312,11 +367,38 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
 
     const level = toPromotionLevel(v.level);
     const discountType = toDiscountType(v.discountType);
-    const discountValue = Number(v.discountValue);
+    const rawDv = v.discountValue;
+    const discountValue =
+      rawDv === null || rawDv === undefined
+        ? NaN
+        : typeof rawDv === 'number'
+          ? rawDv
+          : Number(String(rawDv).trim());
+    if (!Number.isFinite(discountValue)) {
+      this.saving.set(false);
+      this.error.set(this.translate.instant('ADMIN.PROMOTION.DISCOUNT_VALUE_REQUIRED'));
+      return;
+    }
     const { productConditions, cartConditions } = this.buildConditions(level);
     const emptyToNull = this.emptyToNull.bind(this);
-    const startIso = new Date(v.startDate).toISOString();
-    const endIso = new Date(v.endDate).toISOString();
+    const a = parseDatetimeLocalInput(v.startDate);
+    const b = parseDatetimeLocalInput(v.endDate);
+    if (!a || !b) {
+      this.saving.set(false);
+      this.error.set(this.translate.instant('ADMIN.PROMOTION.DATES_ORDER_ERROR'));
+      return;
+    }
+    const ta = a.getTime();
+    const tb = b.getTime();
+    if (ta === tb) {
+      this.saving.set(false);
+      this.error.set(this.translate.instant('ADMIN.PROMOTION.DATES_EQUAL_ERROR'));
+      return;
+    }
+    const startDt = ta < tb ? a : b;
+    const endDt = ta < tb ? b : a;
+    const startIso = startDt.toISOString();
+    const endIso = endDt.toISOString();
 
     const enTr: PromotionTranslationDto = {
       languageCode: 'en',
@@ -345,16 +427,23 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
         isCoupon: v.isCoupon,
         isPersonal: v.isPersonal,
         couponCode: v.isCoupon ? v.couponCode.trim() : null,
-        maxUsages: v.isCoupon && v.maxUsages.trim() ? Number(v.maxUsages) : null,
+        maxUsages: v.isCoupon ? this.intOrNull(v.maxUsages) : null,
         translations: [enTr, ukTr],
       };
-      this.promotionService.create(dto).subscribe({
-        next: () => this.dialogRef.close(true),
-        error: (e) => {
-          this.saving.set(false);
-          this.error.set(this.mapError(e));
-        },
-      });
+      this.promotionService
+        .create(dto)
+        .pipe(
+          switchMap((created) =>
+            this.ensureTranslationsPersisted(created.id, created.translations ?? [], enTr, ukTr),
+          ),
+        )
+        .subscribe({
+          next: () => this.dialogRef.close(true),
+          error: (e) => {
+            this.saving.set(false);
+            this.error.set(this.mapError(e));
+          },
+        });
     } else {
       const id = this.data.promotion!.id;
       const existing =
@@ -373,16 +462,15 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
         isCoupon: v.isCoupon,
         isPersonal: v.isPersonal,
         couponCode: v.isCoupon ? v.couponCode.trim() : null,
-        maxUsages: v.isCoupon && v.maxUsages.trim() ? Number(v.maxUsages) : null,
+        maxUsages: v.isCoupon ? this.intOrNull(v.maxUsages) : null,
       };
       this.promotionService
         .update(id, dto)
         .pipe(
           switchMap(() =>
-            forkJoin([
-              this.upsertTranslation(id, existing, enTr),
-              this.upsertTranslation(id, existing, ukTr),
-            ]),
+            this.upsertTranslation(id, existing, enTr).pipe(
+              concatMap(() => this.upsertTranslation(id, existing, ukTr)),
+            ),
           ),
         )
         .subscribe({
@@ -395,6 +483,21 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     }
   }
 
+  /**
+   * Після створення акції бекенд може не зберегти `translations` з тіла POST — дописуємо en/uk через API.
+   */
+  private ensureTranslationsPersisted(
+    promotionId: string,
+    existing: PromotionResponseDto['translations'],
+    enTr: PromotionTranslationDto,
+    ukTr: PromotionTranslationDto,
+  ): Observable<void> {
+    return from([enTr, ukTr] as const).pipe(
+      concatMap((tr) => this.upsertTranslation(promotionId, existing, tr)),
+      map(() => undefined),
+    );
+  }
+
   private upsertTranslation(
     promotionId: string,
     existing: PromotionResponseDto['translations'],
@@ -404,9 +507,82 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       (t) => t.languageCode.toLowerCase() === dto.languageCode.toLowerCase(),
     );
     if (has) {
-      return this.promotionService.updateTranslation(promotionId, dto);
+      return this.promotionService.updateTranslation(promotionId, dto).pipe(
+        catchError((err: unknown) => {
+          if (!this.shouldRetryTranslationUpsertAsAdd(err)) {
+            return throwError(() => err);
+          }
+          return this.promotionService.addTranslation(promotionId, dto);
+        }),
+      );
     }
-    return this.promotionService.addTranslation(promotionId, dto);
+    return this.promotionService.addTranslation(promotionId, dto).pipe(
+      catchError((err: unknown) => {
+        if (!this.shouldRetryTranslationUpsertAsUpdate(err)) {
+          return throwError(() => err);
+        }
+        return this.promotionService.updateTranslation(promotionId, dto);
+      }),
+    );
+  }
+
+  private httpErrorText(err: HttpErrorResponse): string {
+    const body = err.error;
+    if (typeof body === 'string') {
+      return body;
+    }
+    if (body && typeof body === 'object' && 'message' in body) {
+      return String((body as { message?: string }).message ?? '');
+    }
+    return JSON.stringify(body ?? '');
+  }
+
+  /**
+   * PUT перекладу міг не знайти рядок (existing застарів або дані з getAll без translations),
+   * тоді EF повертає «affected 0 row(s)» — пробуємо POST створення.
+   */
+  private shouldRetryTranslationUpsertAsAdd(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse) || err.status < 400) {
+      return false;
+    }
+    if (err.status === 404 || err.status === 412) {
+      return true;
+    }
+    const raw = this.httpErrorText(err);
+    return (
+      err.status === 500 &&
+      (raw.includes('affected 0') ||
+        raw.includes('Concurrency') ||
+        raw.includes('concurrency') ||
+        raw.includes('INTERNAL_ERROR'))
+    );
+  }
+
+  /**
+   * POST перекладу падає (дублікат, concurrency у AddTranslation) — пробуємо PUT оновлення.
+   */
+  private shouldRetryTranslationUpsertAsUpdate(err: unknown): boolean {
+    if (!(err instanceof HttpErrorResponse) || err.status < 400) {
+      return false;
+    }
+    if (err.status === 409) {
+      return true;
+    }
+    const raw = this.httpErrorText(err);
+    if (
+      raw.includes('already exists') ||
+      raw.includes('Duplicate') ||
+      raw.includes('duplicate')
+    ) {
+      return true;
+    }
+    return (
+      err.status === 500 &&
+      (raw.includes('affected 0') ||
+        raw.includes('Concurrency') ||
+        raw.includes('concurrency') ||
+        raw.includes('INTERNAL_ERROR'))
+    );
   }
 
   /** Для шаблону: mat-select може тримати рядок, порівнюємо через toPromotionLevel. */
@@ -420,6 +596,14 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
 
   cancel(): void {
     this.dialogRef.close(false);
+  }
+
+  /** Порожнє поле замість відображеного `0` (blur, щоб не ламати введення `0.5`, `10` тощо). */
+  onDiscountBlur(): void {
+    const c = this.form.controls.discountValue;
+    if (c.value === 0) {
+      c.setValue(null);
+    }
   }
 
   onImageClick(): void {
@@ -502,8 +686,27 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
   private mapError(err: unknown): string {
     if (err instanceof HttpErrorResponse) {
       const body = err.error;
-      if (body && typeof body === 'object' && 'message' in body) {
-        return String((body as { message?: string }).message ?? err.message);
+      const text =
+        typeof body === 'string'
+          ? body
+          : body && typeof body === 'object' && 'message' in body
+            ? String((body as { message?: string }).message)
+            : '';
+      if (
+        text.includes('affected 0') ||
+        text.includes('Concurrency') ||
+        err.message?.includes('affected 0')
+      ) {
+        return this.translate.instant('ADMIN.PROMOTION.CONCURRENCY_ERROR');
+      }
+      if (body && typeof body === 'object') {
+        const code = (body as { errorCode?: string }).errorCode;
+        if (code === 'INVALID_DATES') {
+          return this.translate.instant('ADMIN.PROMOTION.DATES_ORDER_ERROR');
+        }
+        if ('message' in body) {
+          return String((body as { message?: string }).message ?? err.message);
+        }
       }
       return err.message || 'Error';
     }

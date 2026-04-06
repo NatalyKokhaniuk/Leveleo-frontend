@@ -23,6 +23,7 @@
               [alt]="displayName()"
               class="product-card__img"
               loading="lazy"
+              (error)="onImageError()"
             />
           </div>
         } @else {

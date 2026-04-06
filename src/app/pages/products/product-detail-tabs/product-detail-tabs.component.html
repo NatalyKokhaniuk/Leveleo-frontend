@@ -17,6 +17,7 @@
         [alt]="displayName()"
         class="product-detail-tabs__img"
         loading="lazy"
+        (error)="onImageError()"
       />
     } @else {
       <div class="product-detail-tabs__media-inner flex items-center justify-center min-h-[160px]">

@@ -44,6 +44,19 @@ export class MediaUrlCacheService {
     this.cache.delete(key.trim());
   }
 
+  /**
+   * Після помилки &lt;img&gt; (прострочений pre-signed URL у кеші чи на CDN):
+   * скинути запис і отримати новий URL з API.
+   */
+  refreshUrl(key: string | null | undefined): Observable<string | null> {
+    const k = key?.trim() ?? '';
+    if (!k) {
+      return of(null);
+    }
+    this.cache.delete(k);
+    return this.getUrl(k);
+  }
+
   clear(): void {
     this.cache.clear();
   }

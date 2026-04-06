@@ -55,6 +55,8 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
 
   imageUrl = signal<string | null>(null);
   imageLoading = signal(false);
+  private imageErrorRetries = 0;
+  private readonly maxImageErrorRetries = 2;
   reviewsLoading = signal(false);
   reviews = signal<ProductReviewPublicDto[]>([]);
 
@@ -66,8 +68,11 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['product'] && !changes['product'].firstChange && this.product) {
-      this.bootstrap();
+    if (changes['product']) {
+      this.imageErrorRetries = 0;
+      if (!changes['product'].firstChange && this.product) {
+        this.bootstrap();
+      }
     }
   }
 
@@ -88,6 +93,29 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
     }
     this.imageLoading.set(true);
     this.mediaUrlCache.getUrl(key).subscribe({
+      next: (url) => {
+        this.imageUrl.set(url);
+        this.imageLoading.set(false);
+      },
+      error: () => {
+        this.imageUrl.set(null);
+        this.imageLoading.set(false);
+      },
+    });
+  }
+
+  onImageError(): void {
+    const key = this.product?.mainImageKey?.trim();
+    if (!key) {
+      return;
+    }
+    if (this.imageErrorRetries >= this.maxImageErrorRetries) {
+      this.imageUrl.set(null);
+      return;
+    }
+    this.imageErrorRetries++;
+    this.imageLoading.set(true);
+    this.mediaUrlCache.refreshUrl(key).subscribe({
       next: (url) => {
         this.imageUrl.set(url);
         this.imageLoading.set(false);

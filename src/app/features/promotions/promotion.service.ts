@@ -22,16 +22,56 @@ export class PromotionService {
     return this.api.get<PromotionResponseDto[]>(this.base);
   }
 
+  /**
+   * POST очікує кореневі `name`/`slug` і вкладене поле `dto` (типовий ASP.NET-запит:
+   * `[Required] Name`, `[Required] Slug` на обгортці + `Dto` з деталями).
+   * Дати дублюємо на корені й у `dto` як `startDate`/`endDate` і як `StartDate`/`EndDate`,
+   * щоб уникнути `EndDate == default` при суворій прив’язці JSON (INVALID_DATES на бекенді).
+   */
   create(dto: CreatePromotionDto): Observable<PromotionResponseDto> {
-    return this.api.post<PromotionResponseDto>(this.base, dto);
+    const { startDate, endDate, ...rest } = dto;
+    return this.api.post<PromotionResponseDto>(this.base, {
+      name: dto.name,
+      slug: dto.slug,
+      startDate,
+      endDate,
+      dto: {
+        ...rest,
+        startDate,
+        endDate,
+        StartDate: startDate,
+        EndDate: endDate,
+        Level: dto.level,
+        DiscountType: dto.discountType,
+        DiscountValue: dto.discountValue,
+      },
+    });
   }
 
   /**
-   * Бекенд очікує обгортку з полем `dto` (ASP.NET: модель з [FromBody], властивість Dto).
-   * Плоский JSON дає 400: «The dto field is required».
+   * Див. {@link create} — та сама обгортка; дати з тим самим подвійним іменуванням у `dto`.
    */
   update(id: string, dto: UpdatePromotionDto): Observable<PromotionResponseDto> {
-    return this.api.put<PromotionResponseDto>(`${this.base}/${id}`, { dto });
+    const { startDate, endDate, ...rest } = dto;
+    const inner: Record<string, unknown> = { ...rest };
+    if (startDate !== undefined) {
+      inner['startDate'] = startDate;
+      inner['StartDate'] = startDate;
+    }
+    if (endDate !== undefined) {
+      inner['endDate'] = endDate;
+      inner['EndDate'] = endDate;
+    }
+    if (dto.discountType !== undefined) {
+      inner['DiscountType'] = dto.discountType;
+    }
+    if (dto.discountValue !== undefined) {
+      inner['DiscountValue'] = dto.discountValue;
+    }
+    if (dto.level !== undefined) {
+      inner['Level'] = dto.level;
+    }
+    return this.api.put<PromotionResponseDto>(`${this.base}/${id}`, { dto: inner });
   }
 
   delete(id: string): Observable<void> {

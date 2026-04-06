@@ -38,6 +38,9 @@ export class ProductCardComponent implements OnInit, OnChanges {
 
   imageUrl = signal<string | null>(null);
   imageLoading = signal(false);
+  /** Скільки разів уже перезавантажували URL після помилки &lt;img&gt; (захист від циклу). */
+  private imageErrorRetries = 0;
+  private readonly maxImageErrorRetries = 2;
 
   ngOnInit(): void {
     this.translate.onLangChange.subscribe(() => {
@@ -53,8 +56,11 @@ export class ProductCardComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['product'] && !changes['product'].firstChange && this.product) {
-      this.loadImage();
+    if (changes['product']) {
+      this.imageErrorRetries = 0;
+      if (!changes['product'].firstChange && this.product) {
+        this.loadImage();
+      }
     }
   }
 
@@ -67,6 +73,30 @@ export class ProductCardComponent implements OnInit, OnChanges {
     }
     this.imageLoading.set(true);
     this.mediaUrlCache.getUrl(key).subscribe({
+      next: (url) => {
+        this.imageUrl.set(url);
+        this.imageLoading.set(false);
+      },
+      error: () => {
+        this.imageUrl.set(null);
+        this.imageLoading.set(false);
+      },
+    });
+  }
+
+  /** Pre-signed URL прострочився в браузері, а кеш ще вважав його валідним — запитуємо новий. */
+  onImageError(): void {
+    const key = this.product?.mainImageKey?.trim();
+    if (!key) {
+      return;
+    }
+    if (this.imageErrorRetries >= this.maxImageErrorRetries) {
+      this.imageUrl.set(null);
+      return;
+    }
+    this.imageErrorRetries++;
+    this.imageLoading.set(true);
+    this.mediaUrlCache.refreshUrl(key).subscribe({
       next: (url) => {
         this.imageUrl.set(url);
         this.imageLoading.set(false);

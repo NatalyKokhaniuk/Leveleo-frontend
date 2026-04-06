@@ -146,7 +146,7 @@
 
         <mat-form-field class="w-full">
           <mat-label>{{ 'ADMIN.PROMOTION.LEVEL' | translate }}</mat-label>
-          <mat-select formControlName="level">
+          <mat-select formControlName="level" [compareWith]="compareLevel">
             @for (opt of levelOptions; track opt.value) {
               <mat-option [value]="opt.value">{{ opt.labelKey | translate }}</mat-option>
             }
@@ -155,7 +155,7 @@
 
         <mat-form-field class="w-full">
           <mat-label>{{ 'ADMIN.PROMOTION.DISCOUNT_TYPE' | translate }}</mat-label>
-          <mat-select formControlName="discountType">
+          <mat-select formControlName="discountType" [compareWith]="compareDiscountType">
             @for (opt of discountOptions; track opt.value) {
               <mat-option [value]="opt.value">{{ opt.labelKey | translate }}</mat-option>
             }
@@ -164,12 +164,22 @@
 
         <mat-form-field class="w-full">
           <mat-label>{{ 'ADMIN.PROMOTION.DISCOUNT_VALUE' | translate }}</mat-label>
-          <input matInput type="number" formControlName="discountValue" min="0" step="0.01" />
+          <input
+            matInput
+            type="number"
+            formControlName="discountValue"
+            min="0"
+            step="0.01"
+            (blur)="onDiscountBlur()"
+          />
           @if (form.get('discountValue')?.hasError('required') && form.get('discountValue')?.touched) {
             <mat-error>{{ 'ADMIN.PROMOTION.DISCOUNT_VALUE_REQUIRED' | translate }}</mat-error>
           }
         </mat-form-field>
 
+        <p class="text-xs m-0 pb-1" style="color: var(--color-text-tertiary)">
+          {{ 'ADMIN.PROMOTION.DATES_RANGE_HINT' | translate }}
+        </p>
         <mat-form-field class="w-full">
           <mat-label>{{ 'ADMIN.PROMOTION.START_DATE' | translate }}</mat-label>
           <input matInput type="datetime-local" formControlName="startDate" />
@@ -180,9 +190,9 @@
           <input matInput type="datetime-local" formControlName="endDate" />
         </mat-form-field>
 
-        @if (form.hasError('datesOrder')) {
+        @if (form.hasError('datesEqual')) {
           <p class="text-sm m-0" style="color: var(--color-error)">
-            {{ 'ADMIN.PROMOTION.DATES_ORDER_ERROR' | translate }}
+            {{ 'ADMIN.PROMOTION.DATES_EQUAL_ERROR' | translate }}
           </p>
         }
 
