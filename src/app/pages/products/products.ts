@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -74,8 +74,40 @@ export class Products implements OnInit {
   priceToStr = signal('');
 
   filterCategories = signal<CategoryResponseDto[]>([]);
+  allCategories = signal<CategoryResponseDto[]>([]);
   brands = signal<BrandResponseDto[]>([]);
   lang = signal(this.translate.currentLang || 'uk');
+  rootCategoryId = signal<string | null>(null);
+  subCategoryId = signal<string | null>(null);
+  private nestedIndent = new Map<string, number>();
+  nestedCategoryOptions = computed(() => {
+    const rootId = this.rootCategoryId();
+    const all = this.allCategories();
+    this.nestedIndent = new Map<string, number>();
+    if (!rootId) return [] as CategoryResponseDto[];
+
+    const byParent = new Map<string | null, CategoryResponseDto[]>();
+    for (const c of all) {
+      const key = c.parentId ?? null;
+      const arr = byParent.get(key) ?? [];
+      arr.push(c);
+      byParent.set(key, arr);
+    }
+    for (const arr of byParent.values()) {
+      arr.sort((a, b) => this.categoryLabel(a).localeCompare(this.categoryLabel(b)));
+    }
+
+    const result: CategoryResponseDto[] = [];
+    const pushChildren = (parentId: string, level: number): void => {
+      for (const c of byParent.get(parentId) ?? []) {
+        result.push(c);
+        this.nestedIndent.set(c.id, level);
+        pushChildren(c.id, level + 1);
+      }
+    };
+    pushChildren(rootId, 1);
+    return result;
+  });
 
   readonly ProductSortBy = ProductSortBy;
 
@@ -89,14 +121,17 @@ export class Products implements OnInit {
 
     this.categoryService.getAll().subscribe({
       next: (list) => {
-        const roots = list
-          .filter((c) => c.isActive && (c.parentId == null || String(c.parentId).trim() === ''))
+        const active = list.filter((c) => c.isActive);
+        const roots = active
+          .filter((c) => c.parentId == null || String(c.parentId).trim() === '')
           .sort((a, b) => a.name.localeCompare(b.name));
+        this.allCategories.set(active);
         this.filterCategories.set(roots);
         this.categoriesCatalogResolved = true;
         this.refreshFromRoute();
       },
       error: () => {
+        this.allCategories.set([]);
         this.filterCategories.set([]);
         this.categoriesCatalogResolved = true;
         this.refreshFromRoute();
@@ -174,7 +209,7 @@ export class Products implements OnInit {
       }
     }
     if (qCat && !qBrand && this.filterCategories().length > 0) {
-      const c = this.filterCategories().find((x) => x.id === qCat);
+      const c = this.allCategories().find((x) => x.id === qCat);
       if (c?.slug) {
         this.router.navigate(['/products', 'category', c.slug], {
           queryParams: this.auxQueryFrom(query),
@@ -206,7 +241,7 @@ export class Products implements OnInit {
       }
     }
     if (cs && qBrand && this.filterCategories().length > 0) {
-      const c = this.filterCategories().find((x) => x.slug === cs);
+      const c = this.allCategories().find((x) => x.slug === cs);
       if (c) {
         const q: Record<string, string | null> = {
           brandId: qBrand,
@@ -231,7 +266,7 @@ export class Products implements OnInit {
     }
     const cs = params.get('categorySlug');
     if (cs && this.filterCategories().length > 0) {
-      const c = this.filterCategories().find((x) => x.slug === cs);
+      const c = this.allCategories().find((x) => x.slug === cs);
       if (!c) {
         this.router.navigate(['/products'], { queryParams: this.auxQueryFrom(query), replaceUrl: true });
         return true;
@@ -255,7 +290,7 @@ export class Products implements OnInit {
     }
 
     if (cs) {
-      const c = this.filterCategories().find((x) => x.slug === cs);
+      const c = this.allCategories().find((x) => x.slug === cs);
       categoryId = c?.id ?? null;
     } else {
       categoryId = query.get('categoryId');
@@ -263,7 +298,32 @@ export class Products implements OnInit {
 
     this.brandId.set(brandId);
     this.categoryId.set(categoryId);
+    this.syncCategorySelectors(categoryId);
     this.applySortAndPriceFromQuery(query);
+  }
+
+  private syncCategorySelectors(categoryId: string | null): void {
+    if (!categoryId) {
+      this.rootCategoryId.set(null);
+      this.subCategoryId.set(null);
+      return;
+    }
+    const all = this.allCategories();
+    const byId = new Map(all.map((c) => [c.id, c]));
+    let cur = byId.get(categoryId) ?? null;
+    if (!cur) {
+      this.rootCategoryId.set(null);
+      this.subCategoryId.set(null);
+      return;
+    }
+    while (cur?.parentId) {
+      const p = byId.get(cur.parentId);
+      if (!p) break;
+      cur = p;
+    }
+    const rootId = cur?.id ?? null;
+    this.rootCategoryId.set(rootId);
+    this.subCategoryId.set(rootId === categoryId ? null : categoryId);
   }
 
   private refreshFromRoute(): void {
@@ -370,7 +430,7 @@ export class Products implements OnInit {
       }
     }
     if (categoryId && !brandId) {
-      const c = this.filterCategories().find((x) => x.id === categoryId);
+      const c = this.allCategories().find((x) => x.id === categoryId);
       if (c?.slug) {
         this.router.navigate(['/products', 'category', c.slug], { queryParams: query, replaceUrl: true });
         return;
@@ -384,9 +444,24 @@ export class Products implements OnInit {
 
   onCategoryChange(value: string | null): void {
     const v = value === '' || value == null ? null : value;
+    this.rootCategoryId.set(v);
+    this.subCategoryId.set(null);
     this.navigateToProducts({
       brandId: this.brandId(),
       categoryId: v,
+    });
+  }
+
+  nestedCategoryLabel(c: CategoryResponseDto): string {
+    return this.categoryLabel(c);
+  }
+
+  onSubCategoryChange(value: string | null): void {
+    const v = value === '' || value == null ? null : value;
+    this.subCategoryId.set(v);
+    this.navigateToProducts({
+      brandId: this.brandId(),
+      categoryId: v ?? this.rootCategoryId(),
     });
   }
 

@@ -1,0 +1,28 @@
+<main class="pt-28 px-4 md:px-10 max-w-3xl mx-auto pb-16 flex flex-col gap-6">
+  <header class="flex flex-col gap-2">
+    <h1 class="text-2xl md:text-3xl font-fixel text-left">{{ 'CART.CHECKOUT' | translate }}</h1>
+    <p class="opacity-80">{{ 'CART.CHECKOUT_DESC' | translate }}</p>
+    <a routerLink="/cart" class="inline-flex items-center gap-2 text-primary hover:underline text-sm font-medium w-fit">
+      {{ 'CART.BACK_TO_PRODUCTS' | translate }}
+    </a>
+  </header>
+
+  <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6">
+    <mat-form-field class="w-full">
+      <mat-label>{{ 'CART.ADDRESS_ID' | translate }}</mat-label>
+      <input
+        matInput
+        [value]="addressId()"
+        (input)="addressId.set($any($event.target).value)"
+        [placeholder]="'CART.ADDRESS_ID_PLACEHOLDER' | translate"
+        [disabled]="busy()"
+      />
+    </mat-form-field>
+
+    <div class="flex justify-end mt-2">
+      <button matButton="elevated" color="primary" type="button" (click)="submit()" [disabled]="busy()">
+        {{ 'CART.CHECKOUT' | translate }}
+      </button>
+    </div>
+  </section>
+</main>

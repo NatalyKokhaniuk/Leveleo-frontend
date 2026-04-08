@@ -84,6 +84,12 @@ export const routes: Routes = [
       import('./pages/admin/admin/promotions/promotions').then((m) => m.AdminPromotionsComponent),
     canActivate: [adminOrModeratorGuard],
   },
+  {
+    path: 'admin/statistics',
+    loadComponent: () =>
+      import('./pages/admin/admin/statistics/statistics').then((m) => m.AdminStatisticsComponent),
+    canActivate: [adminOrModeratorGuard],
+  },
 
   {
     path: 'about',
@@ -139,6 +145,11 @@ export const routes: Routes = [
   {
     path: 'cart',
     loadComponent: () => import('./pages/cart/cart').then((m) => m.CartPage),
+  },
+  {
+    path: 'checkout',
+    loadComponent: () => import('./pages/checkout/checkout').then((m) => m.CheckoutPage),
+    canActivate: [authGuard],
   },
   {
     path: 'profile',

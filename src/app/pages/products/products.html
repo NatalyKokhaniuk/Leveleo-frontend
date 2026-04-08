@@ -11,13 +11,25 @@
     <div class="flex flex-col lg:flex-row gap-4 flex-wrap">
       <mat-form-field class="flex-1 min-w-[200px]">
         <mat-label>{{ 'PRODUCTS.FILTER_CATEGORY' | translate }}</mat-label>
-        <mat-select [value]="categoryId() ?? ''" (selectionChange)="onCategoryChange($event.value)">
+        <mat-select [value]="rootCategoryId() ?? ''" (selectionChange)="onCategoryChange($event.value)">
           <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
           @for (c of filterCategories(); track c.id) {
             <mat-option [value]="c.id">{{ categoryLabel(c) }}</mat-option>
           }
         </mat-select>
       </mat-form-field>
+
+      @if (rootCategoryId()) {
+        <mat-form-field class="flex-1 min-w-[220px]">
+          <mat-label>{{ 'PRODUCTS.FILTER_SUBCATEGORY' | translate }}</mat-label>
+          <mat-select [value]="subCategoryId() ?? ''" (selectionChange)="onSubCategoryChange($event.value)">
+            <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
+            @for (c of nestedCategoryOptions(); track c.id) {
+              <mat-option [value]="c.id">{{ nestedCategoryLabel(c) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
 
       <mat-form-field class="flex-1 min-w-[200px]">
         <mat-label>{{ 'PRODUCTS.FILTER_BRAND' | translate }}</mat-label>

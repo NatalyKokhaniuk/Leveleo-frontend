@@ -72,8 +72,9 @@ export class CartStateService {
   private applyDto(cart: ShoppingCartDto): void {
     const m = new Map<string, number>();
     for (const it of cart.items ?? []) {
-      if (it?.productId != null) {
-        m.set(String(it.productId), Math.max(0, Number(it.quantity) || 0));
+      const id = it?.productId ?? it?.product?.id ?? null;
+      if (id != null && String(id).trim() !== '') {
+        m.set(String(id), Math.max(0, Number(it.quantity) || 0));
       }
     }
     this._qtyByProduct.set(m);

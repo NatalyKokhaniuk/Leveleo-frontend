@@ -76,7 +76,15 @@ export interface CreatePromotionDto {
   translations?: PromotionTranslationDto[] | null;
 }
 
-/** Плоский JSON для оновлення (як у брендів/продуктів — бекенд мапить у Optional). */
+/**
+ * Тіло `PUT /api/promotions/{id}` на бекенді: `[FromBody] UpdatePromotionRequest` з обов’язковим `dto`.
+ * Плоский JSON дає 400: «dto field is required» / помилка десеріалізації кореня.
+ */
+export interface UpdatePromotionRequestBody {
+  dto: UpdatePromotionDto;
+}
+
+/** Поля оновлення акції (вкладені в `dto` у запиті). */
 export interface UpdatePromotionDto {
   name?: string;
   description?: string | null;

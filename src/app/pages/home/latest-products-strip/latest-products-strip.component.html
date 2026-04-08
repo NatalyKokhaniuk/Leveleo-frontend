@@ -1,0 +1,39 @@
+@if (!loading() && products().length > 0) {
+  <section
+    class="home-latest-products w-full max-w-none box-border px-4 sm:px-6 md:px-10 lg:px-14 flex flex-col gap-4"
+    [attr.aria-label]="'HOME.LATEST_PRODUCTS_SECTION' | translate"
+  >
+    <h2 class="text-xl md:text-2xl font-semibold px-1">{{ 'HOME.LATEST_PRODUCTS_TITLE' | translate }}</h2>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 w-full">
+      @for (product of visibleProducts(); track product.id) {
+        <app-product-card
+          [product]="product"
+          [isFavorite]="favoriteFor(product.id)"
+          (openDetail)="openProductCard(product)"
+          (favoriteToggled)="toggleFavorite(product.id)"
+        ></app-product-card>
+      }
+    </div>
+
+    @if (showToggle()) {
+      <button
+        mat-stroked-button
+        type="button"
+        class="home-latest-products__toggle w-full !min-h-12 !rounded-2xl border-outline-variant flex items-center justify-center gap-2"
+        (click)="toggle()"
+        [attr.aria-expanded]="expanded()"
+      >
+        <span>{{
+          (expanded() ? 'HOME.LATEST_PRODUCTS_SHOW_LESS' : 'HOME.LATEST_PRODUCTS_SHOW_MORE')
+            | translate
+        }}</span>
+        @if (expanded()) {
+          <mat-icon>expand_less</mat-icon>
+        } @else {
+          <mat-icon>expand_more</mat-icon>
+        }
+      </button>
+    }
+  </section>
+}

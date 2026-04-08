@@ -17,24 +17,23 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
 
   const isRefreshRequest = req.url.endsWith('/auth/refresh-token');
 
-  /** GET /api/media/url — каталог для гостей; без Bearer, щоб зображення не ламались через прострочений токен. */
-  const isPublicMediaSignedUrlGet = req.method === 'GET' && req.url.includes('/media/url');
+  const isMediaSignedUrlGet = req.method === 'GET' && req.url.includes('/media/url');
 
   let authReq = req.clone({ withCredentials: true });
 
-  if (!isRefreshRequest && !isPublicMediaSignedUrlGet && authService.accessToken()) {
+  if (!isRefreshRequest && authService.accessToken()) {
     authReq = req.clone({
       setHeaders: { Authorization: `Bearer ${authService.accessToken()}` },
       withCredentials: true,
     });
   }
 
-  /** Підписані URL медіа можуть бути доступні анонімно; 401 тут не повинен викликати refresh/logout. */
-  const isMediaSignedUrlRequest = isPublicMediaSignedUrlGet;
+  /** Для гостей 401 на /media/url нормальний — не запускаємо refresh/logout. */
+  const isGuestMediaSignedUrlRequest = isMediaSignedUrlGet && !authService.accessToken();
 
   return next(authReq).pipe(
     catchError((error) => {
-      if (error.status === 401 && isMediaSignedUrlRequest) {
+      if (error.status === 401 && isGuestMediaSignedUrlRequest) {
         return throwError(() => error);
       }
       if (error.status === 401 && !isRefreshRequest) {

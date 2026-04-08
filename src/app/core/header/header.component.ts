@@ -107,6 +107,9 @@ export class HeaderComponent {
         this.currentLang.set(e.lang);
       });
     }
+    if (this.authService.isAuthenticated()) {
+      this.cartState.reloadFromServer().subscribe();
+    }
   }
 
   toggleTheme(): void {

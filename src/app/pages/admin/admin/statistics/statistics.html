@@ -1,0 +1,54 @@
+<main class="pt-28 px-4 md:px-10 max-w-6xl mx-auto pb-16 flex flex-col gap-6">
+  <header class="flex flex-col gap-2">
+    <h1 class="text-2xl md:text-3xl font-bold text-primary">
+      {{ 'ADMIN.STATISTICS' | translate }}
+    </h1>
+    <p class="opacity-80">{{ 'ADMIN.STATS.DESCRIPTION' | translate }}</p>
+  </header>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (loadError()) {
+    <p class="opacity-80">{{ 'ADMIN.STATS.LOAD_ERROR' | translate }}</p>
+  } @else {
+    @if (dashboard(); as d) {
+      <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <article class="stats-card bg-[var(--mat-sys-primary-container)] text-[var(--mat-sys-on-primary-container)]">
+          <h3>{{ 'ADMIN.STATS.TOTAL_ORDERS' | translate }}</h3>
+          <p>{{ d.totalOrders }}</p>
+        </article>
+        <article class="stats-card bg-[var(--mat-sys-tertiary-container)] text-[var(--mat-sys-on-tertiary-container)]">
+          <h3>{{ 'ADMIN.STATS.TOTAL_REVENUE' | translate }}</h3>
+          <p>{{ d.totalRevenue | number: '1.2-2' }}</p>
+        </article>
+        <article class="stats-card bg-[var(--mat-sys-secondary-container)] text-[var(--mat-sys-on-secondary-container)]">
+          <h3>{{ 'ADMIN.STATS.TODAY_ORDERS' | translate }}</h3>
+          <p>{{ d.todayOrders }}</p>
+        </article>
+        <article class="stats-card bg-[var(--mat-sys-error-container)] text-[var(--mat-sys-on-error-container)]">
+          <h3>{{ 'ADMIN.STATS.LOW_STOCK' | translate }}</h3>
+          <p>{{ d.lowStockProducts }}</p>
+        </article>
+      </section>
+    }
+
+    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6">
+      <h2 class="text-lg font-semibold mb-4">{{ 'ADMIN.STATS.MONTHLY_SALES' | translate }}</h2>
+      <div class="flex flex-col gap-3">
+        @for (m of monthly(); track m.month) {
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center justify-between text-sm">
+              <span>{{ m.monthName }}</span>
+              <span class="font-medium">{{ m.totalRevenue | number: '1.2-2' }}</span>
+            </div>
+            <div class="chart-track">
+              <div class="chart-bar" [style.width]="revenueBarWidth(m.totalRevenue)"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </section>
+  }
+</main>

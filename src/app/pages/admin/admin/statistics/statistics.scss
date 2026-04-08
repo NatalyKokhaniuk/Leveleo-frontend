@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+.stats-card {
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent);
+}
+
+.stats-card h3 {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin: 0 0 6px;
+}
+
+.stats-card p {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.chart-track {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--mat-sys-surface-variant) 80%, transparent);
+  overflow: hidden;
+}
+
+.chart-bar {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--mat-sys-primary) 0%,
+    var(--mat-sys-tertiary) 55%,
+    var(--mat-sys-secondary) 100%
+  );
+}

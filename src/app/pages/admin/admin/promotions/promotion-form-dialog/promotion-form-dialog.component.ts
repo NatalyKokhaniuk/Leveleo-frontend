@@ -503,25 +503,31 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     existing: PromotionResponseDto['translations'],
     dto: PromotionTranslationDto,
   ): Observable<unknown> {
-    const has = existing.some(
+    const matched = existing.find(
       (t) => t.languageCode.toLowerCase() === dto.languageCode.toLowerCase(),
     );
+    const dtoToSend: PromotionTranslationDto = {
+      ...dto,
+      // На бекенді пошук перекладу може бути case-sensitive (EN vs en).
+      languageCode: matched?.languageCode ?? dto.languageCode,
+    };
+    const has = !!matched;
     if (has) {
-      return this.promotionService.updateTranslation(promotionId, dto).pipe(
+      return this.promotionService.updateTranslation(promotionId, dtoToSend).pipe(
         catchError((err: unknown) => {
           if (!this.shouldRetryTranslationUpsertAsAdd(err)) {
             return throwError(() => err);
           }
-          return this.promotionService.addTranslation(promotionId, dto);
+          return this.promotionService.addTranslation(promotionId, dtoToSend);
         }),
       );
     }
-    return this.promotionService.addTranslation(promotionId, dto).pipe(
+    return this.promotionService.addTranslation(promotionId, dtoToSend).pipe(
       catchError((err: unknown) => {
         if (!this.shouldRetryTranslationUpsertAsUpdate(err)) {
           return throwError(() => err);
         }
-        return this.promotionService.updateTranslation(promotionId, dto);
+        return this.promotionService.updateTranslation(promotionId, dtoToSend);
       }),
     );
   }
@@ -549,6 +555,13 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       return true;
     }
     const raw = this.httpErrorText(err);
+    if (
+      raw.includes('Translation for language') ||
+      raw.includes('not found for promotion') ||
+      raw.includes('not found for Promotion')
+    ) {
+      return true;
+    }
     return (
       err.status === 500 &&
       (raw.includes('affected 0') ||

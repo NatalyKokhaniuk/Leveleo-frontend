@@ -11,9 +11,19 @@
           [routerLink]="['/products', 'brand', brand.slug]"
           class="bg-surface rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-outline-variant/20 min-h-[7.5rem]"
         >
-          <mat-icon class="!text-4xl !w-12 !h-12 mb-3 text-primary shrink-0">
-            {{ iconFor(brand, i) }}
-          </mat-icon>
+          @if (logoUrlFor(brand.id); as logo) {
+            <img
+              [src]="logo"
+              [alt]="label(brand)"
+              class="w-12 h-12 mb-3 object-contain shrink-0"
+              loading="lazy"
+              (error)="onLogoError(brand.id, brand.logoKey)"
+            />
+          } @else {
+            <mat-icon class="!text-4xl !w-12 !h-12 mb-3 text-primary shrink-0">
+              {{ iconFor(brand, i) }}
+            </mat-icon>
+          }
           <span class="font-medium text-sm md:text-base text-on-surface line-clamp-2 [overflow-wrap:anywhere]">
             {{ label(brand) }}
           </span>

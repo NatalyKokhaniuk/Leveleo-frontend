@@ -2,47 +2,38 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { TranslateModule } from '@ngx-translate/core';
+import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 import { PromotionService } from '../../../../features/promotions/promotion.service';
-import { toPromotionLevel } from '../../../../features/promotions/promotion-enum.util';
-import {
-  DiscountType,
-  PromotionLevel,
-  PromotionResponseDto,
-} from '../../../../features/promotions/promotion.types';
-import {
-  PromotionFormDialogComponent,
-  PromotionFormDialogData,
-} from './promotion-form-dialog/promotion-form-dialog.component';
+import { DiscountType, PromotionLevel, PromotionResponseDto } from '../../../../features/promotions/promotion.types';
 import {
   PromotionDeleteDialogComponent,
   PromotionDeleteDialogData,
 } from './promotion-delete-dialog/promotion-delete-dialog.component';
-import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
-import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
+import {
+  PromotionFormDialogComponent,
+  PromotionFormDialogData,
+} from './promotion-form-dialog/promotion-form-dialog.component';
 
-/** Назва для списку: базове поле, інакше переклад (en), інакше slug — якщо API не повертає name у getAll. */
-export function promotionLabel(p: PromotionResponseDto): string {
-  const raw = p.name?.trim();
-  if (raw) {
-    return raw;
-  }
-  const tr =
-    p.translations?.find((t) => t.languageCode?.toLowerCase() === 'en') ?? p.translations?.[0];
-  const tn = tr?.name?.trim();
-  if (tn) {
-    return tn;
-  }
-  return (p.slug ?? '').trim();
-}
-
-export type PromotionSortKey = 'name' | 'level' | 'discount' | 'startDate' | 'isActive';
+type PromotionSortKey =
+  | 'name'
+  | 'slug'
+  | 'level'
+  | 'discountType'
+  | 'discountValue'
+  | 'startDate'
+  | 'endDate'
+  | 'isActive'
+  | 'isCoupon';
 
 @Component({
   selector: 'app-admin-promotions',
@@ -52,20 +43,21 @@ export type PromotionSortKey = 'name' | 'level' | 'discount' | 'startDate' | 'is
     RouterLink,
     TranslateModule,
     MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatIconModule,
+    MatDialogModule,
     MatTableModule,
     MatProgressSpinnerModule,
-    MatDialogModule,
-    MediaImageThumbComponent,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatCheckboxModule,
     HorizontalDragScrollDirective,
   ],
   templateUrl: './promotions.html',
   styleUrl: './promotions.scss',
 })
 export class AdminPromotionsComponent {
-  private promotionService = inject(PromotionService);
+  private api = inject(PromotionService);
   private dialog = inject(MatDialog);
 
   promotions = signal<PromotionResponseDto[]>([]);
@@ -75,220 +67,231 @@ export class AdminPromotionsComponent {
   readonly pageSize = 10;
 
   search = signal('');
-  sortKey = signal<PromotionSortKey | null>(null);
-  sortDir = signal<'asc' | 'desc'>('asc');
+  levelFilter = signal<'all' | PromotionLevel>('all');
+  discountTypeFilter = signal<'all' | DiscountType>('all');
+  couponFilter = signal<'all' | 'yes' | 'no'>('all');
+  activeFilter = signal<'all' | 'yes' | 'no'>('all');
+  sortKey = signal<PromotionSortKey>('startDate');
+  sortDir = signal<'asc' | 'desc'>('desc');
 
   readonly PromotionLevel = PromotionLevel;
   readonly DiscountType = DiscountType;
 
-  displayedColumns: string[] = ['name', 'level', 'discount', 'dates', 'active', 'image', 'actions'];
+  displayedColumns = [
+    'name',
+    'slug',
+    'level',
+    'discountType',
+    'discountValue',
+    'startDate',
+    'endDate',
+    'isActive',
+    'isCoupon',
+    'isPersonal',
+    'couponCode',
+    'maxUsages',
+    'actions',
+  ];
 
-  filteredAndSortedPromotions = computed(() => {
+  private discountTypeLabel(v: PromotionResponseDto): number {
+    return v.discountType ?? -1;
+  }
+
+  filteredAndSorted = computed(() => {
     const term = this.search().trim().toLowerCase();
-    let list = [...this.promotions()];
+    const lf = this.levelFilter();
+    const df = this.discountTypeFilter();
+    const cf = this.couponFilter();
+    const af = this.activeFilter();
+    const key = this.sortKey();
+    const dir = this.sortDir();
+
+    let list = [...this.promotions()].filter((p) => !!p);
 
     if (term) {
       list = list.filter((p) => {
-        const chunks: string[] = [
-          promotionLabel(p),
+        const chunks = [
+          p.name ?? '',
           p.slug ?? '',
           p.description ?? '',
           p.couponCode ?? '',
+          ...(p.translations ?? []).map((t) => `${t.name ?? ''} ${t.description ?? ''}`),
         ];
-        for (const tr of p.translations ?? []) {
-          chunks.push(tr.name ?? '', tr.description ?? '');
-        }
         return chunks.join(' ').toLowerCase().includes(term);
       });
     }
-
-    const key = this.sortKey();
-    const dir = this.sortDir();
-    if (key) {
-      list = [...list].sort((a, b) => {
-        let va: string | number = '';
-        let vb: string | number = '';
-        switch (key) {
-          case 'name':
-            va = promotionLabel(a);
-            vb = promotionLabel(b);
-            break;
-          case 'level':
-            va = toPromotionLevel(a.level);
-            vb = toPromotionLevel(b.level);
-            break;
-          case 'discount':
-            va = a.discountValue ?? 0;
-            vb = b.discountValue ?? 0;
-            break;
-          case 'startDate':
-            va = new Date(a.startDate).getTime();
-            vb = new Date(b.startDate).getTime();
-            break;
-          case 'isActive':
-            va = a.isActive ? 1 : 0;
-            vb = b.isActive ? 1 : 0;
-            break;
-          default:
-            va = '';
-            vb = '';
-        }
-        const cmp =
-          typeof va === 'number' && typeof vb === 'number'
-            ? va - vb
-            : String(va).localeCompare(String(vb), undefined, { sensitivity: 'base' });
-        return dir === 'asc' ? cmp : -cmp;
-      });
+    if (lf !== 'all') {
+      list = list.filter((p) => Number(p.level) === Number(lf));
+    }
+    if (df !== 'all') {
+      list = list.filter((p) => Number(p.discountType ?? -1) === Number(df));
+    }
+    if (cf !== 'all') {
+      list = list.filter((p) => (cf === 'yes' ? !!p.isCoupon : !p.isCoupon));
+    }
+    if (af !== 'all') {
+      list = list.filter((p) => (af === 'yes' ? !!p.isActive : !p.isActive));
     }
 
+    list.sort((a, b) => {
+      let va: string | number | boolean = '';
+      let vb: string | number | boolean = '';
+      switch (key) {
+        case 'name':
+          va = (a.name ?? '').toLowerCase();
+          vb = (b.name ?? '').toLowerCase();
+          break;
+        case 'slug':
+          va = (a.slug ?? '').toLowerCase();
+          vb = (b.slug ?? '').toLowerCase();
+          break;
+        case 'level':
+          va = Number(a.level);
+          vb = Number(b.level);
+          break;
+        case 'discountType':
+          va = this.discountTypeLabel(a);
+          vb = this.discountTypeLabel(b);
+          break;
+        case 'discountValue':
+          va = Number(a.discountValue ?? -1);
+          vb = Number(b.discountValue ?? -1);
+          break;
+        case 'startDate':
+          va = new Date(a.startDate).getTime();
+          vb = new Date(b.startDate).getTime();
+          break;
+        case 'endDate':
+          va = new Date(a.endDate).getTime();
+          vb = new Date(b.endDate).getTime();
+          break;
+        case 'isActive':
+          va = !!a.isActive;
+          vb = !!b.isActive;
+          break;
+        case 'isCoupon':
+          va = !!a.isCoupon;
+          vb = !!b.isCoupon;
+          break;
+      }
+      const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+      return dir === 'asc' ? cmp : -cmp;
+    });
     return list;
   });
 
-  paginatedPromotions = computed(() => {
-    const all = this.filteredAndSortedPromotions();
-    const start = (this.page() - 1) * this.pageSize;
-    return all.slice(start, start + this.pageSize);
+  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredAndSorted().length / this.pageSize)));
+  paginated = computed(() => {
+    const p = Math.min(this.page(), this.totalPages());
+    const start = (p - 1) * this.pageSize;
+    return this.filteredAndSorted().slice(start, start + this.pageSize);
   });
 
-  totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.filteredAndSortedPromotions().length / this.pageSize)),
-  );
-
   constructor() {
-    this.loadPromotions();
+    this.load();
   }
 
-  loadPromotions(): void {
+  load(): void {
     this.loading.set(true);
     this.loadError.set(null);
-    this.promotionService.getAll().subscribe({
-      next: (list) => {
-        this.promotions.set(list);
+    this.api
+      .getAll()
+      .pipe(
+        switchMapListToFull(this.api),
+        catchError(() => {
+          this.loadError.set('ADMIN.PROMOTION.LOAD_ERROR');
+          return of([] as PromotionResponseDto[]);
+        }),
+      )
+      .subscribe((rows) => {
+        this.promotions.set(rows);
+        this.page.set(1);
         this.loading.set(false);
-        this.clampPage();
-      },
-      error: () => {
-        this.loading.set(false);
-        this.loadError.set('ADMIN.PROMOTION.LOAD_ERROR');
-      },
-    });
-  }
-
-  onSearch(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.search.set(value);
-    this.page.set(1);
-  }
-
-  changeSort(key: PromotionSortKey): void {
-    if (this.sortKey() === key) {
-      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
-    } else {
-      this.sortKey.set(key);
-      this.sortDir.set('asc');
-    }
-  }
-
-  sortIndicator(key: PromotionSortKey): string {
-    if (this.sortKey() !== key) {
-      return '';
-    }
-    return this.sortDir() === 'asc' ? '↑' : '↓';
-  }
-
-  private clampPage(): void {
-    const total = Math.max(1, Math.ceil(this.filteredAndSortedPromotions().length / this.pageSize));
-    if (this.page() > total) {
-      this.page.set(total);
-    }
+      });
   }
 
   openCreate(): void {
-    const ref = this.dialog.open(PromotionFormDialogComponent, {
-      panelClass: 'auth-dialog',
-      width: '100%',
-      maxWidth: '720px',
-      maxHeight: '90vh',
-      data: {
-        mode: 'create',
-        promotion: null,
-      } satisfies PromotionFormDialogData,
-    });
-    ref.afterClosed().subscribe((saved) => {
-      if (saved) {
-        this.loadPromotions();
-      }
-    });
+    const data: PromotionFormDialogData = { mode: 'create', promotion: null };
+    this.dialog
+      .open(PromotionFormDialogComponent, { width: 'min(920px, 96vw)', data })
+      .afterClosed()
+      .subscribe((ok) => ok && this.load());
   }
 
-  openEdit(row: PromotionResponseDto): void {
-    const ref = this.dialog.open(PromotionFormDialogComponent, {
-      panelClass: 'auth-dialog',
-      width: '100%',
-      maxWidth: '720px',
-      maxHeight: '90vh',
-      data: {
-        mode: 'edit',
-        promotion: row,
-      } satisfies PromotionFormDialogData,
-    });
-    ref.afterClosed().subscribe((saved) => {
-      if (saved) {
-        this.loadPromotions();
-      }
-    });
+  openEdit(promotion: PromotionResponseDto): void {
+    const data: PromotionFormDialogData = { mode: 'edit', promotion };
+    this.dialog
+      .open(PromotionFormDialogComponent, { width: 'min(920px, 96vw)', data })
+      .afterClosed()
+      .subscribe((ok) => ok && this.load());
   }
 
-  confirmDelete(row: PromotionResponseDto): void {
-    const ref = this.dialog.open(PromotionDeleteDialogComponent, {
-      panelClass: 'auth-dialog',
-      maxWidth: '400px',
-      data: { id: row.id, name: promotionLabel(row) } satisfies PromotionDeleteDialogData,
-    });
-    ref.afterClosed().subscribe((ok) => {
-      if (ok) {
-        this.loadPromotions();
-      }
-    });
+  confirmDelete(promotion: PromotionResponseDto): void {
+    const data: PromotionDeleteDialogData = { id: promotion.id, name: promotion.name ?? promotion.slug };
+    this.dialog
+      .open(PromotionDeleteDialogComponent, { width: 'min(560px, 92vw)', data })
+      .afterClosed()
+      .subscribe((ok) => ok && this.load());
   }
 
-  prevPage(): void {
-    if (this.page() > 1) {
-      this.page.update((p) => p - 1);
+  onSearch(v: Event): void {
+    this.search.set((v.target as HTMLInputElement).value ?? '');
+    this.page.set(1);
+  }
+
+  setLevel(v: 'all' | PromotionLevel): void {
+    this.levelFilter.set(v);
+    this.page.set(1);
+  }
+  setDiscountType(v: 'all' | DiscountType): void {
+    this.discountTypeFilter.set(v);
+    this.page.set(1);
+  }
+  setCoupon(v: 'all' | 'yes' | 'no'): void {
+    this.couponFilter.set(v);
+    this.page.set(1);
+  }
+  setActive(v: 'all' | 'yes' | 'no'): void {
+    this.activeFilter.set(v);
+    this.page.set(1);
+  }
+
+  changeSort(k: PromotionSortKey): void {
+    if (this.sortKey() === k) {
+      this.sortDir.set(this.sortDir() === 'asc' ? 'desc' : 'asc');
+      return;
     }
+    this.sortKey.set(k);
+    this.sortDir.set('asc');
   }
 
-  nextPage(): void {
-    if (this.page() < this.totalPages()) {
-      this.page.update((p) => p + 1);
-    }
+  sortIndicator(k: PromotionSortKey): string {
+    if (this.sortKey() !== k) return '';
+    return this.sortDir() === 'asc' ? '↑' : '↓';
   }
 
-  dash(value: string | null | undefined): string {
-    return value?.trim() ? value : '—';
+  prev(): void {
+    if (this.page() > 1) this.page.update((p) => p - 1);
   }
+  next(): void {
+    if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
+  }
+}
 
-  /** API може надсилати рівень числом або рядком («Product» / «Cart»). */
-  levelLabelKey(level: PromotionLevel | string | unknown): string {
-    return toPromotionLevel(level) === PromotionLevel.Product
-      ? 'ADMIN.PROMOTION.LEVEL_PRODUCT'
-      : 'ADMIN.PROMOTION.LEVEL_CART';
-  }
-
-  discountLabel(row: PromotionResponseDto): string {
-    const v = row.discountValue ?? 0;
-    if (row.discountType === DiscountType.Percentage) {
-      return `${v}%`;
-    }
-    if (row.discountType === DiscountType.FixedAmount) {
-      return `${v}`;
-    }
-    return '—';
-  }
-
-  /** Відображувана назва в таблиці та картках. */
-  promotionDisplayName(row: PromotionResponseDto): string {
-    const s = promotionLabel(row);
-    return s || '—';
-  }
+function switchMapListToFull(api: PromotionService) {
+  return (source: Observable<PromotionResponseDto[]>) =>
+    source.pipe(
+      switchMap((list) => {
+        if (!list.length) return of([]);
+        return forkJoin(
+          list.map((p) =>
+            api.getById(p.id).pipe(
+              catchError(() => of(p)),
+            ),
+          ),
+        ).pipe(
+          map((full) => full as PromotionResponseDto[]),
+        );
+      }),
+    );
 }

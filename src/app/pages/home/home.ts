@@ -9,6 +9,7 @@ import { HomeBrandStripComponent } from './brand-strip/brand-strip.component';
 import { CarouselComponent } from './carousel/carousel';
 import { QuickLinksComponent } from './quick-links/quick-links';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
+import { HomeLatestProductsStripComponent } from './latest-products-strip/latest-products-strip.component';
 
 @Component({
   selector: 'app-home',
@@ -20,6 +21,7 @@ import { AuthHandlerService } from '../../core/auth/services/auth-handler.servic
     MatChipsModule,
     CarouselComponent,
     HomeBrandStripComponent,
+    HomeLatestProductsStripComponent,
     QuickLinksComponent,
   ],
   templateUrl: './home.html',

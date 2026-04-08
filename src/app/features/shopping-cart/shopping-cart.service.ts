@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from '../../core/services/api.service';
-import { AddCartItemDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
+import { AddCartItemDto, ApplyCouponDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
 
 /**
  * ShoppingCartController — операції кошика лише для авторизованих.
@@ -38,5 +38,14 @@ export class ShoppingCartService {
 
   removeItem(productId: string): Observable<void> {
     return this.api.delete<void>(`${this.base}/items/${encodeURIComponent(productId)}`);
+  }
+
+  applyCoupon(couponCode: string): Observable<ShoppingCartDto> {
+    const dto: ApplyCouponDto = { couponCode };
+    return this.api.post<ShoppingCartDto>(`${this.base}/coupon`, dto);
+  }
+
+  removeCoupon(): Observable<ShoppingCartDto> {
+    return this.api.delete<ShoppingCartDto>(`${this.base}/coupon`);
   }
 }

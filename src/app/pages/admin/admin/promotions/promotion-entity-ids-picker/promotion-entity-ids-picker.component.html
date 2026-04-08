@@ -1,68 +1,44 @@
-<div class="picker-root w-full min-w-0 flex flex-col gap-2">
-  <mat-form-field class="w-full picker-search" subscriptSizing="dynamic">
-    <mat-label>{{ kind() === 'product' ? ('ADMIN.PROMOTION.PICKER_SEARCH_PRODUCTS' | translate) : ('ADMIN.PROMOTION.PICKER_SEARCH_CATEGORIES' | translate) }}</mat-label>
-    <input
-      type="text"
-      matInput
-      [formControl]="searchCtrl"
-      [matAutocomplete]="auto"
-      autocomplete="off"
-    />
-    @if (searchLoading()) {
-      <span matSuffix class="inline-flex items-center pr-1">
-        <mat-spinner diameter="20"></mat-spinner>
-      </span>
-    }
-    <mat-hint>{{ 'ADMIN.PROMOTION.PICKER_SEARCH_HINT' | translate }}</mat-hint>
-    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onOptionSelected($event)">
-      @for (opt of filteredOptions(); track opt.id) {
-        <mat-option [value]="opt">{{ displayEntity(opt) }}</mat-option>
-      }
-    </mat-autocomplete>
-  </mat-form-field>
-
-  @if (items().length > 0) {
-    <mat-chip-set class="picker-chips" aria-label="selected">
-      @for (item of items(); track trackById($index, item)) {
-        <mat-chip [disabled]="disabled" (removed)="remove(item.id)">
-          <span class="chip-label min-w-0">{{ item.name }}</span>
-          <button
-            matChipRemove
-            type="button"
-            [disabled]="disabled"
-            [attr.aria-label]="'ADMIN.PROMOTION.PICKER_REMOVE' | translate"
-          >
-            <mat-icon>cancel</mat-icon>
-          </button>
-        </mat-chip>
-      }
-    </mat-chip-set>
-  }
-
-  <button
-    type="button"
-    matButton="text"
-    class="self-start"
-    (click)="toggleAdvanced()"
+<div class="flex flex-col gap-2 w-full">
+  <input
+    matInput
     [disabled]="disabled"
-  >
-    {{ 'ADMIN.PROMOTION.PICKER_ADVANCED_TOGGLE' | translate }}
-  </button>
+    [value]="search"
+    (input)="onSearchInput(($any($event.target).value || '').toString())"
+    [placeholder]="kind === 'product' ? 'Search product...' : 'Search category...'"
+    class="w-full rounded border border-outline-variant px-3 py-2"
+  />
 
-  @if (advancedOpen()) {
-    <mat-form-field class="w-full" subscriptSizing="dynamic">
-      <mat-label>{{ 'ADMIN.PROMOTION.PICKER_ADVANCED_LABEL' | translate }}</mat-label>
-      <textarea matInput rows="3" [formControl]="advancedCsv"></textarea>
-      <mat-hint>{{ 'ADMIN.PROMOTION.PICKER_ADVANCED_HINT' | translate }}</mat-hint>
-    </mat-form-field>
-    <button
-      type="button"
-      matButton="outlined"
-      class="self-start"
-      (click)="applyAdvancedCsv()"
-      [disabled]="disabled"
-    >
-      {{ 'ADMIN.PROMOTION.PICKER_ADVANCED_APPLY' | translate }}
-    </button>
+  @if (loading()) {
+    <span class="text-xs opacity-70">Loading…</span>
+  } @else if (suggestions().length > 0) {
+    <div class="flex flex-col gap-1 rounded border border-outline-variant p-2 max-h-40 overflow-auto">
+      @for (s of suggestions(); track s.id) {
+        <button matButton type="button" class="justify-start" (click)="add(s.id)">
+          <mat-icon>add</mat-icon>
+          <span class="truncate">{{ s.name }}</span>
+        </button>
+      }
+    </div>
   }
+
+  @if (ids.length > 0) {
+    <div class="flex flex-wrap gap-2">
+      @for (id of ids; track id) {
+        <span class="inline-flex items-center gap-1 rounded-full border border-outline-variant px-2 py-1 text-xs">
+          <span>{{ id }}</span>
+          <button mat-icon-button type="button" (click)="remove(id)"><mat-icon>close</mat-icon></button>
+        </span>
+      }
+    </div>
+  }
+
+  <textarea
+    matInput
+    rows="2"
+    [disabled]="disabled"
+    [value]="value"
+    (input)="onRawInput(($any($event.target).value || '').toString())"
+    placeholder="GUIDs comma/space separated"
+    class="w-full rounded border border-outline-variant px-3 py-2"
+  ></textarea>
 </div>

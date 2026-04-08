@@ -16,6 +16,7 @@ import { catchError, fromEvent, of } from 'rxjs';
 import { brandLocalizedName } from '../../../features/brands/brand-display-i18n';
 import { BrandService } from '../../../features/brands/brand.service';
 import { BrandResponseDto } from '../../../features/brands/brand.types';
+import { MediaUrlCacheService } from '../../../core/services/media-url-cache.service';
 
 /** Детерміновані «випадкові» іконки для бренду (поки без логотипів з API). */
 const BRAND_ICON_POOL = [
@@ -46,9 +47,11 @@ export class HomeBrandStripComponent implements OnInit {
   private brandsApi = inject(BrandService);
   private translate = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
+  private mediaUrls = inject(MediaUrlCacheService);
 
   private lang = signal(this.translate.currentLang || 'uk');
   brands = signal<BrandResponseDto[]>([]);
+  logoUrls = signal<Record<string, string>>({});
   loading = signal(true);
   expanded = signal(false);
 
@@ -106,6 +109,21 @@ export class HomeBrandStripComponent implements OnInit {
       .subscribe((list) => {
         const active = [...list].filter((b) => b != null).sort((a, b) => a.name.localeCompare(b.name));
         this.brands.set(active);
+        for (const b of active) {
+          const key = b.logoKey?.trim();
+          if (!key) {
+            continue;
+          }
+          this.mediaUrls
+            .getUrl(key)
+            .pipe(takeUntilDestroyed(this.destroyRef))
+            .subscribe((url) => {
+              if (!url) {
+                return;
+              }
+              this.logoUrls.update((m) => ({ ...m, [b.id]: url }));
+            });
+        }
         this.loading.set(false);
       });
   }
@@ -124,5 +142,30 @@ export class HomeBrandStripComponent implements OnInit {
 
   toggle(): void {
     this.expanded.update((v) => !v);
+  }
+
+  logoUrlFor(brandId: string): string | null {
+    return this.logoUrls()[brandId] ?? null;
+  }
+
+  onLogoError(brandId: string, key: string | null | undefined): void {
+    const k = key?.trim();
+    if (!k) {
+      return;
+    }
+    this.mediaUrls
+      .refreshUrl(k)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((url) => {
+        if (!url) {
+          this.logoUrls.update((m) => {
+            const next = { ...m };
+            delete next[brandId];
+            return next;
+          });
+          return;
+        }
+        this.logoUrls.update((m) => ({ ...m, [brandId]: url }));
+      });
   }
 }

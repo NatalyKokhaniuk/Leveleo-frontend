@@ -1,30 +1,9 @@
-<div class="w-[calc(100vw-20px)] md:w-96 max-w-full p-6">
-  <div class="auth-modal-container">
-    <div class="icon-wrapper icon-warning mx-auto">
-      <mat-icon class="status-icon">warning</mat-icon>
-    </div>
-    <h2 class="modal-title">{{ 'ADMIN.PROMOTION.DELETE_TITLE' | translate }}</h2>
-    <p class="modal-desc max-w-none">
-      {{ 'ADMIN.PROMOTION.DELETE_DESC' | translate: { name: data.name } }}
-    </p>
-    <div class="modal-actions">
-      <button
-        matButton="filled"
-        color="primary"
-        class="w-full"
-        type="button"
-        (click)="confirm()"
-        [disabled]="deleting()"
-      >
-        @if (deleting()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        } @else {
-          {{ 'ADMIN.TABLE.DELETE' | translate }}
-        }
-      </button>
-      <button matButton class="w-full" type="button" (click)="ref.close(false)" [disabled]="deleting()">
-        {{ 'AUTH.CANCEL' | translate }}
-      </button>
-    </div>
+<div class="auth-modal-container">
+  <div class="icon-wrapper icon-error mx-auto"><mat-icon class="status-icon">delete</mat-icon></div>
+  <h2 class="modal-title text-center">{{ 'ADMIN.PROMOTION.DELETE_TITLE' | translate }}</h2>
+  <p class="modal-desc text-left">{{ 'ADMIN.PROMOTION.DELETE_DESC' | translate: { name: data.name } }}</p>
+  <div class="modal-actions">
+    <button matButton="tonal" type="button" (click)="confirm()" [disabled]="deleting()">{{ 'ADMIN.TABLE.DELETE' | translate }}</button>
+    <button matButton type="button" (click)="cancel()" [disabled]="deleting()">{{ 'AUTH.CANCEL' | translate }}</button>
   </div>
 </div>

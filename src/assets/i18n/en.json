@@ -30,6 +30,7 @@
     "MODAL_CLOSE": "Close",
     "CURRENCY": "UAH",
     "FILTER_CATEGORY": "Category",
+    "FILTER_SUBCATEGORY": "Subcategory",
     "FILTER_BRAND": "Brand",
     "FILTER_ALL": "All",
     "FILTER_PRICE_FROM": "Price from",
@@ -76,7 +77,9 @@
     "EMPTY": "No products in comparison.",
     "LOAD_ERROR": "Could not load comparison. Please try again later.",
     "REMOVE": "Remove from comparison",
-    "GUEST_ONLY": "Sign in or register to compare products."
+    "GUEST_ONLY": "Sign in or register to compare products.",
+    "COMPARE_CATEGORY": "Compare",
+    "SHOW_ALL": "Show all categories"
   },
   "CART": {
     "TITLE": "Shopping cart",
@@ -85,7 +88,28 @@
     "EMPTY": "Your cart is empty.",
     "LOAD_ERROR": "Could not load cart. Please try again later.",
     "GUEST_ONLY": "Sign in or register to purchase products.",
-    "GUEST_SNACK": "Sign in or register to purchase products."
+    "GUEST_SNACK": "Sign in or register to purchase products.",
+    "PROMO_APPLIED": "Cart discount",
+    "TOTAL": "Total",
+    "CHECKOUT": "Buy products",
+    "COUPON": "Coupon",
+    "COUPON_PLACEHOLDER": "Enter coupon code",
+    "APPLY_COUPON": "Apply",
+    "REMOVE_COUPON": "Remove",
+    "COUPON_ERROR": "Could not apply coupon.",
+    "COUPON_REMOVE_ERROR": "Could not remove coupon.",
+    "COUPON_NOT_FOUND": "Coupon does not exist.",
+    "COUPON_INVALID": "Coupon is invalid.",
+    "COUPON_NOT_ACTIVE": "Coupon is inactive or expired.",
+    "ADDRESS_ID": "Delivery address ID",
+    "ADDRESS_ID_PLACEHOLDER": "Paste your address GUID",
+    "ADDRESS_REQUIRED": "Enter address ID before checkout.",
+    "CHECKOUT_DESC": "Enter delivery address and confirm order.",
+    "ORDER_CREATED": "Order created successfully.",
+    "CART_CHANGED": "Cart has changed. Please review it again.",
+    "CHECKOUT_ERROR": "Could not create order.",
+    "COUPON_NOT_IMPLEMENTED": "Coupon applying is not implemented yet.",
+    "CHECKOUT_NOT_IMPLEMENTED": "Checkout is not implemented yet."
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Previous slide",
@@ -129,6 +153,15 @@
       "MESSAGE": "Are you sure you want to delete this? This action cannot be undone."
     },
     "STATISTICS": "Statistics",
+    "STATS": {
+      "DESCRIPTION": "Sales and operations overview with charts",
+      "LOAD_ERROR": "Could not load statistics. Please try again later.",
+      "TOTAL_ORDERS": "Total orders",
+      "TOTAL_REVENUE": "Total revenue",
+      "TODAY_ORDERS": "Today orders",
+      "LOW_STOCK": "Low stock products",
+      "MONTHLY_SALES": "Monthly sales"
+    },
     "TASKS": "Tasks",
     "BRANDS": "Brands",
     "ATTRIBUTES": "Attributes",
@@ -578,7 +611,11 @@
     "DESCRIPTION": "A clean foundation for your Angular project.",
     "BRANDS_SECTION": "Shop by brand",
     "BRANDS_SHOW_MORE": "More brands",
-    "BRANDS_SHOW_LESS": "Fewer brands"
+    "BRANDS_SHOW_LESS": "Fewer brands",
+    "LATEST_PRODUCTS_SECTION": "New Arrivals",
+    "LATEST_PRODUCTS_TITLE": "New Arrivals",
+    "LATEST_PRODUCTS_SHOW_MORE": "Show more products",
+    "LATEST_PRODUCTS_SHOW_LESS": "Show fewer products"
   },
 
   "CONTACTS": {

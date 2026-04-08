@@ -79,8 +79,9 @@
         matIconButton
         type="button"
         (click)="openShoppingCart()"
-        [matBadge]="cartItemsCount()"
+        [matBadge]="cartItemsCount() > 0 ? ' ' : ''"
         [matBadgeHidden]="cartItemsCount() === 0"
+        matBadgeColor="warn"
         matBadgeSize="small"
       >
         <mat-icon>shopping_cart_checkout</mat-icon>

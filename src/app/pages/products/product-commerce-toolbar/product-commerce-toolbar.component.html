@@ -39,7 +39,8 @@
       >
         <mat-icon>add</mat-icon>
       </button>
-      <button matButton="outlined" type="button" class="!min-h-10 ml-1" [disabled]="busy" (click)="onRemoveFromCart()">
+      <button matButton="tonal" type="button" class="!min-h-10 ml-1 inline-flex items-center gap-2" [disabled]="busy" (click)="onRemoveFromCart()">
+        <mat-icon class="text-lg">delete</mat-icon>
         {{ 'PRODUCTS.REMOVE_FROM_CART' | translate }}
       </button>
     </div>

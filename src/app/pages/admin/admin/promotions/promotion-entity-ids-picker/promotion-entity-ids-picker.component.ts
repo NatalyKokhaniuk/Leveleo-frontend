@@ -1,46 +1,20 @@
-import { Component, computed, forwardRef, inject, input, signal } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormControl, ReactiveFormsModule } from '@angular/forms';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { CommonModule } from '@angular/common';
+import { Component, forwardRef, inject, Input, signal } from '@angular/core';
+import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { TranslateModule } from '@ngx-translate/core';
-import { forkJoin, Observable, of } from 'rxjs';
-import {
-  catchError as rxCatchError,
-  debounceTime,
-  distinctUntilChanged,
-  map as rxMap,
-  switchMap,
-} from 'rxjs/operators';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, map, of } from 'rxjs';
 import { CategoryService } from '../../../../../features/categories/category.service';
-import { CategoryResponseDto } from '../../../../../features/categories/category.types';
 import { ProductService } from '../../../../../features/products/product.service';
-import { ProductResponseDto } from '../../../../../features/products/product.types';
 import { parseGuidCsv } from '../../../../../features/promotions/promotion-optional.util';
 
-export type PromotionEntityIdsKind = 'product' | 'category';
-
-type EntityRow = ProductResponseDto | CategoryResponseDto;
+type PickerItem = { id: string; name: string };
 
 @Component({
   selector: 'app-promotion-entity-ids-picker',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    TranslateModule,
-  ],
+  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatInputModule],
   templateUrl: './promotion-entity-ids-picker.component.html',
   styleUrl: './promotion-entity-ids-picker.component.scss',
   providers: [
@@ -52,198 +26,92 @@ type EntityRow = ProductResponseDto | CategoryResponseDto;
   ],
 })
 export class PromotionEntityIdsPickerComponent implements ControlValueAccessor {
-  private productService = inject(ProductService);
-  private categoryService = inject(CategoryService);
+  @Input({ required: true }) kind: 'product' | 'category' = 'product';
 
-  /** Товар або категорія — різні API пошуку та підписи. */
-  kind = input.required<PromotionEntityIdsKind>();
+  private products = inject(ProductService);
+  private categories = inject(CategoryService);
 
-  searchCtrl = new FormControl<string>('', { nonNullable: true });
-  advancedCsv = new FormControl<string>('', { nonNullable: true });
-
-  items = signal<{ id: string; name: string }[]>([]);
-  searchOptions = signal<(ProductResponseDto | CategoryResponseDto)[]>([]);
-  searchLoading = signal(false);
-  advancedOpen = signal(false);
-
-  filteredOptions = computed(() => {
-    const sel = new Set(this.items().map((i) => i.id));
-    return this.searchOptions().filter((o) => !sel.has(o.id));
-  });
-
-  private onChange: (value: string) => void = () => {};
-  private onTouched: () => void = () => {};
+  value = '';
+  search = '';
+  suggestions = signal<PickerItem[]>([]);
+  loading = signal(false);
   disabled = false;
 
-  constructor() {
-    this.searchCtrl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((q) => {
-          this.searchOptions.set([]);
-          if (typeof q !== 'string' || q.trim().length < 2) {
-            this.searchLoading.set(false);
-            return of([] as EntityRow[]);
-          }
-          this.searchLoading.set(true);
-          const term = q.trim();
-          const termForApi = term.toLocaleLowerCase('uk');
-          const req$: Observable<EntityRow[]> =
-            this.kind() === 'product'
-              ? this.productService.search(termForApi, 1, 20).pipe(rxMap((r) => r.items))
-              : this.categoryService.search(termForApi);
-          return new Observable<EntityRow[]>((subscriber) => {
-            const sub = req$.subscribe({
-              next: (list: EntityRow[]) => {
-                this.searchLoading.set(false);
-                subscriber.next(list);
-                subscriber.complete();
-              },
-              error: () => {
-                this.searchLoading.set(false);
-                subscriber.next([]);
-                subscriber.complete();
-              },
-            });
-            return () => sub.unsubscribe();
-          });
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe((list) => this.searchOptions.set(list ?? []));
+  private onChange: (v: string) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  get ids(): string[] {
+    return parseGuidCsv(this.value);
   }
 
-  displayEntity(o: ProductResponseDto | CategoryResponseDto): string {
-    if (this.kind() === 'product') {
-      return (o as ProductResponseDto).name;
-    }
-    const c = o as CategoryResponseDto;
-    return c.fullPath ? `${c.name} (${c.fullPath})` : c.name;
+  writeValue(obj: string | null): void {
+    this.value = obj ?? '';
   }
-
-  writeValue(value: string | null): void {
-    const csv = value ?? '';
-    const ids = [...new Set(parseGuidCsv(csv))];
-    if (ids.length === 0) {
-      this.items.set([]);
-      return;
-    }
-    this.items.set(ids.map((id) => ({ id, name: '…' })));
-    this.loadLabelsForIds(ids);
-  }
-
-  private loadLabelsForIds(ids: string[]): void {
-    const k = this.kind();
-    forkJoin(
-      ids.map((id) =>
-        k === 'product'
-          ? this.productService.getById(id).pipe(
-              rxCatchError(() => of({ id, name: id, slug: '' } as ProductResponseDto)),
-            )
-          : this.categoryService.getById(id).pipe(
-              rxCatchError(() =>
-                of({
-                  id,
-                  name: id,
-                  slug: '',
-                  isActive: true,
-                  fullPath: '',
-                  translations: [],
-                } as CategoryResponseDto),
-              ),
-            ),
-      ),
-    ).subscribe((rows) => {
-      this.items.set(
-        ids.map((id, i) => {
-          const r = rows[i];
-          if (k === 'product') {
-            const p = r as ProductResponseDto;
-            return { id, name: p.name ?? id };
-          }
-          const c = r as CategoryResponseDto;
-          const name = c.fullPath ? `${c.name} · ${c.fullPath}` : c.name;
-          return { id, name: name || id };
-        }),
-      );
-    });
-  }
-
-  registerOnChange(fn: (value: string) => void): void {
+  registerOnChange(fn: (v: string) => void): void {
     this.onChange = fn;
   }
-
   registerOnTouched(fn: () => void): void {
     this.onTouched = fn;
   }
-
   setDisabledState(isDisabled: boolean): void {
     this.disabled = isDisabled;
-    if (isDisabled) {
-      this.searchCtrl.disable({ emitEvent: false });
-      this.advancedCsv.disable({ emitEvent: false });
-    } else {
-      this.searchCtrl.enable({ emitEvent: false });
-      this.advancedCsv.enable({ emitEvent: false });
-    }
   }
 
-  onOptionSelected(event: MatAutocompleteSelectedEvent): void {
-    const opt = event.option.value as ProductResponseDto | CategoryResponseDto;
-    this.addEntity(opt);
-    this.searchCtrl.setValue('', { emitEvent: false });
-    this.searchOptions.set([]);
+  private emit(v: string): void {
+    this.value = v;
+    this.onChange(v);
+    this.onTouched();
   }
 
-  private addEntity(o: ProductResponseDto | CategoryResponseDto): void {
-    const id = o.id;
-    if (this.items().some((i) => i.id === id)) {
+  onSearchInput(v: string): void {
+    this.search = v;
+    const q = v.trim();
+    if (q.length < 2) {
+      this.suggestions.set([]);
       return;
     }
-    const name = this.displayEntity(o);
-    this.items.update((arr) => [...arr, { id, name }]);
-    this.emit();
-    this.onTouched();
+    this.loading.set(true);
+    const req =
+      this.kind === 'product'
+        ? this.products.search(q, 1, 8).pipe(
+            map((payload: unknown) => {
+              const items = ((payload as { items?: unknown[] } | null)?.items ?? []) as Array<{
+                id: unknown;
+                name?: unknown;
+                slug?: unknown;
+              }>;
+              return items
+                .map((x) => ({ id: String(x.id), name: String(x.name ?? x.slug ?? x.id) }))
+                .filter((x) => !!x.id);
+            }),
+            catchError(() => of([] as PickerItem[])),
+          )
+        : this.categories.search(q).pipe(
+            map((payload: unknown) => {
+              const list = (payload ?? []) as Array<{ id: unknown; name?: unknown; slug?: unknown }>;
+              return list
+                .map((x) => ({ id: String(x.id), name: String(x.name ?? x.slug ?? x.id) }))
+                .filter((x) => !!x.id);
+            }),
+            catchError(() => of([] as PickerItem[])),
+          );
+    req.subscribe((items) => {
+      this.suggestions.set(items);
+      this.loading.set(false);
+    });
+  }
+
+  add(id: string): void {
+    const ids = this.ids;
+    if (ids.includes(id)) return;
+    this.emit([...ids, id].join(', '));
   }
 
   remove(id: string): void {
-    this.items.update((arr) => arr.filter((i) => i.id !== id));
-    this.emit();
-    this.onTouched();
+    this.emit(this.ids.filter((x) => x !== id).join(', '));
   }
 
-  private emit(): void {
-    const csv = this.items()
-      .map((i) => i.id)
-      .join(', ');
-    this.onChange(csv);
-  }
-
-  toggleAdvanced(): void {
-    const next = !this.advancedOpen();
-    this.advancedOpen.set(next);
-    if (next) {
-      this.advancedCsv.setValue(this.items().map((i) => i.id).join(', '));
-    }
-  }
-
-  applyAdvancedCsv(): void {
-    const text = this.advancedCsv.value ?? '';
-    const ids = [...new Set(parseGuidCsv(text))];
-    if (ids.length === 0) {
-      this.items.set([]);
-      this.emit();
-      this.onTouched();
-      return;
-    }
-    this.items.set(ids.map((id) => ({ id, name: '…' })));
-    this.loadLabelsForIds(ids);
-    this.emit();
-    this.onTouched();
-  }
-
-  trackById(_: number, item: { id: string }): string {
-    return item.id;
+  onRawInput(v: string): void {
+    this.emit(v);
   }
 }
