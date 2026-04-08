@@ -1,5 +1,3 @@
-import { OptionalJson } from './promotion.types';
-
 export function parseGuidCsv(csv: string): string[] {
   return csv
     .split(/[,;\s\n]+/)
@@ -14,13 +12,7 @@ export function invalidGuidsInCsv(csv: string): string[] {
   return parseGuidCsv(csv).filter((id) => !GUID_RE.test(id));
 }
 
-export function optionalGuidList(ids: string[]): OptionalJson<string[]> {
-  return ids.length > 0 ? { hasValue: true, value: ids } : { hasValue: false, value: null };
-}
-
-export function optionalJsonToCsv(opt: OptionalJson<string[]> | undefined): string {
-  if (!opt?.hasValue || !opt.value?.length) {
-    return '';
-  }
-  return opt.value.join(', ');
+export function guidListToCsv(ids: string[] | null | undefined): string {
+  if (!ids?.length) return '';
+  return ids.join(', ');
 }

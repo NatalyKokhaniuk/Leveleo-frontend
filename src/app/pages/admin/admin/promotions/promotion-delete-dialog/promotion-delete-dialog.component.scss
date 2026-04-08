@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  max-width: 100%;
+}
+
+.promotion-delete-dialog {
+  min-width: min(620px, 92vw);
+  max-width: min(700px, 96vw);
+}

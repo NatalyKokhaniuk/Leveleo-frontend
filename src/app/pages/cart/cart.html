@@ -30,11 +30,17 @@
       <p class="text-center text-on-surface/80 py-12">{{ 'CART.EMPTY' | translate }}</p>
     } @else {
       @if (hasCartPromotion() && cartTotals(); as totals) {
-        <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5">
-          <p class="text-sm md:text-base font-medium text-primary m-0">
-            {{ 'CART.PROMO_APPLIED' | translate }}: {{ promoLabel() }}
-          </p>
-          <div class="flex flex-wrap items-baseline gap-3 mt-2">
+        <section
+          class="relative rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5 pr-[min(42%,11rem)] md:pr-36 overflow-hidden"
+          [attr.aria-label]="('CART.PROMO_APPLIED' | translate) + ': ' + promoLabel()"
+        >
+          <span
+            class="cart-page__cart-promo-chip absolute top-2 right-2 z-[1] max-w-[min(72%,12rem)] truncate rounded-md px-2 py-1 text-center text-xs font-medium shadow-sm pointer-events-none"
+            [title]="promoLabel()"
+          >
+            {{ promoLabel() }}
+          </span>
+          <div class="flex flex-wrap items-baseline gap-3">
             <span class="text-sm text-on-surface/60 line-through">
               {{ totals.totalOriginalPrice | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
             </span>
@@ -78,6 +84,12 @@
               {{ 'CART.TOTAL' | translate }}:
               {{ displayedTotal() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
             </div>
+            @if (totals.totalProductDiscount > 0) {
+              <div class="text-sm opacity-80">
+                {{ 'CART.PRODUCT_DISCOUNT' | translate }}:
+                -{{ totals.totalProductDiscount | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+              </div>
+            }
           </div>
           <button matButton="elevated" color="primary" type="button" (click)="checkout()">
             {{ 'CART.CHECKOUT' | translate }}

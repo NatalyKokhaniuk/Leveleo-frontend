@@ -123,6 +123,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/catalog/catalog').then((m) => m.CatalogPage),
   },
   {
+    path: 'promotions',
+    loadComponent: () => import('./pages/promotions/promotions').then((m) => m.PromotionsPage),
+  },
+  {
     path: 'products/brand/:brandSlug',
     loadComponent: () => import('./pages/products/products').then((m) => m.Products),
   },

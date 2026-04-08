@@ -18,6 +18,8 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
   const isRefreshRequest = req.url.endsWith('/auth/refresh-token');
 
   const isMediaSignedUrlGet = req.method === 'GET' && req.url.includes('/media/url');
+  const isPromotionTranslationRequest =
+    req.url.includes('/promotions/') && req.url.includes('/translations');
 
   let authReq = req.clone({ withCredentials: true });
 
@@ -57,7 +59,11 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
         );
       }
 
-      if (error.status === 500) router.navigate(['/internal-server-error']);
+      // Для upsert перекладів промо 500 може бути робочим сигналом для локального fallback (PUT -> POST),
+      // тому не робимо глобальний редірект і даємо викликачу обробити помилку.
+      if (error.status === 500 && !isPromotionTranslationRequest) {
+        router.navigate(['/internal-server-error']);
+      }
       if (error.status === 503) router.navigate(['/service-unavailable']);
 
       return throwError(() => error);

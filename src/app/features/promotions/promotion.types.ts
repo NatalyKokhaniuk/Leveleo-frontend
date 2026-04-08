@@ -10,22 +10,16 @@ export enum DiscountType {
   FixedAmount = 1,
 }
 
-/** JSON-подання Optional&lt;T&gt; для умов рівня продукт/кошик. */
-export interface OptionalJson<T> {
-  hasValue: boolean;
-  value?: T | null;
-}
-
 export interface ProductLevelConditionDto {
-  productIds?: OptionalJson<string[]>;
-  categoryIds?: OptionalJson<string[]>;
+  productIds?: string[] | null;
+  categoryIds?: string[] | null;
 }
 
 export interface CartLevelConditionDto {
   minTotalAmount?: number | null;
   minQuantity?: number | null;
-  productIds?: OptionalJson<string[]>;
-  categoryIds?: OptionalJson<string[]>;
+  productIds?: string[] | null;
+  categoryIds?: string[] | null;
 }
 
 export interface PromotionTranslationDto {
@@ -74,14 +68,6 @@ export interface CreatePromotionDto {
   couponCode?: string | null;
   maxUsages?: number | null;
   translations?: PromotionTranslationDto[] | null;
-}
-
-/**
- * Тіло `PUT /api/promotions/{id}` на бекенді: `[FromBody] UpdatePromotionRequest` з обов’язковим `dto`.
- * Плоский JSON дає 400: «dto field is required» / помилка десеріалізації кореня.
- */
-export interface UpdatePromotionRequestBody {
-  dto: UpdatePromotionDto;
 }
 
 /** Поля оновлення акції (вкладені в `dto` у запиті). */

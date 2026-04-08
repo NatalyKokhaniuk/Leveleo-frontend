@@ -2,9 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, forwardRef, inject, Input, signal } from '@angular/core';
 import { ControlValueAccessor, FormsModule, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { catchError, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { CategoryService } from '../../../../../features/categories/category.service';
 import { ProductService } from '../../../../../features/products/product.service';
 import { parseGuidCsv } from '../../../../../features/promotions/promotion-optional.util';
@@ -14,7 +15,14 @@ type PickerItem = { id: string; name: string };
 @Component({
   selector: 'app-promotion-entity-ids-picker',
   standalone: true,
-  imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule, MatInputModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatInputModule,
+    MatFormFieldModule,
+  ],
   templateUrl: './promotion-entity-ids-picker.component.html',
   styleUrl: './promotion-entity-ids-picker.component.scss',
   providers: [
@@ -34,6 +42,7 @@ export class PromotionEntityIdsPickerComponent implements ControlValueAccessor {
   value = '';
   search = '';
   suggestions = signal<PickerItem[]>([]);
+  selectedItems = signal<PickerItem[]>([]);
   loading = signal(false);
   disabled = false;
 
@@ -46,6 +55,7 @@ export class PromotionEntityIdsPickerComponent implements ControlValueAccessor {
 
   writeValue(obj: string | null): void {
     this.value = obj ?? '';
+    this.syncSelectedItemsFromValue();
   }
   registerOnChange(fn: (v: string) => void): void {
     this.onChange = fn;
@@ -61,6 +71,7 @@ export class PromotionEntityIdsPickerComponent implements ControlValueAccessor {
     this.value = v;
     this.onChange(v);
     this.onTouched();
+    this.syncSelectedItemsFromValue();
   }
 
   onSearchInput(v: string): void {
@@ -102,16 +113,48 @@ export class PromotionEntityIdsPickerComponent implements ControlValueAccessor {
   }
 
   add(id: string): void {
+    const picked = this.suggestions().find((s) => s.id === id);
     const ids = this.ids;
     if (ids.includes(id)) return;
     this.emit([...ids, id].join(', '));
+    if (picked) {
+      this.selectedItems.update((list) => {
+        if (list.some((x) => x.id === picked.id)) return list;
+        return [...list, picked];
+      });
+    }
   }
 
   remove(id: string): void {
     this.emit(this.ids.filter((x) => x !== id).join(', '));
+    this.selectedItems.update((list) => list.filter((x) => x.id !== id));
   }
 
-  onRawInput(v: string): void {
-    this.emit(v);
+  private syncSelectedItemsFromValue(): void {
+    const ids = this.ids;
+    if (!ids.length) {
+      this.selectedItems.set([]);
+      return;
+    }
+    forkJoin(ids.map((id) => this.resolveItem(id))).subscribe((items) => {
+      this.selectedItems.set(items);
+    });
+  }
+
+  private resolveItem(id: string) {
+    const existing = this.selectedItems().find((x) => x.id === id);
+    if (existing) {
+      return of(existing);
+    }
+    if (this.kind === 'product') {
+      return this.products.getById(id).pipe(
+        map((p) => ({ id: p.id, name: p.name || p.slug || p.id })),
+        catchError(() => of({ id, name: id })),
+      );
+    }
+    return this.categories.getById(id).pipe(
+      map((c) => ({ id: c.id, name: c.name || c.slug || c.id })),
+      catchError(() => of({ id, name: id })),
+    );
   }
 }

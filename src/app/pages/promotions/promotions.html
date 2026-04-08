@@ -1,0 +1,57 @@
+<main class="pt-28 px-4 md:px-10 max-w-7xl mx-auto pb-16 flex flex-col gap-6">
+  <header class="flex flex-col gap-2">
+    <h1 class="text-2xl md:text-3xl font-fixel text-left">{{ 'PROMOTIONS_PAGE.TITLE' | translate }}</h1>
+    <p class="opacity-80 max-w-3xl">{{ 'PROMOTIONS_PAGE.DESCRIPTION' | translate }}</p>
+  </header>
+
+  @if (loading()) {
+    <div class="text-center py-10 opacity-80">{{ 'PROMOTIONS_PAGE.LOADING' | translate }}</div>
+  } @else if (loadError()) {
+    <div class="text-center py-10 opacity-80">{{ 'PROMOTIONS_PAGE.LOAD_ERROR' | translate }}</div>
+  } @else if (rows().length === 0) {
+    <div class="text-center py-10 opacity-80">{{ 'PROMOTIONS_PAGE.EMPTY' | translate }}</div>
+  } @else {
+    <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+      @for (p of rows(); track p.id) {
+        <article class="rounded-2xl border border-outline-variant/30 bg-surface-container p-4 flex flex-col gap-3">
+          <div class="w-full aspect-[16/9] rounded-xl bg-surface-container-high overflow-hidden flex items-center justify-center">
+            @if (imageUrl(p.id); as img) {
+              <img [src]="img" [alt]="p.name ?? p.slug" class="w-full h-full object-cover" loading="lazy" />
+            } @else {
+              <mat-icon class="text-on-surface/35 !w-10 !h-10 !text-4xl">local_offer</mat-icon>
+            }
+          </div>
+
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="text-lg font-semibold leading-tight break-words">{{ p.name ?? p.slug }}</h2>
+            <span class="text-xs px-2 py-1 rounded-full bg-primary-container text-on-primary-container shrink-0">
+              {{ levelKey(p) | translate }}
+            </span>
+          </div>
+
+          <p class="text-sm opacity-85 min-h-10">
+            {{ p.description || ('PROMOTIONS_PAGE.NO_DESCRIPTION' | translate) }}
+          </p>
+
+          <div class="grid grid-cols-2 gap-2 text-sm">
+            <div class="rounded-lg bg-surface-container-high px-3 py-2">
+              <div class="opacity-70">{{ 'PROMOTIONS_PAGE.DISCOUNT' | translate }}</div>
+              <div class="font-semibold">{{ discountText(p) }}</div>
+            </div>
+            <div class="rounded-lg bg-surface-container-high px-3 py-2">
+              <div class="opacity-70">{{ 'PROMOTIONS_PAGE.STATUS' | translate }}</div>
+              <div class="font-semibold">
+                {{ p.isActive ? ('ADMIN.CATEGORY.YES' | translate) : ('ADMIN.CATEGORY.NO' | translate) }}
+              </div>
+            </div>
+          </div>
+
+          <div class="text-xs opacity-75">
+            {{ 'PROMOTIONS_PAGE.PERIOD' | translate }}:
+            {{ p.startDate | date: 'shortDate' }} - {{ p.endDate | date: 'shortDate' }}
+          </div>
+        </article>
+      }
+    </section>
+  }
+</main>

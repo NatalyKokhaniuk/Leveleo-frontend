@@ -15,6 +15,8 @@ import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 import { PromotionService } from '../../../../features/promotions/promotion.service';
 import { DiscountType, PromotionLevel, PromotionResponseDto } from '../../../../features/promotions/promotion.types';
+import { toDiscountType, toPromotionLevel } from '../../../../features/promotions/promotion-enum.util';
+import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
 import {
   PromotionDeleteDialogComponent,
   PromotionDeleteDialogData,
@@ -52,6 +54,7 @@ type PromotionSortKey =
     MatSelectModule,
     MatCheckboxModule,
     HorizontalDragScrollDirective,
+    MediaImageThumbComponent,
   ],
   templateUrl: './promotions.html',
   styleUrl: './promotions.scss',
@@ -79,6 +82,7 @@ export class AdminPromotionsComponent {
 
   displayedColumns = [
     'name',
+    'imageKey',
     'slug',
     'level',
     'discountType',
@@ -94,7 +98,11 @@ export class AdminPromotionsComponent {
   ];
 
   private discountTypeLabel(v: PromotionResponseDto): number {
-    return v.discountType ?? -1;
+    return Number(toDiscountType(v.discountType ?? -1));
+  }
+
+  private levelLabel(v: PromotionResponseDto): number {
+    return Number(toPromotionLevel(v.level));
   }
 
   filteredAndSorted = computed(() => {
@@ -121,7 +129,7 @@ export class AdminPromotionsComponent {
       });
     }
     if (lf !== 'all') {
-      list = list.filter((p) => Number(p.level) === Number(lf));
+      list = list.filter((p) => this.levelLabel(p) === Number(lf));
     }
     if (df !== 'all') {
       list = list.filter((p) => Number(p.discountType ?? -1) === Number(df));
@@ -146,8 +154,8 @@ export class AdminPromotionsComponent {
           vb = (b.slug ?? '').toLowerCase();
           break;
         case 'level':
-          va = Number(a.level);
-          vb = Number(b.level);
+          va = this.levelLabel(a);
+          vb = this.levelLabel(b);
           break;
         case 'discountType':
           va = this.discountTypeLabel(a);
@@ -229,7 +237,13 @@ export class AdminPromotionsComponent {
   confirmDelete(promotion: PromotionResponseDto): void {
     const data: PromotionDeleteDialogData = { id: promotion.id, name: promotion.name ?? promotion.slug };
     this.dialog
-      .open(PromotionDeleteDialogComponent, { width: 'min(560px, 92vw)', data })
+      .open(PromotionDeleteDialogComponent, {
+        width: 'min(700px, 96vw)',
+        maxWidth: '96vw',
+        autoFocus: false,
+        restoreFocus: true,
+        data,
+      })
       .afterClosed()
       .subscribe((ok) => ok && this.load());
   }
@@ -275,6 +289,18 @@ export class AdminPromotionsComponent {
   }
   next(): void {
     if (this.page() < this.totalPages()) this.page.update((p) => p + 1);
+  }
+
+  levelTextKey(row: PromotionResponseDto): string {
+    return this.levelLabel(row) === PromotionLevel.Cart
+      ? 'ADMIN.PROMOTION.LEVEL_CART'
+      : 'ADMIN.PROMOTION.LEVEL_PRODUCT';
+  }
+
+  discountTypeTextKey(row: PromotionResponseDto): string {
+    return this.discountTypeLabel(row) === DiscountType.FixedAmount
+      ? 'ADMIN.PROMOTION.DISCOUNT_FIXED'
+      : 'ADMIN.PROMOTION.DISCOUNT_PERCENT';
   }
 }
 

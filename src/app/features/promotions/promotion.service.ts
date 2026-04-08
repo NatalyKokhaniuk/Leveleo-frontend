@@ -5,7 +5,6 @@ import {
   PromotionResponseDto,
   PromotionTranslationDto,
   UpdatePromotionDto,
-  UpdatePromotionRequestBody,
 } from './promotion.types';
 import { ApiService } from '../../core/services/api.service';
 
@@ -28,8 +27,7 @@ export class PromotionService {
   }
 
   update(id: string, dto: UpdatePromotionDto): Observable<PromotionResponseDto> {
-    const body: UpdatePromotionRequestBody = { dto };
-    return this.api.put<PromotionResponseDto>(`${this.base}/${id}`, body);
+    return this.api.put<PromotionResponseDto>(`${this.base}/${id}`, dto);
   }
 
   delete(id: string): Observable<void> {

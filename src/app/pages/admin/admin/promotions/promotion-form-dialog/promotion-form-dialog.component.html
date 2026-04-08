@@ -8,7 +8,10 @@
       <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-2">{{ 'ADMIN.CATEGORY.SECTION_EN' | translate }}</p>
       <mat-form-field class="w-full"><mat-label>{{ 'ADMIN.CATEGORY.NAME_EN' | translate }}</mat-label><input matInput formControlName="nameEn" /></mat-form-field>
       <mat-form-field class="w-full"><mat-label>{{ 'ADMIN.CATEGORY.DESCRIPTION_EN' | translate }}</mat-label><textarea matInput formControlName="descriptionEn" rows="2"></textarea></mat-form-field>
-      <mat-form-field class="w-full"><mat-label>{{ 'ADMIN.PROMOTION.SLUG' | translate }}</mat-label><input matInput formControlName="slug" /></mat-form-field>
+      <div class="w-full rounded-xl border border-outline-variant/40 bg-surface-container/50 px-3 py-2">
+        <div class="text-xs opacity-70 mb-1">{{ 'ADMIN.PROMOTION.SLUG' | translate }}</div>
+        <div class="text-sm font-medium break-all">{{ readonlySlug() }}</div>
+      </div>
 
       <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-2">{{ 'ADMIN.CATEGORY.SECTION_UK' | translate }}</p>
       <mat-form-field class="w-full"><mat-label>{{ 'ADMIN.CATEGORY.NAME_UK' | translate }}</mat-label><input matInput formControlName="nameUk" /></mat-form-field>
@@ -41,11 +44,17 @@
       <mat-form-field class="w-full"><mat-label>{{ 'ADMIN.PROMOTION.END_DATE' | translate }}</mat-label><input matInput type="datetime-local" formControlName="endDate" /></mat-form-field>
 
       @if (levelIsProduct()) {
-        <p class="text-xs font-semibold uppercase tracking-wide opacity-80 pt-2">{{ 'ADMIN.PROMOTION.SECTION_PRODUCT_CONDITIONS' | translate }}</p>
-        <p class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.PRODUCT_IDS' | translate }}</p>
-        <app-promotion-entity-ids-picker formControlName="productIdsCsv" kind="product" />
-        <p class="text-xs opacity-70">{{ 'ADMIN.PROMOTION.CATEGORY_IDS' | translate }}</p>
-        <app-promotion-entity-ids-picker formControlName="productCategoryIdsCsv" kind="category" />
+        <section class="space-y-3 pt-2">
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80">{{ 'ADMIN.PROMOTION.SECTION_PRODUCT_CONDITIONS' | translate }}</p>
+          <div class="space-y-1.5">
+            <p class="text-sm opacity-85">{{ 'ADMIN.PROMOTION.PRODUCT_IDS' | translate }}</p>
+            <app-promotion-entity-ids-picker formControlName="productIdsCsv" kind="product" />
+          </div>
+          <div class="space-y-1.5">
+            <p class="text-sm opacity-85">{{ 'ADMIN.PROMOTION.CATEGORY_IDS' | translate }}</p>
+            <app-promotion-entity-ids-picker formControlName="productCategoryIdsCsv" kind="category" />
+          </div>
+        </section>
       }
 
       @if (levelIsCart()) {

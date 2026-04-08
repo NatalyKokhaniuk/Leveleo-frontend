@@ -81,6 +81,17 @@
     "COMPARE_CATEGORY": "Compare",
     "SHOW_ALL": "Show all categories"
   },
+  "PROMOTIONS_PAGE": {
+    "TITLE": "Promotions",
+    "DESCRIPTION": "Current discounts and special offers for product categories and the entire cart.",
+    "LOADING": "Loading promotions...",
+    "LOAD_ERROR": "Could not load promotions. Please try again later.",
+    "EMPTY": "No active promotions right now.",
+    "NO_DESCRIPTION": "No description",
+    "DISCOUNT": "Discount",
+    "STATUS": "Active",
+    "PERIOD": "Period"
+  },
   "CART": {
     "TITLE": "Shopping cart",
     "DESCRIPTION": "Items you added to your cart.",
@@ -89,7 +100,8 @@
     "LOAD_ERROR": "Could not load cart. Please try again later.",
     "GUEST_ONLY": "Sign in or register to purchase products.",
     "GUEST_SNACK": "Sign in or register to purchase products.",
-    "PROMO_APPLIED": "Cart discount",
+    "PROMO_APPLIED": "Cart promotion",
+    "PRODUCT_DISCOUNT": "Product discount",
     "TOTAL": "Total",
     "CHECKOUT": "Buy products",
     "COUPON": "Coupon",

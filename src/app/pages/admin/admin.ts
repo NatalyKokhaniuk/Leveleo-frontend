@@ -33,9 +33,8 @@ export class AdminComponent {
   /** USERS — лише Admin; підписки — Admin і Moderator (видалення лише в UI для Admin). */
   showMenuItem(item: { key: string }): boolean {
     if (item.key === 'USERS' && !this.userservice.isAdmin()) return false;
-    if (item.key === 'SUBSCRIPTIONS' && !this.userservice.hasAnyRole(['Admin', 'Moderator'])) {
-      return false;
-    }
+    if (item.key === 'STATISTICS' && !this.userservice.isAdmin()) return false;
+    if (item.key === 'SUBSCRIPTIONS' && !this.userservice.isAdmin()) return false;
     return true;
   }
 }

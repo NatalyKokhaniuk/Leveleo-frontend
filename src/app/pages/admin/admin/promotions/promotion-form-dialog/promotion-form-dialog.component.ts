@@ -38,9 +38,8 @@ import {
 } from '../../../../../features/promotions/promotion.types';
 import { toDiscountType, toPromotionLevel } from '../../../../../features/promotions/promotion-enum.util';
 import {
+  guidListToCsv,
   invalidGuidsInCsv,
-  optionalGuidList,
-  optionalJsonToCsv,
   parseGuidCsv,
 } from '../../../../../features/promotions/promotion-optional.util';
 import { PromotionEntityIdsPickerComponent } from '../promotion-entity-ids-picker/promotion-entity-ids-picker.component';
@@ -141,9 +140,8 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     {
       nameEn: ['', Validators.required],
       descriptionEn: [''],
-      nameUk: ['', Validators.required],
+      nameUk: [''],
       descriptionUk: [''],
-      slug: ['', Validators.required],
       imageKey: [''],
       level: [PromotionLevel.Product, Validators.required],
       discountType: [DiscountType.Percentage, Validators.required],
@@ -226,25 +224,27 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     const tr = (code: string) =>
       p.translations?.find((t) => t.languageCode.toLowerCase() === code.toLowerCase());
     const uk = tr('uk');
+    const enName = p.name ?? '';
+    const enDescription = p.description ?? '';
     this.form.patchValue({
-      nameEn: p.name ?? '',
-      descriptionEn: p.description ?? '',
-      nameUk: uk?.name ?? '',
-      descriptionUk: uk?.description ?? '',
-      slug: p.slug,
+      nameEn: enName,
+      descriptionEn: enDescription,
+      // Якщо uk-перекладу ще немає, підставляємо en, щоб форма залишалась валідною.
+      nameUk: uk?.name ?? enName,
+      descriptionUk: uk?.description ?? enDescription,
       imageKey: p.imageKey ?? '',
       level: toPromotionLevel(p.level),
       discountType: toDiscountType(p.discountType ?? DiscountType.Percentage),
       discountValue: this.coerceDiscountValueForForm(p.discountValue),
       startDate: this.toDatetimeLocal(new Date(p.startDate)),
       endDate: this.toDatetimeLocal(new Date(p.endDate)),
-      productIdsCsv: optionalJsonToCsv(p.productConditions?.productIds),
-      productCategoryIdsCsv: optionalJsonToCsv(p.productConditions?.categoryIds),
+      productIdsCsv: guidListToCsv(p.productConditions?.productIds),
+      productCategoryIdsCsv: guidListToCsv(p.productConditions?.categoryIds),
       cartMinTotal:
         p.cartConditions?.minTotalAmount != null ? String(p.cartConditions.minTotalAmount) : '',
       cartMinQty: p.cartConditions?.minQuantity != null ? String(p.cartConditions.minQuantity) : '',
-      cartProductIdsCsv: optionalJsonToCsv(p.cartConditions?.productIds),
-      cartCategoryIdsCsv: optionalJsonToCsv(p.cartConditions?.categoryIds),
+      cartProductIdsCsv: guidListToCsv(p.cartConditions?.productIds),
+      cartCategoryIdsCsv: guidListToCsv(p.cartConditions?.categoryIds),
       isCoupon: p.isCoupon,
       isPersonal: p.isPersonal,
       couponCode: p.couponCode ?? '',
@@ -272,6 +272,25 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
 
   private emptyToNull(s: string): string | null {
     return s.trim() === '' ? null : s.trim();
+  }
+
+  private slugify(value: string): string {
+    return value
+      .toLowerCase()
+      .trim()
+      .replace(/['"`]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .replace(/-{2,}/g, '-');
+  }
+
+  readonlySlug(): string {
+    if (this.data.mode === 'edit') {
+      return this.promotionSnapshot?.slug ?? this.data.promotion?.slug ?? '—';
+    }
+    const nameEn = this.form.get('nameEn')?.value ?? '';
+    const generated = this.slugify(String(nameEn));
+    return generated || '—';
   }
 
   /** `type="number"` у шаблоні дає number | null, не рядок. */
@@ -305,8 +324,8 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       const cids = parseGuidCsv(v.productCategoryIdsCsv);
       return {
         productConditions: {
-          productIds: optionalGuidList(pids),
-          categoryIds: optionalGuidList(cids),
+          productIds: pids.length ? pids : null,
+          categoryIds: cids.length ? cids : null,
         },
         cartConditions: null,
       };
@@ -318,8 +337,8 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       cartConditions: {
         minTotalAmount: this.numOrNull(v.cartMinTotal),
         minQuantity: this.intOrNull(v.cartMinQty),
-        productIds: optionalGuidList(cartPids),
-        categoryIds: optionalGuidList(cartCids),
+        productIds: cartPids.length ? cartPids : null,
+        categoryIds: cartCids.length ? cartCids : null,
       },
     };
   }
@@ -412,9 +431,10 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     };
 
     if (this.data.mode === 'create') {
+      const generatedSlug = this.slugify(v.nameEn) || `promotion-${Date.now()}`;
       const dto: CreatePromotionDto = {
         name: v.nameEn,
-        slug: v.slug.trim(),
+        slug: generatedSlug,
         description: v.descriptionEn || null,
         imageKey: emptyToNull(v.imageKey),
         level,
@@ -511,23 +531,15 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       // На бекенді пошук перекладу може бути case-sensitive (EN vs en).
       languageCode: matched?.languageCode ?? dto.languageCode,
     };
-    const has = !!matched;
-    if (has) {
-      return this.promotionService.updateTranslation(promotionId, dtoToSend).pipe(
-        catchError((err: unknown) => {
-          if (!this.shouldRetryTranslationUpsertAsAdd(err)) {
-            return throwError(() => err);
-          }
-          return this.promotionService.addTranslation(promotionId, dtoToSend);
-        }),
-      );
-    }
-    return this.promotionService.addTranslation(promotionId, dtoToSend).pipe(
+
+    // Надійніший порядок для нестабільного бекенду:
+    // спочатку пробуємо UPDATE, і лише якщо перекладу справді немає — ADD.
+    return this.promotionService.updateTranslation(promotionId, dtoToSend).pipe(
       catchError((err: unknown) => {
-        if (!this.shouldRetryTranslationUpsertAsUpdate(err)) {
+        if (!this.shouldRetryTranslationUpsertAsAdd(err)) {
           return throwError(() => err);
         }
-        return this.promotionService.updateTranslation(promotionId, dtoToSend);
+        return this.promotionService.addTranslation(promotionId, dtoToSend);
       }),
     );
   }
@@ -559,33 +571,6 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       raw.includes('Translation for language') ||
       raw.includes('not found for promotion') ||
       raw.includes('not found for Promotion')
-    ) {
-      return true;
-    }
-    return (
-      err.status === 500 &&
-      (raw.includes('affected 0') ||
-        raw.includes('Concurrency') ||
-        raw.includes('concurrency') ||
-        raw.includes('INTERNAL_ERROR'))
-    );
-  }
-
-  /**
-   * POST перекладу падає (дублікат, concurrency у AddTranslation) — пробуємо PUT оновлення.
-   */
-  private shouldRetryTranslationUpsertAsUpdate(err: unknown): boolean {
-    if (!(err instanceof HttpErrorResponse) || err.status < 400) {
-      return false;
-    }
-    if (err.status === 409) {
-      return true;
-    }
-    const raw = this.httpErrorText(err);
-    if (
-      raw.includes('already exists') ||
-      raw.includes('Duplicate') ||
-      raw.includes('duplicate')
     ) {
       return true;
     }

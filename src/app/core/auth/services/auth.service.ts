@@ -44,21 +44,27 @@ export class AuthService {
   isAuthenticated = this._isAuthenticated.asReadonly();
   isRestoring = this._isRestoring.asReadonly();
   platformId = inject(PLATFORM_ID);
-  isAdmin = computed(() => this.currentUser()?.roles.includes('Admin') ?? false);
+  private hasRoleInsensitive(role: string): boolean {
+    const user = this.currentUser();
+    if (!user?.roles?.length) return false;
+    const target = role.trim().toLowerCase();
+    return user.roles.some((r) => String(r).trim().toLowerCase() === target);
+  }
+
+  isAdmin = computed(() => this.hasRoleInsensitive('Admin'));
   isRestoring$ = toObservable(this._isRestoring);
   // ADD BELOW isAdmin
 
   hasRole(role: string): boolean {
-    const user = this.currentUser();
-    return !!user && user.roles.includes(role);
+    return this.hasRoleInsensitive(role);
   }
 
   hasAnyRole(roles: string[]): boolean {
-    const user = this.currentUser();
-    return !!user && roles.some((r) => user.roles.includes(r));
+    if (!roles.length) return false;
+    return roles.some((r) => this.hasRoleInsensitive(r));
   }
 
-  isModerator = computed(() => this.currentUser()?.roles.includes('Moderator') ?? false);
+  isModerator = computed(() => this.hasRoleInsensitive('Moderator'));
   // ─── Відновлення сесії ───────────────────────────────────────────
   // Повертає Observable — використовується в APP_INITIALIZER щоб
   // Angular чекав завершення перед першим рендером.

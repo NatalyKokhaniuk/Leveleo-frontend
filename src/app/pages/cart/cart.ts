@@ -53,6 +53,7 @@ export class CartPage implements OnInit {
   lines = signal<{ product: ProductResponseDto; quantity: number }[]>([]);
   cartTotals = signal<{
     totalOriginalPrice: number;
+    totalProductDiscount: number;
     totalPayable: number;
     totalCartDiscount: number;
     promoName: string | null;
@@ -117,6 +118,7 @@ export class CartPage implements OnInit {
   private mapCartToRows(cart: ShoppingCartDto) {
     this.cartTotals.set({
       totalOriginalPrice: Number(cart.totalOriginalPrice ?? 0),
+      totalProductDiscount: Number(cart.totalProductDiscount ?? 0),
       totalPayable: Number(cart.totalPayable ?? 0),
       totalCartDiscount: Number(cart.totalCartDiscount ?? 0),
       promoName: cart.appliedCartPromotion?.name?.trim() || null,
@@ -132,7 +134,8 @@ export class CartPage implements OnInit {
       .map((it) => {
         const product = it.product;
         const quantity = Math.max(0, Number(it.quantity) || 0);
-        return product ? { product, quantity } : null;
+        if (!product) return null;
+        return { product, quantity };
       })
       .filter(
         (row): row is { product: ProductResponseDto; quantity: number } =>
@@ -144,7 +147,10 @@ export class CartPage implements OnInit {
     return forkJoin(
       raw.map((it) =>
         this.products.getById(String(it.productId ?? it.product?.id ?? '')).pipe(
-          map((p) => ({ product: p, quantity: Math.max(0, Number(it.quantity) || 0) })),
+          map((p) => {
+            const quantity = Math.max(0, Number(it.quantity) || 0);
+            return { product: p, quantity };
+          }),
           catchError(() => of(null)),
         ),
       ),

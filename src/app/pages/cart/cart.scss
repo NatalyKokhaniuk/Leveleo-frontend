@@ -2,3 +2,9 @@
   display: block;
   width: 100%;
 }
+
+/* Як product-card__promo / product-detail-tabs__promo: червона плашка акції */
+.cart-page__cart-promo-chip {
+  background-color: var(--mat-sys-error);
+  color: var(--mat-sys-on-error);
+}
