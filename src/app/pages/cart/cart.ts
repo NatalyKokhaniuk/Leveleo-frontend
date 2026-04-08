@@ -14,6 +14,7 @@ import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CartStateService } from '../../core/shopping-cart/cart-state.service';
 import { ShoppingCartService } from '../../features/shopping-cart/shopping-cart.service';
+import { computePricingFromCartItems } from '../../features/shopping-cart/cart-pricing.util';
 import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
 import { ProductService } from '../../features/products/product.service';
 import { ProductResponseDto } from '../../features/products/product.types';
@@ -52,10 +53,15 @@ export class CartPage implements OnInit {
   /** Порядок як у відповіді кошика. */
   lines = signal<{ product: ProductResponseDto; quantity: number }[]>([]);
   cartTotals = signal<{
-    totalOriginalPrice: number;
+    /** Σ каталожних цін — для узгодженості з рядками. */
+    totalCatalogList: number;
+    /** З рядків: (list − після товарної акції) × qty. */
     totalProductDiscount: number;
-    totalPayable: number;
+    /** Після товарних знижок, до знижки кошика. */
+    subtotalAfterProductPromotions: number;
+    /** З API; якщо 0 — fallback з сумою по рядках. */
     totalCartDiscount: number;
+    totalPayable: number;
     promoName: string | null;
     promoDiscountType: number | null;
     promoDiscountValue: number | null;
@@ -116,11 +122,17 @@ export class CartPage implements OnInit {
   }
 
   private mapCartToRows(cart: ShoppingCartDto) {
+    const fromItems = computePricingFromCartItems(cart.items);
+    const apiCartDiscount = Number(cart.totalCartDiscount ?? 0);
+    const totalCartDiscount =
+      apiCartDiscount > 0 ? apiCartDiscount : fromItems.totalCartDiscountFromLines;
+
     this.cartTotals.set({
-      totalOriginalPrice: Number(cart.totalOriginalPrice ?? 0),
-      totalProductDiscount: Number(cart.totalProductDiscount ?? 0),
+      totalCatalogList: fromItems.totalCatalogList,
+      totalProductDiscount: fromItems.totalProductDiscount,
+      subtotalAfterProductPromotions: fromItems.subtotalAfterProductPromotions,
+      totalCartDiscount,
       totalPayable: Number(cart.totalPayable ?? 0),
-      totalCartDiscount: Number(cart.totalCartDiscount ?? 0),
       promoName: cart.appliedCartPromotion?.name?.trim() || null,
       promoDiscountType: cart.appliedCartPromotion?.discountType ?? null,
       promoDiscountValue: cart.appliedCartPromotion?.discountValue ?? null,

@@ -42,7 +42,7 @@
           </span>
           <div class="flex flex-wrap items-baseline gap-3">
             <span class="text-sm text-on-surface/60 line-through">
-              {{ totals.totalOriginalPrice | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+              {{ totals.subtotalAfterProductPromotions | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
             </span>
             <span class="text-xl font-semibold text-primary">
               {{ totals.totalPayable | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
@@ -87,7 +87,13 @@
             @if (totals.totalProductDiscount > 0) {
               <div class="text-sm opacity-80">
                 {{ 'CART.PRODUCT_DISCOUNT' | translate }}:
-                -{{ totals.totalProductDiscount | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                −{{ totals.totalProductDiscount | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+              </div>
+            }
+            @if (totals.totalCartDiscount > 0) {
+              <div class="text-sm opacity-80">
+                {{ 'CART.CART_DISCOUNT' | translate }}:
+                −{{ totals.totalCartDiscount | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
               </div>
             }
           </div>
