@@ -29,13 +29,16 @@
             </span>
           </div>
 
-          <p class="text-sm opacity-85 min-h-10">
-            {{ displayDescription(p) || ('PROMOTIONS_PAGE.NO_DESCRIPTION' | translate) }}
-          </p>
-
-          <div class="rounded-lg bg-surface-container-high px-3 py-2 text-sm">
-            <div class="opacity-70">{{ 'PROMOTIONS_PAGE.DISCOUNT' | translate }}</div>
-            <div class="font-semibold">{{ discountText(p) }}</div>
+          <div class="flex flex-col gap-2 min-w-0">
+            <p class="text-sm opacity-85 m-0">
+              {{ displayDescription(p) || ('PROMOTIONS_PAGE.NO_DESCRIPTION' | translate) }}
+            </p>
+            <div
+              class="rounded-lg bg-surface-container-high px-3 py-2 text-sm flex flex-row items-center justify-between gap-3 min-w-0"
+            >
+              <span class="opacity-70 shrink-0">{{ 'PROMOTIONS_PAGE.DISCOUNT' | translate }}</span>
+              <span class="font-semibold tabular-nums text-right">{{ discountText(p) }}</span>
+            </div>
           </div>
 
           <div class="text-xs opacity-75">
@@ -46,7 +49,7 @@
             <a
               [routerLink]="link"
               [queryParams]="promotionProductsQuery(p)"
-              class="text-sm font-medium text-primary hover:underline"
+              class="text-base font-semibold text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-sm"
             >
               {{ 'PROMOTIONS_PAGE.OPEN_PRODUCTS' | translate }}
             </a>
