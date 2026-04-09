@@ -9,3 +9,42 @@
   display: inline-flex;
   align-items: center;
 }
+
+.header-logo {
+  min-width: 0;
+}
+
+.header-logo__img {
+  display: block;
+  width: auto;
+  max-width: min(42vw, 210px);
+  height: clamp(28px, 6.2vw, 50px);
+  object-fit: contain;
+}
+
+/* Стабільний рендер іконок у хедері (особливо на вузьких екранах). */
+:host ::ng-deep button[matIconButton] .mat-icon,
+:host ::ng-deep button[matIconButton] mat-icon {
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
+  line-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 639.98px) {
+  .header-logo__img {
+    max-width: min(48vw, 170px);
+    height: clamp(24px, 6.6vw, 38px);
+  }
+
+  :host ::ng-deep button[matIconButton] .mat-icon,
+  :host ::ng-deep button[matIconButton] mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    line-height: 20px;
+  }
+}

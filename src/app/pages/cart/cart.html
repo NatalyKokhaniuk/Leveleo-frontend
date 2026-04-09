@@ -35,10 +35,45 @@
             class="cart-row rounded-2xl border border-outline-variant/25 bg-surface-container-lowest/50 p-4 md:p-5 w-full min-w-0 max-w-full overflow-hidden"
           >
             <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
-              <div class="min-w-0 w-full max-w-full overflow-hidden">
-                <app-product-detail-tabs [product]="row.product" [roomyRating]="true" />
+              <div class="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container/35 p-3 md:p-4">
+                <div class="flex items-start gap-3 md:gap-4 min-w-0">
+                  <div class="shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg border border-outline-variant/20 bg-surface-container flex items-center justify-center overflow-hidden">
+                    @if (productImageUrl(row.product.id); as img) {
+                      <img [src]="img" [alt]="productName(row.product)" class="w-full h-full object-contain" loading="lazy" />
+                    } @else {
+                      <mat-icon class="text-on-surface/35">image_not_supported</mat-icon>
+                    }
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h2 class="text-base md:text-lg font-semibold text-on-surface break-words [overflow-wrap:anywhere]">
+                      {{ productName(row.product) }}
+                    </h2>
+                    <p class="text-xs text-on-surface/70 mt-0.5">
+                      {{ 'PRODUCTS.IN_STOCK' | translate }}: {{ row.product.availableQuantity }}
+                    </p>
+                    @if (productBrand(row.product); as brand) {
+                      <p class="text-sm text-on-surface/70 mt-1">
+                        {{ 'PRODUCTS.FILTER_BRAND' | translate }}: <span class="font-medium">{{ brand }}</span>
+                      </p>
+                    }
+                  </div>
+                  <div class="shrink-0 text-right">
+                    <div class="text-lg md:text-xl font-semibold text-primary">
+                      {{ lineCurrentPrice(row.product) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                    </div>
+                    @if (lineHasDiscount(row.product)) {
+                      <div class="text-sm text-on-surface/55 line-through">
+                        {{ row.product.price | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                      </div>
+                    }
+                  </div>
+                </div>
               </div>
-              <app-product-commerce-toolbar class="w-full min-w-0" [productId]="row.product.id" />
+              <app-product-commerce-toolbar
+                class="w-full min-w-0"
+                [productId]="row.product.id"
+                [maxQuantity]="row.product.availableQuantity"
+              />
             </div>
           </li>
         }
@@ -59,18 +94,6 @@
                 {{ 'CART.REMOVE_COUPON' | translate }}
               </button>
             </div>
-            @if (totals.totalProductDiscount > 0) {
-              <div class="text-sm opacity-80">
-                {{ 'CART.PRODUCT_DISCOUNT' | translate }}:
-                −{{ totals.totalProductDiscount | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
-              </div>
-            }
-            @if (totals.totalCartDiscount > 0) {
-              <div class="text-sm opacity-80">
-                {{ 'CART.CART_DISCOUNT' | translate }}:
-                −{{ totals.totalCartDiscount | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
-              </div>
-            }
             <div
               class="relative rounded-xl border border-outline-variant/20 bg-surface-container/40 p-3 md:p-4 pr-[min(42%,11rem)] md:pr-36 overflow-hidden"
               [attr.aria-label]="
@@ -85,16 +108,26 @@
                   {{ promoLabel() }}
                 </span>
               }
-              <div class="text-lg md:text-xl font-semibold flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                <span>{{ 'CART.TOTAL' | translate }}:</span>
-                @if (hasCartPromotion()) {
-                  <span class="text-base font-normal text-on-surface/55 line-through decoration-on-surface/40">
-                    {{ totals.subtotalAfterProductPromotions | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+              <div class="flex flex-col gap-1.5 text-sm md:text-base">
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span class="opacity-75">{{ 'CART.TOTAL_FULL' | translate }}:</span>
+                  <span>
+                    {{ totals.totalCatalogList | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
                   </span>
-                }
-                <span class="text-primary">
-                  {{ displayedTotal() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
-                </span>
+                </div>
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span class="opacity-75">{{ 'CART.TOTAL_AFTER_PRODUCT_DISCOUNT' | translate }}:</span>
+                  <span>
+                    {{ totals.subtotalAfterProductPromotions | number: '1.2-2' }}
+                    {{ 'PRODUCTS.CURRENCY' | translate }}
+                  </span>
+                </div>
+                <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-lg md:text-xl font-semibold">
+                  <span>{{ 'CART.TOTAL_AFTER_CART_DISCOUNT' | translate }}:</span>
+                  <span class="text-primary">
+                    {{ totals.totalPayable | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

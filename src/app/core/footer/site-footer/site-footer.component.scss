@@ -35,3 +35,15 @@
   border-radius: 9999px !important;
   min-height: 48px;
 }
+
+.footer-logo {
+  min-width: 0;
+}
+
+.footer-logo__img {
+  display: block;
+  width: auto;
+  max-width: min(38vw, 200px);
+  height: clamp(28px, 5.2vw, 50px);
+  object-fit: contain;
+}

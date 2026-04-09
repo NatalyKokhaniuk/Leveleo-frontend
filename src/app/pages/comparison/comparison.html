@@ -97,7 +97,13 @@
                       class="sticky top-0 z-20 bg-surface-container-high text-left align-top p-3 md:p-4 border-b border-l border-outline-variant/20 min-w-[230px]"
                     >
                       <div class="flex flex-col gap-2">
-                        <div class="font-semibold text-sm leading-snug break-words">{{ productLabel(p) }}</div>
+                        <a
+                          href="/products"
+                          class="font-semibold text-sm leading-snug break-words text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-sm w-fit"
+                          (click)="openQuickViewFromLink($event, p)"
+                        >
+                          {{ productLabel(p) }}
+                        </a>
                         @if (productImageUrl(p.id); as img) {
                           <img
                             [src]="img"
@@ -124,6 +130,26 @@
                 </tr>
               </thead>
               <tbody>
+                <tr>
+                  <td class="p-3 md:p-4 align-top border-b border-outline-variant/20 bg-surface-container/50">
+                    <span class="font-medium">{{ 'COMPARISON.PRICE' | translate }}</span>
+                  </td>
+                  @for (price of priceRow(); track $index) {
+                    <td class="p-3 md:p-4 align-top border-b border-l border-outline-variant/15">
+                      {{ price }}
+                    </td>
+                  }
+                </tr>
+                <tr>
+                  <td class="p-3 md:p-4 align-top border-b border-outline-variant/20 bg-surface-container/50">
+                    <span class="font-medium">{{ 'COMPARISON.BRAND' | translate }}</span>
+                  </td>
+                  @for (brand of brandRow(); track $index) {
+                    <td class="p-3 md:p-4 align-top border-b border-l border-outline-variant/15">
+                      {{ brand }}
+                    </td>
+                  }
+                </tr>
                 @for (row of attributeRows(); track row.attrId) {
                   <tr>
                     <td class="p-3 md:p-4 align-top border-b border-outline-variant/20 bg-surface-container/50">

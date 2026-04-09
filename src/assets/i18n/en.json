@@ -60,7 +60,10 @@
     "ADD_TO_CART": "Add to cart",
     "REMOVE_FROM_CART": "Remove from cart",
     "CART_INCREASE": "Increase quantity",
-    "CART_DECREASE": "Decrease quantity"
+    "CART_DECREASE": "Decrease quantity",
+    "IN_STOCK": "In stock",
+    "GUARANTEE_LINK_TEXT": "Warranty. Exchange/return within 10 days.",
+    "COMPLAIN_LINK_TEXT": "Report a product issue"
   },
   "FAVORITES": {
     "TITLE": "Favourites",
@@ -78,6 +81,8 @@
     "LOAD_ERROR": "Could not load comparison. Please try again later.",
     "REMOVE": "Remove from comparison",
     "GUEST_ONLY": "Sign in or register to compare products.",
+    "PRICE": "Price",
+    "BRAND": "Brand",
     "COMPARE_CATEGORY": "Compare",
     "SHOW_ALL": "Show all categories"
   },
@@ -103,6 +108,9 @@
     "PROMO_APPLIED": "Cart promotion",
     "PRODUCT_DISCOUNT": "Product discounts",
     "CART_DISCOUNT": "Cart discount",
+    "TOTAL_FULL": "Full price",
+    "TOTAL_AFTER_PRODUCT_DISCOUNT": "After product discounts",
+    "TOTAL_AFTER_CART_DISCOUNT": "After cart discount",
     "TOTAL": "Total",
     "CHECKOUT": "Buy products",
     "COUPON": "Coupon",

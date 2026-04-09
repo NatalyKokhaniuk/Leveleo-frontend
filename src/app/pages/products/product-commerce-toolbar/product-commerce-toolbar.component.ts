@@ -17,6 +17,7 @@ import { CartStateService } from '../../../core/shopping-cart/cart-state.service
 })
 export class ProductCommerceToolbarComponent {
   productId = input.required<string>();
+  maxQuantity = input<number | null>(null);
 
   private auth = inject(AuthService);
   private authHandler = inject(AuthHandlerService);
@@ -28,6 +29,11 @@ export class ProductCommerceToolbarComponent {
   /** Реактивно від оновлень кошика на сервері. */
   qty = computed(() => this.cart.quantities().get(this.productId()) ?? 0);
   inComparison = computed(() => this.comparison.comparisonIds().has(this.productId()));
+  canIncrease = computed(() => {
+    const max = this.maxQuantity();
+    if (max == null) return true;
+    return this.qty() < Math.max(0, max);
+  });
 
   isAuthed(): boolean {
     return this.auth.isAuthenticated();
@@ -50,6 +56,9 @@ export class ProductCommerceToolbarComponent {
       this.authHandler.openAuthDialog('login');
       return;
     }
+    if (!this.canIncrease()) {
+      return;
+    }
     this.busy = true;
     this.cart
       .addToCart(this.productId(), 1)
@@ -60,6 +69,9 @@ export class ProductCommerceToolbarComponent {
   inc(): void {
     if (!this.isAuthed()) {
       this.authHandler.openAuthDialog('login');
+      return;
+    }
+    if (!this.canIncrease()) {
       return;
     }
     this.busy = true;

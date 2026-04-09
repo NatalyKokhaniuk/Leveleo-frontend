@@ -23,7 +23,7 @@
       <!-- LOGO + DESCRIPTION + SOCIAL (логотип як у хедері: тема → Logo_dark / Logo_light) -->
       <div class="flex flex-col gap-4">
         <div
-          class="cursor-pointer flex items-center w-fit"
+          class="footer-logo cursor-pointer flex items-center w-fit"
           (click)="goHome()"
           (keydown.enter)="goHome()"
           tabindex="0"
@@ -31,9 +31,9 @@
           [attr.aria-label]="'HEADER.HOME' | translate"
         >
           @if (currentTheme() === 'dark') {
-            <img class="h-12.5 w-fit" src="/assets/images/Logo_dark.png" alt="" />
+            <img class="footer-logo__img" src="/assets/images/Logo_dark.png" alt="" />
           } @else {
-            <img class="h-12.5 w-fit" src="/assets/images/Logo_light.png" alt="" />
+            <img class="footer-logo__img" src="/assets/images/Logo_light.png" alt="" />
           }
         </div>
         <p class="text-sm opacity-70">{{ 'FOOTER.DESCRIPTION' | translate }}</p>

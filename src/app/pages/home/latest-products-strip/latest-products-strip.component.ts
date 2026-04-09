@@ -16,7 +16,10 @@ import { catchError, fromEvent, of } from 'rxjs';
 import { ProductService } from '../../../features/products/product.service';
 import { defaultProductFilter } from '../../../features/products/product-filter.encode';
 import { ProductResponseDto, ProductSortBy } from '../../../features/products/product.types';
-import { ProductQuickViewDialogComponent } from '../../products/product-quick-view-dialog/product-quick-view-dialog.component';
+import {
+  ProductQuickViewDialogComponent,
+  ProductQuickViewDialogData,
+} from '../../products/product-quick-view-dialog/product-quick-view-dialog.component';
 import { ProductCardComponent } from '../../products/product-card/product-card.component';
 import { FavoritesStateService } from '../../../core/favorites/favorites-state.service';
 
@@ -105,12 +108,18 @@ export class HomeLatestProductsStripComponent implements OnInit {
   }
 
   openProductCard(product: ProductResponseDto): void {
-    this.dialog.open(ProductQuickViewDialogComponent, {
-      width: 'min(1100px, 96vw)',
-      maxHeight: '92vh',
-      autoFocus: false,
-      data: { product },
-    });
+    this.dialog.open<ProductQuickViewDialogComponent, ProductQuickViewDialogData>(
+      ProductQuickViewDialogComponent,
+      {
+        panelClass: ['auth-dialog', 'product-quick-view-panel'],
+        width: 'min(96vw - 24px, 1040px)',
+        maxWidth: 'calc(100vw - 24px)',
+        height: 'min(88vh, 820px)',
+        maxHeight: 'min(88vh, calc(100vh - 24px))',
+        autoFocus: false,
+        data: { product },
+      },
+    );
   }
 
   favoriteFor(id: string): boolean {

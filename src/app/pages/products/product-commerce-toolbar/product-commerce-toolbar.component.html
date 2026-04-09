@@ -13,7 +13,7 @@
   </button>
 
   @if (!isAuthed() || qty() === 0) {
-    <button matButton="filled" color="primary" type="button" class="!min-h-10" [disabled]="busy" (click)="onAddToCart()">
+    <button matButton="filled" color="primary" type="button" class="!min-h-10" [disabled]="busy || !canIncrease()" (click)="onAddToCart()">
       {{ 'PRODUCTS.ADD_TO_CART' | translate }}
     </button>
   } @else {
@@ -33,7 +33,7 @@
         matIconButton
         type="button"
         class="shrink-0"
-        [disabled]="busy"
+        [disabled]="busy || !canIncrease()"
         (click)="inc()"
         [attr.aria-label]="'PRODUCTS.CART_INCREASE' | translate"
       >

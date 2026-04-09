@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,6 +34,7 @@ import { ContactFormCategory } from '../../features/contact/contact.types';
 })
 export class ContactsComponent {
   private fb = inject(FormBuilder);
+  private route = inject(ActivatedRoute);
   private contactService = inject(ContactService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
@@ -59,6 +61,15 @@ export class ContactsComponent {
     subject: ['', [Validators.required, Validators.maxLength(200)]],
     message: ['', [Validators.required, Validators.minLength(10)]],
   });
+
+  constructor() {
+    this.route.queryParamMap.subscribe((params) => {
+      const category = (params.get('category') ?? '').trim().toLowerCase();
+      if (category === 'product') {
+        this.form.patchValue({ category: ContactFormCategory.ProductQuestion });
+      }
+    });
+  }
 
   submit() {
     if (this.form.invalid) {

@@ -60,7 +60,10 @@
     "ADD_TO_CART": "Додати в кошик",
     "REMOVE_FROM_CART": "Видалити з кошика",
     "CART_INCREASE": "Збільшити кількість",
-    "CART_DECREASE": "Зменшити кількість"
+    "CART_DECREASE": "Зменшити кількість",
+    "IN_STOCK": "В наявності",
+    "GUARANTEE_LINK_TEXT": "Гарантія. Обмін/повернення товару впродовж 10 днів.",
+    "COMPLAIN_LINK_TEXT": "Поскаржитися на товар"
   },
   "FAVORITES": {
     "TITLE": "Обране",
@@ -78,6 +81,8 @@
     "LOAD_ERROR": "Не вдалося завантажити список. Спробуйте пізніше.",
     "REMOVE": "Прибрати з порівняння",
     "GUEST_ONLY": "Увійдіть або зареєструйтесь, щоб порівняти товари.",
+    "PRICE": "Ціна",
+    "BRAND": "Бренд",
     "COMPARE_CATEGORY": "Порівняти",
     "SHOW_ALL": "Показати всі категорії"
   },
@@ -103,6 +108,9 @@
     "PROMO_APPLIED": "Акція на кошик",
     "PRODUCT_DISCOUNT": "Знижка на товари",
     "CART_DISCOUNT": "Знижка на кошик",
+    "TOTAL_FULL": "Повна ціна",
+    "TOTAL_AFTER_PRODUCT_DISCOUNT": "Після знижок на товари",
+    "TOTAL_AFTER_CART_DISCOUNT": "Після знижки на кошик",
     "TOTAL": "Разом",
     "CHECKOUT": "Придбати товари",
     "COUPON": "Купон",

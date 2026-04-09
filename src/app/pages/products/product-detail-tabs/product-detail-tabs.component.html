@@ -47,6 +47,9 @@
               {{ displayName() }}
             </h3>
           }
+          <div class="text-xs text-on-surface/70">
+            {{ 'PRODUCTS.IN_STOCK' | translate }}: {{ product.availableQuantity }}
+          </div>
 
           <div
             class="product-detail-tabs__rating-row flex flex-wrap items-center gap-1"
@@ -78,13 +81,71 @@
             }
           </div>
 
-          @if (displayDescription(); as desc) {
+          @if (breadcrumbs().length > 0) {
+            <nav class="text-xs text-on-surface/70 flex flex-wrap items-center gap-1" aria-label="Breadcrumbs">
+              @for (b of breadcrumbs(); track b.slug; let isLast = $last) {
+                <a
+                  [routerLink]="['/products', 'category', b.slug]"
+                  class="hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+                >
+                  {{ b.label }}
+                </a>
+                @if (!isLast) {
+                  <span aria-hidden="true">›</span>
+                }
+              }
+            </nav>
+          }
+
+          @if (!hideDescription && displayDescription(); as desc) {
             <p
               class="text-sm text-on-surface/90 whitespace-pre-wrap leading-relaxed break-words [overflow-wrap:anywhere]"
             >
               {{ desc }}
             </p>
           }
+
+          @if (brandLabel(); as brand) {
+            <div class="text-sm text-on-surface/80">
+              <span class="opacity-75">{{ 'PRODUCTS.FILTER_BRAND' | translate }}:</span>
+              <span class="ml-1 font-medium">{{ brand }}</span>
+            </div>
+          }
+
+          @if (!hideAttributes && attributeRows().length > 0) {
+            <section class="product-detail-tabs__attrs rounded-xl border border-outline-variant/25 bg-surface-container/30 p-3">
+              <h4 class="text-sm font-semibold text-on-surface mb-2">
+                {{ 'PRODUCTS.FILTER_ATTRIBUTES_SECTION' | translate }}
+              </h4>
+              <div class="grid gap-2">
+                @for (row of attributeRows(); track row.id) {
+                  <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm">
+                    <span class="text-on-surface/65">{{ row.label }}:</span>
+                    <span class="font-medium text-on-surface">{{ row.value }}</span>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <div class="mt-2 pt-3 border-t border-outline-variant/20 flex flex-col gap-2">
+            <a
+              routerLink="/returns"
+              class="inline-flex items-start gap-2 text-sm text-on-surface/85 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+            >
+              <mat-icon class="!w-5 !h-5 text-[1.1rem] mt-[1px] shrink-0">verified_user</mat-icon>
+              <span>{{ 'PRODUCTS.GUARANTEE_LINK_TEXT' | translate }}</span>
+            </a>
+            <a
+              routerLink="/contacts"
+              fragment="contact-form"
+              [queryParams]="{ category: 'product' }"
+              class="inline-flex items-start gap-2 text-sm text-on-surface/85 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+            >
+              <mat-icon class="!w-5 !h-5 text-[1.1rem] mt-[1px] shrink-0">report_problem</mat-icon>
+              <span>{{ 'PRODUCTS.COMPLAIN_LINK_TEXT' | translate }}</span>
+            </a>
+          </div>
         </div>
       </mat-tab>
 

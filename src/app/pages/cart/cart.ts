@@ -13,13 +13,17 @@ import { catchError, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CartStateService } from '../../core/shopping-cart/cart-state.service';
+import { MediaUrlCacheService } from '../../core/services/media-url-cache.service';
+import { brandLocalizedName } from '../../features/brands/brand-display-i18n';
+import { BrandService } from '../../features/brands/brand.service';
+import { BrandResponseDto } from '../../features/brands/brand.types';
+import { productLocalizedName } from '../../features/products/product-display-i18n';
 import { ShoppingCartService } from '../../features/shopping-cart/shopping-cart.service';
 import { computePricingFromCartItems } from '../../features/shopping-cart/cart-pricing.util';
 import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
 import { ProductService } from '../../features/products/product.service';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
-import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
 
 @Component({
   selector: 'app-cart',
@@ -33,7 +37,6 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
     MatInputModule,
     MatProgressSpinnerModule,
     MatIconModule,
-    ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
   templateUrl: './cart.html',
@@ -45,6 +48,8 @@ export class CartPage implements OnInit {
   private cartApi = inject(ShoppingCartService);
   private cartState = inject(CartStateService);
   private products = inject(ProductService);
+  private mediaUrlCache = inject(MediaUrlCacheService);
+  private brandsApi = inject(BrandService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
 
@@ -82,14 +87,20 @@ export class CartPage implements OnInit {
   private initialized = false;
   couponCode = signal('');
   couponBusy = signal(false);
+  private lang = signal(this.translate.currentLang || 'uk');
+  private imageUrls = signal<Map<string, string | null>>(new Map());
+  private brandCatalog = signal<BrandResponseDto[]>([]);
 
   constructor() {
+    this.translate.onLangChange.subscribe(() => {
+      this.lang.set(this.translate.currentLang || 'uk');
+    });
     effect(() => {
       const authed = this.auth.isAuthenticated();
       const q = this.cartState.quantities();
       if (!authed || !this.initialized) return;
       void q;
-      this.load();
+      this.load(true);
     });
   }
 
@@ -102,8 +113,10 @@ export class CartPage implements OnInit {
     }
   }
 
-  load(): void {
-    this.loading.set(true);
+  load(silent = false): void {
+    if (!silent) {
+      this.loading.set(true);
+    }
     this.loadError.set(false);
     this.cartApi
       .getMyCart()
@@ -117,8 +130,31 @@ export class CartPage implements OnInit {
       )
       .subscribe((rows) => {
         this.lines.set(rows);
+        this.loadRowMeta(rows);
         this.loading.set(false);
       });
+  }
+
+  private loadRowMeta(rows: { product: ProductResponseDto; quantity: number }[]): void {
+    const products = rows.map((r) => r.product);
+    if (products.length === 0) {
+      this.imageUrls.set(new Map());
+      return;
+    }
+    const imageRequests = products.map((p) => {
+      const key = p.mainImageKey?.trim();
+      if (!key) return of(null);
+      return this.mediaUrlCache.getUrl(key).pipe(catchError(() => of(null)));
+    });
+    forkJoin(imageRequests).subscribe((urls) => {
+      const next = new Map<string, string | null>();
+      products.forEach((p, i) => next.set(p.id, urls[i] ?? null));
+      this.imageUrls.set(next);
+    });
+    this.brandsApi
+      .getAll()
+      .pipe(catchError(() => of([] as BrandResponseDto[])))
+      .subscribe((list) => this.brandCatalog.set(list));
   }
 
   private mapCartToRows(cart: ShoppingCartDto) {
@@ -238,6 +274,27 @@ export class CartPage implements OnInit {
 
   checkout(): void {
     this.router.navigateByUrl('/checkout');
+  }
+
+  productName(p: ProductResponseDto): string {
+    return productLocalizedName(p, this.lang());
+  }
+
+  productBrand(p: ProductResponseDto): string | null {
+    const b = this.brandCatalog().find((x) => x.id === p.brandId);
+    return b ? brandLocalizedName(b, this.lang()) : null;
+  }
+
+  productImageUrl(productId: string): string | null {
+    return this.imageUrls().get(productId) ?? null;
+  }
+
+  lineCurrentPrice(p: ProductResponseDto): number {
+    return p.discountedPrice != null ? p.discountedPrice : p.price;
+  }
+
+  lineHasDiscount(p: ProductResponseDto): boolean {
+    return p.discountedPrice != null && p.discountedPrice < p.price;
   }
 
   private mapCouponError(err: unknown): string {

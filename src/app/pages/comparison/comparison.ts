@@ -1,6 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -12,6 +13,9 @@ import { ProductAttributeValueResponseDto } from '../../features/product-attribu
 import { ProductAttributeValueService } from '../../features/product-attribute-values/product-attribute-value.service';
 import { ProductAttributeResponseDto } from '../../features/product-attributes/product-attribute.types';
 import { ProductAttributeService } from '../../features/product-attributes/product-attribute.service';
+import { brandLocalizedName } from '../../features/brands/brand-display-i18n';
+import { BrandService } from '../../features/brands/brand.service';
+import { BrandResponseDto } from '../../features/brands/brand.types';
 import { productLocalizedName } from '../../features/products/product-display-i18n';
 import { UserProductRelationsService } from '../../features/user-product-relations/user-product-relations.service';
 import { ProductResponseDto } from '../../features/products/product.types';
@@ -19,6 +23,10 @@ import { CategoryService } from '../../features/categories/category.service';
 import { HorizontalDragScrollDirective } from '../../shared/directives/horizontal-drag-scroll.directive';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
+import {
+  ProductQuickViewDialogComponent,
+  ProductQuickViewDialogData,
+} from '../products/product-quick-view-dialog/product-quick-view-dialog.component';
 
 @Component({
   selector: 'app-comparison',
@@ -38,9 +46,11 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
 })
 export class ComparisonPage implements OnInit {
   private auth = inject(AuthService);
+  private dialog = inject(MatDialog);
   private relations = inject(UserProductRelationsService);
   private comparison = inject(ComparisonStateService);
   private categories = inject(CategoryService);
+  private brands = inject(BrandService);
   private attributeService = inject(ProductAttributeService);
   private attributeValues = inject(ProductAttributeValueService);
   private mediaUrlCache = inject(MediaUrlCacheService);
@@ -50,11 +60,16 @@ export class ComparisonPage implements OnInit {
   loadError = signal(false);
   items = signal<ProductResponseDto[]>([]);
   categoryNames = signal<Map<string, string>>(new Map());
+  brandCatalog = signal<BrandResponseDto[]>([]);
   activeCategoryId = signal<string | null>(null);
   imageUrls = signal<Map<string, string | null>>(new Map());
   allAttributes = signal<Map<string, ProductAttributeResponseDto>>(new Map());
   valuesByProduct = signal<Map<string, ProductAttributeValueResponseDto[]>>(new Map());
   lang = signal(this.translate.currentLang || 'uk');
+  brandNames = computed(() => {
+    const lang = this.lang();
+    return new Map(this.brandCatalog().map((b) => [b.id, brandLocalizedName(b, lang)]));
+  });
 
   grouped = computed(() => {
     const names = this.categoryNames();
@@ -76,6 +91,12 @@ export class ComparisonPage implements OnInit {
     if (!id) return this.items();
     return this.items().filter((p) => p.categoryId === id);
   });
+  priceRow = computed(() => {
+    return this.visibleItems().map((p) => this.productPriceLabel(p));
+  });
+  brandRow = computed(() => {
+    return this.visibleItems().map((p) => this.brandLabelById(p.brandId));
+  });
   attributeRows = computed(() => {
     const products = this.visibleItems();
     const attrs = this.allAttributes();
@@ -94,7 +115,7 @@ export class ComparisonPage implements OnInit {
       unit: attrs.get(attrId)?.unit?.trim() || null,
       values: products.map((p) => {
         const row = (valuesMap.get(p.id) ?? []).find((x) => x.productAttributeId === attrId);
-        return row ? this.displayAttributeValue(row) : '—';
+        return row ? this.displayAttributeValueWithUnit(row, attrs.get(attrId)?.unit?.trim() || null) : '—';
       }),
     }));
   });
@@ -116,6 +137,7 @@ export class ComparisonPage implements OnInit {
     forkJoin({
       items: this.relations.getMyComparison(),
       categories: this.categories.getAll().pipe(catchError(() => of([]))),
+      brands: this.brands.getAll().pipe(catchError(() => of([]))),
       attributes: this.attributeService.getAll().pipe(catchError(() => of([]))),
     })
       .pipe(
@@ -124,14 +146,16 @@ export class ComparisonPage implements OnInit {
           return of({
             items: [] as ProductResponseDto[],
             categories: [] as { id: string; name: string }[],
+            brands: [] as BrandResponseDto[],
             attributes: [] as ProductAttributeResponseDto[],
           });
         }),
       )
-      .subscribe(({ items, categories, attributes }) => {
+      .subscribe(({ items, categories, brands, attributes }) => {
         const active = items.filter((p) => p.isActive);
         this.items.set(active);
         this.categoryNames.set(new Map(categories.map((c) => [c.id, c.name])));
+        this.brandCatalog.set(brands);
         this.allAttributes.set(new Map(attributes.map((a) => [a.id, a])));
         this.loadAttributeValues(active);
         this.loadProductImages(active);
@@ -201,6 +225,21 @@ export class ComparisonPage implements OnInit {
     return this.imageUrls().get(productId) ?? null;
   }
 
+  openQuickViewFromLink(event: MouseEvent, product: ProductResponseDto): void {
+    event.preventDefault();
+    this.dialog.open<ProductQuickViewDialogComponent, ProductQuickViewDialogData>(
+      ProductQuickViewDialogComponent,
+      {
+        panelClass: ['auth-dialog', 'product-quick-view-panel'],
+        width: 'min(96vw - 24px, 1040px)',
+        maxWidth: 'calc(100vw - 24px)',
+        height: 'min(88vh, 820px)',
+        maxHeight: 'min(88vh, calc(100vh - 24px))',
+        data: { product },
+      },
+    );
+  }
+
   private attributeLabel(attributeId: string): string {
     const a = this.allAttributes().get(attributeId);
     if (!a) return attributeId;
@@ -225,5 +264,22 @@ export class ComparisonPage implements OnInit {
     if (en) return en.value;
     const any = tr.find((t) => t.value?.trim());
     return any?.value ?? '—';
+  }
+
+  private displayAttributeValueWithUnit(row: ProductAttributeValueResponseDto, unit: string | null): string {
+    const value = this.displayAttributeValue(row);
+    if (!unit || value === '—') {
+      return value;
+    }
+    return `${value} ${unit}`;
+  }
+
+  private productPriceLabel(p: ProductResponseDto): string {
+    const value = p.discountedPrice != null ? p.discountedPrice : p.price;
+    return `${value} ${this.translate.instant('PRODUCTS.CURRENCY')}`;
+  }
+
+  private brandLabelById(brandId: string): string {
+    return this.brandNames().get(brandId) ?? '—';
   }
 }
