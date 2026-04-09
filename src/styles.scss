@@ -242,6 +242,55 @@ a {
   }
 }
 
+/* Плашка акції на картках товару, у кошику та модалках: яскраво-червона, без скруглень, легкий нахил. */
+.app-promo-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  max-width: min(78%, 14rem);
+  padding: 0.4rem 0.6rem;
+  font-size: calc(0.75rem + 4pt);
+  font-weight: 600;
+  line-height: 1.2;
+  color: #fff;
+  background-color: #ff1744;
+  border-radius: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
+  transform: rotate(4deg);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+a.app-promo-badge {
+  color: #fff;
+  text-decoration: none;
+}
+
+a.app-promo-badge:hover {
+  filter: brightness(1.07);
+}
+
+.app-promo-badge--corner {
+  transform-origin: top right;
+}
+
+/* Кутова плашка: нижче від верху, щоб після rotate(4deg) був видимий лівий край і не різало overflow батьківського блоку. */
+.app-promo-badge--tr {
+  position: absolute;
+  top: 1rem;
+  right: 0.5rem;
+  z-index: 2;
+}
+
+.app-promo-badge--inline {
+  transform-origin: center left;
+  max-width: min(100%, 20rem);
+}
+
 @layer utilities {
   .bg-primary-container {
     background-color: var(--mat-sys-primary-container);

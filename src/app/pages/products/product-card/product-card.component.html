@@ -9,38 +9,52 @@
       (keydown)="onCardKeydown($event)"
       [attr.aria-label]="'PRODUCTS.OPEN_PRODUCT' | translate"
     >
-      <div
-        class="product-card__media relative w-full bg-surface-container/35 flex flex-col items-stretch justify-center overflow-hidden"
-      >
-        @if (imageLoading()) {
-          <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
-            <span class="text-on-surface/50 text-sm">…</span>
-          </div>
-        } @else if (imageUrl()) {
-          <div class="product-card__media-scroll">
-            <img
-              [src]="imageUrl()!"
-              [alt]="displayName()"
-              class="product-card__img"
-              loading="lazy"
-              (error)="onImageError()"
-            />
-          </div>
-        } @else {
-          <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
-            <mat-icon class="product-card__placeholder !w-16 !h-16 text-on-surface/30" aria-hidden="true"
-              >image_not_supported</mat-icon
-            >
-          </div>
-        }
+      <div class="relative w-full">
+        <div
+          class="product-card__media relative w-full bg-surface-container/35 flex flex-col items-stretch justify-center overflow-hidden"
+        >
+          @if (imageLoading()) {
+            <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
+              <span class="text-on-surface/50 text-sm">…</span>
+            </div>
+          } @else if (imageUrl()) {
+            <div class="product-card__media-scroll">
+              <img
+                [src]="imageUrl()!"
+                [alt]="displayName()"
+                class="product-card__img"
+                loading="lazy"
+                (error)="onImageError()"
+              />
+            </div>
+          } @else {
+            <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
+              <mat-icon class="product-card__placeholder !w-16 !h-16 text-on-surface/30" aria-hidden="true"
+                >image_not_supported</mat-icon
+              >
+            </div>
+          }
+        </div>
 
         @if (promotionLabel(); as promoName) {
-          <span
-            class="product-card__promo absolute top-2 right-2 z-[1] max-w-[min(72%,12rem)] truncate rounded-md px-2 py-1 text-center text-xs font-medium shadow-sm pointer-events-none"
-            [title]="promoName"
-          >
-            {{ promoName }}
-          </span>
+          @if (promotionSlug(); as slug) {
+            <a
+              class="app-promo-badge app-promo-badge--corner app-promo-badge--tr product-card__promo truncate text-center"
+              [routerLink]="['/promotions']"
+              [queryParams]="{ slug: slug }"
+              [title]="promoName"
+              (click)="$event.stopPropagation()"
+            >
+              {{ promoName }}
+            </a>
+          } @else {
+            <span
+              class="app-promo-badge app-promo-badge--corner app-promo-badge--tr product-card__promo truncate text-center pointer-events-none"
+              [title]="promoName"
+            >
+              {{ promoName }}
+            </span>
+          }
         }
       </div>
 

@@ -19,6 +19,10 @@ import { BrandService } from '../../features/brands/brand.service';
 import { BrandResponseDto } from '../../features/brands/brand.types';
 import { productLocalizedName } from '../../features/products/product-display-i18n';
 import { ShoppingCartService } from '../../features/shopping-cart/shopping-cart.service';
+import {
+  formatAppliedPromotionBadgeLabel,
+  formatCartLevelPromotionChip,
+} from '../../features/promotions/promotion-badge-label.util';
 import { computePricingFromCartItems } from '../../features/shopping-cart/cart-pricing.util';
 import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
 import { ProductService } from '../../features/products/product.service';
@@ -91,6 +95,11 @@ export class CartPage implements OnInit {
   private imageUrls = signal<Map<string, string | null>>(new Map());
   private brandCatalog = signal<BrandResponseDto[]>([]);
 
+  /** Назви товарів, що зникли з кошика порівняно з попереднім знімком (sessionStorage). */
+  removedCartItemsNotice = signal<string[]>([]);
+
+  private readonly CART_SNAPSHOT_STORAGE_KEY = 'leveleo.cart.snapshot.v1';
+
   constructor() {
     this.translate.onLangChange.subscribe(() => {
       this.lang.set(this.translate.currentLang || 'uk');
@@ -132,6 +141,9 @@ export class CartPage implements OnInit {
         this.lines.set(rows);
         this.loadRowMeta(rows);
         this.loading.set(false);
+        if (!this.loadError()) {
+          this.syncRemovedCartNotice(rows);
+        }
       });
   }
 
@@ -222,14 +234,11 @@ export class CartPage implements OnInit {
     if (!t) {
       return '';
     }
-    if (t.promoName) {
-      return t.promoName;
-    }
-    const v = t.promoDiscountValue ?? 0;
-    if ((t.promoDiscountType ?? -1) === 0) {
-      return `-${v}%`;
-    }
-    return `-${v}`;
+    return formatCartLevelPromotionChip({
+      promoName: t.promoName,
+      promoDiscountType: t.promoDiscountType,
+      promoDiscountValue: t.promoDiscountValue,
+    });
   }
 
   onCouponInput(value: string): void {
@@ -276,6 +285,51 @@ export class CartPage implements OnInit {
     this.router.navigateByUrl('/checkout');
   }
 
+  dismissRemovedCartNotice(): void {
+    this.removedCartItemsNotice.set([]);
+  }
+
+  private readCartSnapshotFromSession(): Record<string, string> {
+    try {
+      const raw = sessionStorage.getItem(this.CART_SNAPSHOT_STORAGE_KEY);
+      if (!raw) return {};
+      const p = JSON.parse(raw) as { names?: Record<string, string> };
+      return p.names ?? {};
+    } catch {
+      return {};
+    }
+  }
+
+  private writeCartSnapshotToSession(rows: { product: ProductResponseDto; quantity: number }[]): void {
+    const lang = this.lang();
+    const names: Record<string, string> = {};
+    for (const r of rows) {
+      names[r.product.id] = productLocalizedName(r.product, lang);
+    }
+    try {
+      sessionStorage.setItem(this.CART_SNAPSHOT_STORAGE_KEY, JSON.stringify({ names }));
+    } catch {
+      /* ignore quota / private mode */
+    }
+  }
+
+  /**
+   * Порівнюємо поточні позиції з останнім знімком у sessionStorage: якщо id зник —
+   * товар прибрали з кошика (бекенд або користувач), показуємо банер з назвами.
+   */
+  private syncRemovedCartNotice(rows: { product: ProductResponseDto; quantity: number }[]): void {
+    const prevNames = this.readCartSnapshotFromSession();
+    const currIds = new Set(rows.map((r) => r.product.id));
+    const removed: string[] = [];
+    for (const [id, name] of Object.entries(prevNames)) {
+      if (!currIds.has(id)) {
+        removed.push((name && name.trim()) || id);
+      }
+    }
+    this.writeCartSnapshotToSession(rows);
+    this.removedCartItemsNotice.set(removed);
+  }
+
   productName(p: ProductResponseDto): string {
     return productLocalizedName(p, this.lang());
   }
@@ -295,6 +349,15 @@ export class CartPage implements OnInit {
 
   lineHasDiscount(p: ProductResponseDto): boolean {
     return p.discountedPrice != null && p.discountedPrice < p.price;
+  }
+
+  linePromotionLabel(p: ProductResponseDto): string | null {
+    return formatAppliedPromotionBadgeLabel(p.appliedPromotion);
+  }
+
+  linePromotionSlug(p: ProductResponseDto): string | null {
+    const slug = p.appliedPromotion?.slug?.trim();
+    return slug || null;
   }
 
   private mapCouponError(err: unknown): string {

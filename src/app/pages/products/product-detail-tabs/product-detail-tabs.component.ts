@@ -31,6 +31,7 @@ import {
   productLocalizedDescription,
   productLocalizedName,
 } from '../../../features/products/product-display-i18n';
+import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
 import { ProductResponseDto } from '../../../features/products/product.types';
 
 /** Фото зліва, таби справа: деталі / відгуки. */
@@ -292,11 +293,12 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   }
 
   promotionLabel(): string | null {
-    const pr = this.product.appliedPromotion;
-    if (!pr) {
-      return null;
-    }
-    return pr.name?.trim() || null;
+    return formatAppliedPromotionBadgeLabel(this.product.appliedPromotion);
+  }
+
+  promotionSlug(): string | null {
+    const slug = this.product.appliedPromotion?.slug?.trim();
+    return slug || null;
   }
 
   reviewStars(rating: number, index: number): boolean {

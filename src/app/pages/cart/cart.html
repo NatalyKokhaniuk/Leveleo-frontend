@@ -26,9 +26,31 @@
       </div>
     } @else if (loadError()) {
       <p class="text-center text-on-surface/80 py-12">{{ 'CART.LOAD_ERROR' | translate }}</p>
-    } @else if (visibleLines().length === 0) {
-      <p class="text-center text-on-surface/80 py-12">{{ 'CART.EMPTY' | translate }}</p>
     } @else {
+      @if (removedCartItemsNotice().length) {
+        <section
+          class="relative flex flex-col gap-2 rounded-2xl border border-outline-variant bg-[var(--mat-sys-error-container)] p-4 md:p-6 pr-14"
+          role="status"
+        >
+          <button
+            type="button"
+            class="absolute top-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--mat-sys-on-error-container)] hover:bg-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            (click)="dismissRemovedCartNotice()"
+            [attr.aria-label]="'CART.REMOVED_ITEMS_DISMISS' | translate"
+          >
+            <mat-icon class="!w-6 !h-6">close</mat-icon>
+          </button>
+          <p class="font-semibold text-[var(--mat-sys-on-error-container)] pr-2">
+            {{ 'CART.REMOVED_ITEMS_TITLE' | translate }}
+          </p>
+          <p class="text-[var(--mat-sys-on-error-container)] text-sm md:text-base break-words">
+            {{ removedCartItemsNotice().join(', ') }}
+          </p>
+        </section>
+      }
+      @if (visibleLines().length === 0) {
+        <p class="text-center text-on-surface/80 py-12">{{ 'CART.EMPTY' | translate }}</p>
+      } @else {
       <ul class="flex flex-col gap-6 list-none p-0 m-0 w-full min-w-0">
         @for (row of visibleLines(); track row.product.id) {
           <li
@@ -45,12 +67,25 @@
                     }
                   </div>
                   <div class="min-w-0 flex-1">
+                    @if (linePromotionLabel(row.product); as promoLabel) {
+                      @if (linePromotionSlug(row.product); as slug) {
+                        <a
+                          [routerLink]="['/promotions']"
+                          [queryParams]="{ slug: slug }"
+                          class="app-promo-badge app-promo-badge--inline mb-1 cart-page__cart-promo-chip inline-flex"
+                          [title]="promoLabel"
+                        >
+                          {{ promoLabel }}
+                        </a>
+                      } @else {
+                        <span class="app-promo-badge app-promo-badge--inline mb-1 cart-page__cart-promo-chip inline-flex">
+                          {{ promoLabel }}
+                        </span>
+                      }
+                    }
                     <h2 class="text-base md:text-lg font-semibold text-on-surface break-words [overflow-wrap:anywhere]">
                       {{ productName(row.product) }}
                     </h2>
-                    <p class="text-xs text-on-surface/70 mt-0.5">
-                      {{ 'PRODUCTS.IN_STOCK' | translate }}: {{ row.product.availableQuantity }}
-                    </p>
                     @if (productBrand(row.product); as brand) {
                       <p class="text-sm text-on-surface/70 mt-1">
                         {{ 'PRODUCTS.FILTER_BRAND' | translate }}: <span class="font-medium">{{ brand }}</span>
@@ -102,7 +137,7 @@
             >
               @if (hasCartPromotion()) {
                 <span
-                  class="cart-page__cart-promo-chip absolute top-2 right-2 z-[1] max-w-[min(72%,12rem)] truncate rounded-md px-2 py-1 text-center text-xs font-medium shadow-sm pointer-events-none"
+                  class="app-promo-badge app-promo-badge--corner app-promo-badge--tr cart-page__cart-promo-chip truncate text-center pointer-events-none"
                   [title]="promoLabel()"
                 >
                   {{ promoLabel() }}
@@ -135,6 +170,7 @@
             {{ 'CART.CHECKOUT' | translate }}
           </button>
         </section>
+      }
       }
     }
   </main>

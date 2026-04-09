@@ -82,4 +82,12 @@ export class PromotionsPage {
     }
     return `${value}%`;
   }
+
+  promotionProductsLink(p: PromotionResponseDto): string[] | null {
+    return toPromotionLevel(p.level) === PromotionLevel.Product ? ['/products'] : null;
+  }
+
+  promotionProductsQuery(p: PromotionResponseDto): Record<string, string> | null {
+    return toPromotionLevel(p.level) === PromotionLevel.Product ? { promotionId: p.id } : null;
+  }
 }

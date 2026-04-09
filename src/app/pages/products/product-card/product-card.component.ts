@@ -9,16 +9,18 @@ import {
   signal,
   SimpleChanges,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MediaUrlCacheService } from '../../../core/services/media-url-cache.service';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
+import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
 import { ProductResponseDto } from '../../../features/products/product.types';
 
 @Component({
   selector: 'app-product-card',
   standalone: true,
-  imports: [MatIconModule, TranslateModule, DecimalPipe],
+  imports: [MatIconModule, TranslateModule, DecimalPipe, RouterLink],
   templateUrl: './product-card.component.html',
   styleUrl: './product-card.component.scss',
 })
@@ -148,11 +150,11 @@ export class ProductCardComponent implements OnInit, OnChanges {
   }
 
   promotionLabel(): string | null {
-    const pr = this.product.appliedPromotion;
-    if (!pr) {
-      return null;
-    }
-    const n = pr.name?.trim();
-    return n || null;
+    return formatAppliedPromotionBadgeLabel(this.product.appliedPromotion);
+  }
+
+  promotionSlug(): string | null {
+    const slug = this.product.appliedPromotion?.slug?.trim();
+    return slug || null;
   }
 }

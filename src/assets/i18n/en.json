@@ -95,13 +95,17 @@
     "NO_DESCRIPTION": "No description",
     "DISCOUNT": "Discount",
     "STATUS": "Active",
-    "PERIOD": "Period"
+    "PERIOD": "Period",
+    "OPEN_PRODUCTS": "View promotion products"
   },
   "CART": {
     "TITLE": "Shopping cart",
     "DESCRIPTION": "Items you added to your cart.",
     "BACK_TO_PRODUCTS": "Back to product selection",
     "EMPTY": "Your cart is empty.",
+    "REMOVED_ITEMS_TITLE": "The following items were removed from your cart:",
+    "REMOVED_ITEMS_DISMISS": "Dismiss message",
+    "REMOVED_ITEMS_CLOSE": "Dismiss message",
     "LOAD_ERROR": "Could not load cart. Please try again later.",
     "GUEST_ONLY": "Sign in or register to purchase products.",
     "GUEST_SNACK": "Sign in or register to purchase products.",

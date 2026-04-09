@@ -72,6 +72,7 @@ export class Products implements OnInit {
   sortBy = signal<ProductSortBy>(ProductSortBy.PriceAsc);
   priceFromStr = signal('');
   priceToStr = signal('');
+  promotionId = signal<string | null>(null);
 
   filterCategories = signal<CategoryResponseDto[]>([]);
   allCategories = signal<CategoryResponseDto[]>([]);
@@ -176,6 +177,7 @@ export class Products implements OnInit {
     const s = query.get('sort');
     const pf = query.get('priceFrom');
     const pt = query.get('priceTo');
+    const promo = query.get('promotionId');
     if (s !== null && s !== '') {
       o['sort'] = s;
     }
@@ -184,6 +186,9 @@ export class Products implements OnInit {
     }
     if (pt !== null && pt !== '') {
       o['priceTo'] = pt;
+    }
+    if (promo !== null && promo !== '') {
+      o['promotionId'] = promo;
     }
     return o;
   }
@@ -298,6 +303,7 @@ export class Products implements OnInit {
 
     this.brandId.set(brandId);
     this.categoryId.set(categoryId);
+    this.promotionId.set(query.get('promotionId'));
     this.syncCategorySelectors(categoryId);
     this.applySortAndPriceFromQuery(query);
   }
@@ -359,6 +365,7 @@ export class Products implements OnInit {
       pageSize: 24,
       categoryId: this.categoryId(),
       brandId: this.brandId(),
+      promotionId: this.promotionId(),
       priceFrom: parseOptionalFloat(this.priceFromStr()),
       priceTo: parseOptionalFloat(this.priceToStr()),
       searchQuery: null,
