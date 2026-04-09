@@ -67,22 +67,6 @@
                     }
                   </div>
                   <div class="min-w-0 flex-1">
-                    @if (linePromotionLabel(row.product); as promoLabel) {
-                      @if (linePromotionSlug(row.product); as slug) {
-                        <a
-                          [routerLink]="['/promotions']"
-                          [queryParams]="{ slug: slug }"
-                          class="app-promo-badge app-promo-badge--inline mb-1 cart-page__cart-promo-chip inline-flex"
-                          [title]="promoLabel"
-                        >
-                          {{ promoLabel }}
-                        </a>
-                      } @else {
-                        <span class="app-promo-badge app-promo-badge--inline mb-1 cart-page__cart-promo-chip inline-flex">
-                          {{ promoLabel }}
-                        </span>
-                      }
-                    }
                     <h2 class="text-base md:text-lg font-semibold text-on-surface break-words [overflow-wrap:anywhere]">
                       {{ productName(row.product) }}
                     </h2>
@@ -92,7 +76,23 @@
                       </p>
                     }
                   </div>
-                  <div class="shrink-0 text-right">
+                  <div class="shrink-0 text-right flex flex-col items-end gap-1 max-w-[min(100%,11rem)]">
+                    @if (linePromotionLabel(row.product); as promoLabel) {
+                      @if (linePromotionSlug(row.product); as slug) {
+                        <a
+                          [routerLink]="['/promotions']"
+                          [queryParams]="{ slug: slug }"
+                          class="app-promo-badge app-promo-badge--inline cart-page__cart-promo-chip inline-flex max-w-full justify-end"
+                          [title]="promoLabel"
+                        >
+                          {{ promoLabel }}
+                        </a>
+                      } @else {
+                        <span class="app-promo-badge app-promo-badge--inline cart-page__cart-promo-chip inline-flex max-w-full justify-end">
+                          {{ promoLabel }}
+                        </span>
+                      }
+                    }
                     <div class="text-lg md:text-xl font-semibold text-primary">
                       {{ lineCurrentPrice(row.product) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
                     </div>
@@ -130,19 +130,11 @@
               </button>
             </div>
             <div
-              class="relative rounded-xl border border-outline-variant/20 bg-surface-container/40 p-3 md:p-4 pr-[min(42%,11rem)] md:pr-36 overflow-hidden"
+              class="rounded-xl border border-outline-variant/20 bg-surface-container/40 p-3 md:p-4"
               [attr.aria-label]="
                 hasCartPromotion() ? ('CART.PROMO_APPLIED' | translate) + ': ' + promoLabel() : null
               "
             >
-              @if (hasCartPromotion()) {
-                <span
-                  class="app-promo-badge app-promo-badge--corner app-promo-badge--tr cart-page__cart-promo-chip truncate text-center pointer-events-none"
-                  [title]="promoLabel()"
-                >
-                  {{ promoLabel() }}
-                </span>
-              }
               <div class="flex flex-col gap-1.5 text-sm md:text-base">
                 <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
                   <span class="opacity-75">{{ 'CART.TOTAL_FULL' | translate }}:</span>

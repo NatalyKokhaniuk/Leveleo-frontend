@@ -242,22 +242,22 @@ a {
   }
 }
 
-/* Плашка акції на картках товару, у кошику та модалках: яскраво-червона, без скруглень, легкий нахил. */
+/* Плашка акції на картках товару, у кошику та модалках: яскраво-червона, без скруглень, без нахилу. */
 .app-promo-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  max-width: min(78%, 14rem);
-  padding: 0.4rem 0.6rem;
-  font-size: calc(0.75rem + 4pt);
+  max-width: min(72%, 12rem);
+  padding: 0.28rem 0.45rem;
+  font-size: calc(0.75rem + 2pt);
   font-weight: 600;
   line-height: 1.2;
   color: #fff;
   background-color: #ff1744;
   border-radius: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
-  transform: rotate(4deg);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+  transform: none;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -278,17 +278,16 @@ a.app-promo-badge:hover {
   transform-origin: top right;
 }
 
-/* Кутова плашка: нижче від верху, щоб після rotate(4deg) був видимий лівий край і не різало overflow батьківського блоку. */
+/* Кутова плашка на зображенні товару. */
 .app-promo-badge--tr {
   position: absolute;
-  top: 1rem;
+  top: 0.75rem;
   right: 0.5rem;
   z-index: 2;
 }
 
 .app-promo-badge--inline {
-  transform-origin: center left;
-  max-width: min(100%, 20rem);
+  max-width: min(100%, 18rem);
 }
 
 @layer utilities {

@@ -17,7 +17,9 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
 
   const isRefreshRequest = req.url.endsWith('/auth/refresh-token');
 
-  const isMediaSignedUrlGet = req.method === 'GET' && req.url.includes('/media/url');
+  const isGuestMediaReadGet =
+    req.method === 'GET' &&
+    (req.url.includes('/media/url') || req.url.includes('/media/public-url'));
   const isPromotionTranslationRequest =
     req.url.includes('/promotions/') && req.url.includes('/translations');
 
@@ -30,8 +32,8 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
     });
   }
 
-  /** Для гостей 401 на /media/url нормальний — не запускаємо refresh/logout. */
-  const isGuestMediaSignedUrlRequest = isMediaSignedUrlGet && !authService.accessToken();
+  /** Для гостей 401 на /media/url або /media/public-url — не запускаємо refresh/logout. */
+  const isGuestMediaSignedUrlRequest = isGuestMediaReadGet && !authService.accessToken();
 
   return next(authReq).pipe(
     catchError((error) => {

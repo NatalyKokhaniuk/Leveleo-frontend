@@ -16,34 +16,26 @@
         <article class="rounded-2xl border border-outline-variant/30 bg-surface-container p-4 flex flex-col gap-3">
           <div class="w-full aspect-[16/9] rounded-xl bg-surface-container-high overflow-hidden flex items-center justify-center">
             @if (imageUrl(p.id); as img) {
-              <img [src]="img" [alt]="p.name ?? p.slug" class="w-full h-full object-cover" loading="lazy" />
+              <img [src]="img" [alt]="displayName(p)" class="w-full h-full object-cover" loading="lazy" />
             } @else {
               <mat-icon class="text-on-surface/35 !w-10 !h-10 !text-4xl">local_offer</mat-icon>
             }
           </div>
 
           <div class="flex flex-col items-start gap-2">
-            <h2 class="text-lg font-semibold leading-tight break-words">{{ p.name ?? p.slug }}</h2>
+            <h2 class="text-lg font-semibold leading-tight break-words">{{ displayName(p) }}</h2>
             <span class="text-xs px-2 py-1 rounded-full bg-primary-container text-on-primary-container">
               {{ levelKey(p) | translate }}
             </span>
           </div>
 
           <p class="text-sm opacity-85 min-h-10">
-            {{ p.description || ('PROMOTIONS_PAGE.NO_DESCRIPTION' | translate) }}
+            {{ displayDescription(p) || ('PROMOTIONS_PAGE.NO_DESCRIPTION' | translate) }}
           </p>
 
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div class="rounded-lg bg-surface-container-high px-3 py-2">
-              <div class="opacity-70">{{ 'PROMOTIONS_PAGE.DISCOUNT' | translate }}</div>
-              <div class="font-semibold">{{ discountText(p) }}</div>
-            </div>
-            <div class="rounded-lg bg-surface-container-high px-3 py-2">
-              <div class="opacity-70">{{ 'PROMOTIONS_PAGE.STATUS' | translate }}</div>
-              <div class="font-semibold">
-                {{ p.isActive ? ('ADMIN.CATEGORY.YES' | translate) : ('ADMIN.CATEGORY.NO' | translate) }}
-              </div>
-            </div>
+          <div class="rounded-lg bg-surface-container-high px-3 py-2 text-sm">
+            <div class="opacity-70">{{ 'PROMOTIONS_PAGE.DISCOUNT' | translate }}</div>
+            <div class="font-semibold">{{ discountText(p) }}</div>
           </div>
 
           <div class="text-xs opacity-75">

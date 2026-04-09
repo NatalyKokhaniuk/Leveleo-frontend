@@ -1,4 +1,5 @@
 import { ProductResponseDto } from '../products/product.types';
+import type { PromotionTranslationDto } from '../promotions/promotion.types';
 
 /** Відповідає ShoppingCartDto / ShoppingCartItemDto на бекенді. */
 export interface ShoppingCartItemDto {
@@ -18,6 +19,7 @@ export interface AppliedCartPromotionDto {
   name?: string | null;
   discountType?: number;
   discountValue?: number;
+  translations?: PromotionTranslationDto[] | null;
 }
 
 export interface ShoppingCartDto {

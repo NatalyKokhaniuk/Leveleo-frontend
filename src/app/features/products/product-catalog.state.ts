@@ -16,6 +16,7 @@ export class ProductCatalogStateService {
 
   private filterKey = signal<string | null>(null);
   private items = signal<ProductResponseDto[]>([]);
+  private totalCount = signal(0);
   private fetchedAt = signal<number | null>(null);
 
   /** За замовчуванням 15 хв — баланс між «не дьоргати API» і актуальністю. */
@@ -43,7 +44,7 @@ export class ProductCatalogStateService {
   load(
     filter: ProductFilterDto,
     options?: { force?: boolean; maxAgeMs?: number },
-  ): Observable<{ items: ProductResponseDto[]; fromCache: boolean }> {
+  ): Observable<{ items: ProductResponseDto[]; totalCount: number; fromCache: boolean }> {
     const key = encodeProductFilters(filter);
     const maxAge = options?.maxAgeMs ?? this.defaultTtlMs;
     const now = Date.now();
@@ -52,16 +53,25 @@ export class ProductCatalogStateService {
     const fresh = last != null && now - last < maxAge;
 
     if (!options?.force && sameKey && fresh && last != null) {
-      return of({ items: [...this.items()], fromCache: true });
+      return of({
+        items: [...this.items()],
+        totalCount: this.totalCount(),
+        fromCache: true,
+      });
     }
 
     return this.productService.getPaged(filter).pipe(
       tap((res) => {
         this.filterKey.set(key);
         this.items.set(res.items ?? []);
+        this.totalCount.set(Math.max(0, res.totalCount ?? 0));
         this.fetchedAt.set(Date.now());
       }),
-      map((res) => ({ items: res.items ?? [], fromCache: false })),
+      map((res) => ({
+        items: res.items ?? [],
+        totalCount: Math.max(0, res.totalCount ?? 0),
+        fromCache: false,
+      })),
     );
   }
 
@@ -70,5 +80,6 @@ export class ProductCatalogStateService {
     this.filterKey.set(null);
     this.fetchedAt.set(null);
     this.items.set([]);
+    this.totalCount.set(0);
   }
 }

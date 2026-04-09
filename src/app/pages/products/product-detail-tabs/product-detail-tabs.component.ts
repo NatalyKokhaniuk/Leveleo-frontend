@@ -116,6 +116,12 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   }
 
   private loadImage(): void {
+    const direct = this.product.mainImageUrl?.trim();
+    if (direct) {
+      this.imageUrl.set(direct);
+      this.imageLoading.set(false);
+      return;
+    }
     const key = this.product.mainImageKey?.trim();
     if (!key) {
       this.imageUrl.set(null);
@@ -136,6 +142,11 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   }
 
   onImageError(): void {
+    if (this.product?.mainImageUrl?.trim()) {
+      this.imageUrl.set(null);
+      this.imageLoading.set(false);
+      return;
+    }
     const key = this.product?.mainImageKey?.trim();
     if (!key) {
       return;
@@ -293,7 +304,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   }
 
   promotionLabel(): string | null {
-    return formatAppliedPromotionBadgeLabel(this.product.appliedPromotion);
+    return formatAppliedPromotionBadgeLabel(this.product.appliedPromotion, this.lang());
   }
 
   promotionSlug(): string | null {

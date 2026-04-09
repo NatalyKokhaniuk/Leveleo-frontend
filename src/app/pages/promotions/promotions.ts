@@ -2,10 +2,14 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, switchMap } from 'rxjs/operators';
 import { MediaUrlCacheService } from '../../core/services/media-url-cache.service';
+import {
+  promotionLocalizedDescription,
+  promotionLocalizedName,
+} from '../../features/promotions/promotion-display-i18n';
 import { PromotionService } from '../../features/promotions/promotion.service';
 import { DiscountType, PromotionResponseDto } from '../../features/promotions/promotion.types';
 import { toDiscountType, toPromotionLevel } from '../../features/promotions/promotion-enum.util';
@@ -21,33 +25,53 @@ import { PromotionLevel } from '../../features/promotions/promotion.types';
 export class PromotionsPage {
   private promotionsApi = inject(PromotionService);
   private media = inject(MediaUrlCacheService);
+  private translate = inject(TranslateService);
 
   loading = signal(true);
   loadError = signal(false);
   rows = signal<PromotionResponseDto[]>([]);
   imageUrls = signal<Map<string, string | null>>(new Map());
+  /** Оновлюється при зміні мови, щоб перерахувати назви/описи з translations. */
+  private langTick = signal(0);
 
   readonly DiscountType = DiscountType;
   readonly PromotionLevel = PromotionLevel;
 
   constructor() {
+    this.translate.onLangChange.subscribe(() => this.langTick.update((n) => n + 1));
     this.load();
   }
 
   private load(): void {
     this.loading.set(true);
     this.loadError.set(false);
-    this.promotionsApi.getActive().subscribe({
-      next: (list) => {
-        this.rows.set(list ?? []);
-        this.loadImages(list ?? []);
-      },
-      error: () => {
-        this.rows.set([]);
-        this.loading.set(false);
-        this.loadError.set(true);
-      },
-    });
+    /** API `GET /promotions/active` повертає лише id/slug/дати; повні картки — через `getById`. */
+    this.promotionsApi
+      .getActive()
+      .pipe(
+        switchMap((list) => {
+          const arr = list ?? [];
+          if (arr.length === 0) {
+            return of([] as PromotionResponseDto[]);
+          }
+          return forkJoin(
+            arr.map((p) =>
+              this.promotionsApi.getById(p.id).pipe(catchError(() => of(p))),
+            ),
+          );
+        }),
+      )
+      .subscribe({
+        next: (list) => {
+          this.rows.set(list);
+          this.loadImages(list);
+        },
+        error: () => {
+          this.rows.set([]);
+          this.loading.set(false);
+          this.loadError.set(true);
+        },
+      });
   }
 
   private loadImages(list: PromotionResponseDto[]): void {
@@ -66,6 +90,18 @@ export class PromotionsPage {
 
   imageUrl(id: string): string | null {
     return this.imageUrls().get(id) ?? null;
+  }
+
+  displayName(p: PromotionResponseDto): string {
+    this.langTick();
+    const lang = this.translate.currentLang || 'uk';
+    return promotionLocalizedName(p, lang);
+  }
+
+  displayDescription(p: PromotionResponseDto): string | null {
+    this.langTick();
+    const lang = this.translate.currentLang || 'uk';
+    return promotionLocalizedDescription(p, lang);
   }
 
   levelKey(p: PromotionResponseDto): string {

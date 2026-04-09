@@ -1,45 +1,129 @@
 <main class="products-page pt-32 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-8 pb-16 min-w-0">
-  <header class="flex flex-col gap-2">
-    <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'PRODUCTS.TITLE' | translate }}</h1>
-    <p class="modal-desc text-left max-w-2xl">{{ 'PRODUCTS.DESCRIPTION' | translate }}</p>
+  <header class="flex flex-col gap-4 min-w-0">
+    @if (showContextHero()) {
+      @if (headerLoading()) {
+        <div class="flex justify-start py-6">
+          <mat-spinner diameter="40"></mat-spinner>
+        </div>
+      } @else {
+        <div class="flex flex-col gap-4 min-w-0">
+          <div class="flex flex-row gap-3 sm:gap-4 items-start min-w-0">
+            @if (headerImageUrl(); as himg) {
+              <div
+                class="shrink-0 w-14 h-14 sm:w-16 sm:h-16 md:w-[72px] md:h-[72px] rounded-lg overflow-hidden border border-outline-variant/30 bg-surface-container-high"
+              >
+                <img [src]="himg" [alt]="headerTitle()" class="w-full h-full object-cover" loading="eager" />
+              </div>
+            }
+            <div class="flex flex-col gap-2 min-w-0 flex-1">
+              <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ headerTitle() }}</h1>
+              @if (headerSubtitle(); as sub) {
+                <p class="modal-desc text-left max-w-3xl opacity-90">{{ sub }}</p>
+              }
+            </div>
+          </div>
+          <nav
+            class="text-sm flex flex-wrap items-center gap-x-2 gap-y-1 opacity-90"
+            [attr.aria-label]="'PRODUCTS.BREADCRUMB_LABEL' | translate"
+          >
+            @for (c of breadcrumbs(); track $index) {
+              @if ($index > 0) {
+                <span class="opacity-40 select-none" aria-hidden="true">/</span>
+              }
+              @if (c.link) {
+                <a
+                  [routerLink]="c.link"
+                  [queryParams]="c.queryParams ?? null"
+                  class="text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-sm"
+                  >{{ c.label }}</a>
+              } @else {
+                <span class="text-on-surface font-medium">{{ c.label }}</span>
+              }
+            }
+          </nav>
+        </div>
+      }
+    } @else {
+      <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'PRODUCTS.TITLE' | translate }}</h1>
+      <p class="modal-desc text-left max-w-2xl">{{ 'PRODUCTS.DESCRIPTION' | translate }}</p>
+    }
   </header>
 
   <section
     class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4 min-w-0"
     [attr.aria-label]="'PRODUCTS.FILTERS_SECTION' | translate"
   >
-    <div class="flex flex-col lg:flex-row gap-4 flex-wrap">
-      <mat-form-field class="flex-1 min-w-[200px]">
-        <mat-label>{{ 'PRODUCTS.FILTER_CATEGORY' | translate }}</mat-label>
-        <mat-select [value]="rootCategoryId() ?? ''" (selectionChange)="onCategoryChange($event.value)">
-          <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
-          @for (c of filterCategories(); track c.id) {
-            <mat-option [value]="c.id">{{ categoryLabel(c) }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <h2 class="text-lg font-semibold text-on-surface m-0">{{ 'PRODUCTS.FILTERS_SECTION' | translate }}</h2>
+      <button
+        type="button"
+        mat-stroked-button
+        class="shrink-0"
+        (click)="toggleFilters()"
+        [attr.aria-expanded]="filtersExpanded()"
+        [attr.aria-controls]="'products-filters-panel'"
+      >
+        <mat-icon class="!w-5 !h-5 align-middle mr-1" aria-hidden="true">{{
+          filtersExpanded() ? 'expand_less' : 'expand_more'
+        }}</mat-icon>
+        {{
+          (filtersExpanded() ? 'PRODUCTS.FILTERS_HIDE' : 'PRODUCTS.FILTERS_SHOW') | translate
+        }}
+      </button>
+    </div>
 
-      @if (rootCategoryId()) {
+    @if (filtersExpanded()) {
+    <div id="products-filters-panel" class="flex flex-col gap-4 min-w-0">
+    <div class="flex flex-col lg:flex-row gap-4 flex-wrap">
+      @if (!hideRootCategoryFilters()) {
+        <mat-form-field class="flex-1 min-w-[200px]">
+          <mat-label>{{ 'PRODUCTS.FILTER_CATEGORY' | translate }}</mat-label>
+          <mat-select [value]="rootCategoryId() ?? ''" (selectionChange)="onCategoryChange($event.value)">
+            <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
+            @for (c of filterCategories(); track c.id) {
+              <mat-option [value]="c.id">{{ categoryLabel(c) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (rootCategoryId()) {
+          <mat-form-field class="flex-1 min-w-[220px]">
+            <mat-label>{{ 'PRODUCTS.FILTER_SUBCATEGORY' | translate }}</mat-label>
+            <mat-select [value]="subCategoryId() ?? ''" (selectionChange)="onSubCategoryChange($event.value)">
+              <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
+              @for (c of nestedCategoryOptions(); track c.id) {
+                <mat-option [value]="c.id">{{ nestedCategoryLabel(c) }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+      }
+
+      @if (showRouteCategoryChildFilter()) {
         <mat-form-field class="flex-1 min-w-[220px]">
           <mat-label>{{ 'PRODUCTS.FILTER_SUBCATEGORY' | translate }}</mat-label>
-          <mat-select [value]="subCategoryId() ?? ''" (selectionChange)="onSubCategoryChange($event.value)">
-            <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
-            @for (c of nestedCategoryOptions(); track c.id) {
-              <mat-option [value]="c.id">{{ nestedCategoryLabel(c) }}</mat-option>
+          <mat-select
+            [placeholder]="'PRODUCTS.FILTER_SUBCATEGORY_PLACEHOLDER' | translate"
+            (selectionChange)="onRouteCategoryChildChange($event.value)"
+          >
+            @for (c of routeCategoryDirectChildren(); track c.id) {
+              <mat-option [value]="c.id">{{ categoryLabel(c) }}</mat-option>
             }
           </mat-select>
         </mat-form-field>
       }
 
-      <mat-form-field class="flex-1 min-w-[200px]">
-        <mat-label>{{ 'PRODUCTS.FILTER_BRAND' | translate }}</mat-label>
-        <mat-select [value]="brandId() ?? ''" (selectionChange)="onBrandChange($event.value)">
-          <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
-          @for (b of brands(); track b.id) {
-            <mat-option [value]="b.id">{{ brandLabel(b) }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
+      @if (!hideBrandFilter()) {
+        <mat-form-field class="flex-1 min-w-[200px]">
+          <mat-label>{{ 'PRODUCTS.FILTER_BRAND' | translate }}</mat-label>
+          <mat-select [value]="brandId() ?? ''" (selectionChange)="onBrandChange($event.value)">
+            <mat-option value="">{{ 'PRODUCTS.FILTER_ALL' | translate }}</mat-option>
+            @for (b of brands(); track b.id) {
+              <mat-option [value]="b.id">{{ brandLabel(b) }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
 
       <mat-form-field class="min-w-[200px]">
         <mat-label>{{ 'PRODUCTS.FILTER_SORT' | translate }}</mat-label>
@@ -80,6 +164,8 @@
         {{ 'PRODUCTS.FILTER_RESET' | translate }}
       </button>
     </div>
+    </div>
+    }
   </section>
 
   @if (loading()) {
@@ -91,18 +177,33 @@
   } @else if (items().length === 0) {
     <p class="text-center text-on-surface/80 py-12">{{ 'PRODUCTS.EMPTY' | translate }}</p>
   } @else {
-    <div
-      class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 min-w-0"
-    >
-      @for (p of items(); track p.id) {
-        <div class="min-w-0 max-w-full">
-          <app-product-card
-            [product]="p"
-            [isFavorite]="favoriteFor(p.id)"
-            (favoriteToggled)="toggleFavorite(p.id)"
-            (openDetail)="openQuickView(p)"
-          />
-        </div>
+    <div class="flex flex-col gap-6 w-full min-w-0">
+      <div
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8 min-w-0"
+      >
+        @for (p of items(); track p.id) {
+          <div class="min-w-0 max-w-full">
+            <app-product-card
+              [product]="p"
+              [isFavorite]="favoriteFor(p.id)"
+              (favoriteToggled)="toggleFavorite(p.id)"
+              (openDetail)="openQuickView(p)"
+            />
+          </div>
+        }
+      </div>
+
+      @if (totalCount() > 0) {
+        <mat-paginator
+          class="products-page__paginator self-center w-full max-w-full border-t border-outline-variant/30 pt-4"
+          [length]="totalCount()"
+          [pageSize]="pageSize"
+          [pageIndex]="currentPage() - 1"
+          [pageSizeOptions]="[pageSize]"
+          [hidePageSize]="true"
+          [showFirstLastButtons]="true"
+          (page)="onPageChange($event)"
+        />
       }
     </div>
   }

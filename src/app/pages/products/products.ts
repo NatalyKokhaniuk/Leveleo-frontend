@@ -4,18 +4,24 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
-import { ActivatedRoute, ParamMap, Router } from '@angular/router';
+import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { catchError, combineLatest, of } from 'rxjs';
+import { catchError, combineLatest, finalize, of } from 'rxjs';
 import { BrandService } from '../../features/brands/brand.service';
 import { BrandResponseDto } from '../../features/brands/brand.types';
 import { brandLocalizedName } from '../../features/brands/brand-display-i18n';
 import { CategoryService } from '../../features/categories/category.service';
 import { CategoryResponseDto } from '../../features/categories/category.types';
-import { categoryLocalizedName } from '../../features/categories/category-display-i18n';
+import {
+  categoryLocalizedDescription,
+  categoryLocalizedName,
+} from '../../features/categories/category-display-i18n';
+import { MediaUrlCacheService } from '../../core/services/media-url-cache.service';
 import { ProductCatalogStateService } from '../../features/products/product-catalog.state';
 import { defaultProductFilter } from '../../features/products/product-filter.encode';
 import { ProductResponseDto, ProductSortBy } from '../../features/products/product.types';
@@ -25,6 +31,12 @@ import {
   ProductQuickViewDialogData,
 } from './product-quick-view-dialog/product-quick-view-dialog.component';
 import { FavoritesStateService } from '../../core/favorites/favorites-state.service';
+import {
+  promotionLocalizedDescription,
+  promotionLocalizedName,
+} from '../../features/promotions/promotion-display-i18n';
+import { PromotionService } from '../../features/promotions/promotion.service';
+import { PromotionResponseDto } from '../../features/promotions/promotion.types';
 
 function parseOptionalFloat(s: string): number | null {
   const t = s.trim();
@@ -46,6 +58,9 @@ function parseOptionalFloat(s: string): number | null {
     MatInputModule,
     MatSelectModule,
     MatButtonModule,
+    MatIconModule,
+    MatPaginatorModule,
+    RouterLink,
     ProductCardComponent,
   ],
   templateUrl: './products.html',
@@ -61,10 +76,18 @@ export class Products implements OnInit {
   private translate = inject(TranslateService);
   private destroyRef = inject(DestroyRef);
   private favorites = inject(FavoritesStateService);
+  private mediaUrlCache = inject(MediaUrlCacheService);
+  private promotionsApi = inject(PromotionService);
 
   loading = signal(true);
   loadError = signal(false);
   items = signal<ProductResponseDto[]>([]);
+  totalCount = signal(0);
+  /** 1-based, синхронізується з query `page`. */
+  currentPage = signal(1);
+  readonly pageSize = 24;
+  /** Фільтри за замовчуванням згорнуті; можна розгорнути. */
+  filtersExpanded = signal(false);
 
   /** Дзеркало query / slug-маршруту */
   categoryId = signal<string | null>(null);
@@ -73,6 +96,44 @@ export class Products implements OnInit {
   priceFromStr = signal('');
   priceToStr = signal('');
   promotionId = signal<string | null>(null);
+
+  /** Slug з маршруту `/products/brand/:slug` та `/products/category/:slug`. */
+  routeBrandSlug = signal<string | null>(null);
+  routeCategorySlug = signal<string | null>(null);
+
+  headerTitle = signal('');
+  headerSubtitle = signal<string | null>(null);
+  headerImageUrl = signal<string | null>(null);
+  headerLoading = signal(false);
+  breadcrumbs = signal<
+    { label: string; link: string[] | null; queryParams?: Record<string, string> }[]
+  >([]);
+
+  /**
+   * Коренева категорія + плоский список нащадків — лише на `/products` без slug-категорії.
+   * На `/products/category/:slug` замість цього показується вибір лише серед прямих дочірніх категорій.
+   */
+  hideRootCategoryFilters = computed(() => !!this.routeCategorySlug() || !!this.promotionId());
+  hideBrandFilter = computed(() => !!this.routeBrandSlug() || !!this.promotionId());
+
+  /** Прямі дочірні категорії для поточної категорії з маршруту (наступний рівень вкладеності). */
+  routeCategoryDirectChildren = computed(() => {
+    const lang = this.lang();
+    if (!this.routeCategorySlug() || this.promotionId()) {
+      return [] as CategoryResponseDto[];
+    }
+    const parent = this.allCategories().find((c) => c.slug === this.routeCategorySlug());
+    if (!parent?.id) {
+      return [];
+    }
+    return this.allCategories()
+      .filter((c) => c.isActive && c.parentId === parent.id)
+      .sort((a, b) =>
+        categoryLocalizedName(a, lang).localeCompare(categoryLocalizedName(b, lang)),
+      );
+  });
+
+  showRouteCategoryChildFilter = computed(() => this.routeCategoryDirectChildren().length > 0);
 
   filterCategories = signal<CategoryResponseDto[]>([]);
   allCategories = signal<CategoryResponseDto[]>([]);
@@ -118,6 +179,7 @@ export class Products implements OnInit {
   ngOnInit(): void {
     this.translate.onLangChange.subscribe(() => {
       this.lang.set(this.translate.currentLang || 'uk');
+      this.loadContextHeader();
     });
 
     this.categoryService.getAll().subscribe({
@@ -172,12 +234,25 @@ export class Products implements OnInit {
     this.priceToStr.set(query.get('priceTo') ?? '');
   }
 
+  private applyPageFromQuery(query: ParamMap): void {
+    const raw = query.get('page');
+    if (raw != null && raw !== '') {
+      const n = parseInt(raw, 10);
+      if (!Number.isNaN(n) && n >= 1) {
+        this.currentPage.set(n);
+        return;
+      }
+    }
+    this.currentPage.set(1);
+  }
+
   private auxQueryFrom(query: ParamMap): Record<string, string | null> {
     const o: Record<string, string | null> = {};
     const s = query.get('sort');
     const pf = query.get('priceFrom');
     const pt = query.get('priceTo');
     const promo = query.get('promotionId');
+    const pg = query.get('page');
     if (s !== null && s !== '') {
       o['sort'] = s;
     }
@@ -189,6 +264,12 @@ export class Products implements OnInit {
     }
     if (promo !== null && promo !== '') {
       o['promotionId'] = promo;
+    }
+    if (pg !== null && pg !== '') {
+      const n = parseInt(pg, 10);
+      if (!Number.isNaN(n) && n > 1) {
+        o['page'] = pg;
+      }
     }
     return o;
   }
@@ -306,6 +387,7 @@ export class Products implements OnInit {
     this.promotionId.set(query.get('promotionId'));
     this.syncCategorySelectors(categoryId);
     this.applySortAndPriceFromQuery(query);
+    this.applyPageFromQuery(query);
   }
 
   private syncCategorySelectors(categoryId: string | null): void {
@@ -336,6 +418,9 @@ export class Products implements OnInit {
     const params = this.route.snapshot.paramMap;
     const query = this.route.snapshot.queryParamMap;
 
+    this.routeBrandSlug.set(params.get('brandSlug'));
+    this.routeCategorySlug.set(params.get('categorySlug'));
+
     if (params.get('brandSlug') && !this.brandsCatalogResolved) {
       return;
     }
@@ -354,6 +439,7 @@ export class Products implements OnInit {
     }
     this.applyFromRoute(params, query);
     this.load();
+    this.loadContextHeader();
   }
 
   private load(): void {
@@ -361,8 +447,8 @@ export class Products implements OnInit {
     const filter = defaultProductFilter({
       includeInactive: false,
       sortBy: this.sortBy(),
-      page: 1,
-      pageSize: 24,
+      page: this.currentPage(),
+      pageSize: this.pageSize,
       categoryId: this.categoryId(),
       brandId: this.brandId(),
       promotionId: this.promotionId(),
@@ -388,18 +474,189 @@ export class Products implements OnInit {
         this.loading.set(false);
         if (res) {
           this.items.set(res.items);
+          this.totalCount.set(res.totalCount);
         } else {
           this.items.set([]);
+          this.totalCount.set(0);
         }
       });
+  }
+
+  toggleFilters(): void {
+    this.filtersExpanded.update((v) => !v);
+  }
+
+  onPageChange(e: PageEvent): void {
+    const next = e.pageIndex + 1;
+    this.navigateToProducts({
+      brandId: this.brandId(),
+      categoryId: this.categoryId(),
+      page: next,
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   categoryLabel(c: CategoryResponseDto): string {
     return categoryLocalizedName(c, this.lang());
   }
 
+  private loadContextHeader(): void {
+    const lang = this.lang();
+    const cs = this.routeCategorySlug();
+    const bs = this.routeBrandSlug();
+    const promo = this.promotionId();
+
+    if (cs) {
+      const c = this.allCategories().find((x) => x.slug === cs);
+      if (c) {
+        this.headerTitle.set(categoryLocalizedName(c, lang));
+        this.headerSubtitle.set(categoryLocalizedDescription(c, lang));
+        this.breadcrumbs.set(this.buildCategoryBreadcrumbs(c));
+        const ik = c.imageKey?.trim();
+        if (ik) {
+          this.mediaUrlCache.getUrl(ik).subscribe((url) => this.headerImageUrl.set(url));
+        } else {
+          this.headerImageUrl.set(null);
+        }
+      } else {
+        this.clearContextHeader();
+      }
+      return;
+    }
+
+    if (bs) {
+      const b = this.brands().find((x) => x.slug === bs);
+      if (b) {
+        this.headerTitle.set(brandLocalizedName(b, lang));
+        this.headerSubtitle.set(b.description?.trim() || null);
+        this.breadcrumbs.set(this.buildBrandBreadcrumbs(b));
+        const lk = b.logoKey?.trim();
+        if (lk) {
+          this.mediaUrlCache.getUrl(lk).subscribe((url) => this.headerImageUrl.set(url));
+        } else {
+          this.headerImageUrl.set(null);
+        }
+      } else {
+        this.clearContextHeader();
+      }
+      return;
+    }
+
+    if (promo) {
+      this.headerLoading.set(true);
+      this.promotionsApi
+        .getById(promo)
+        .pipe(
+          catchError(() => of(null)),
+          finalize(() => this.headerLoading.set(false)),
+        )
+        .subscribe((p) => {
+          if (!p) {
+            this.clearContextHeader();
+            return;
+          }
+          this.headerTitle.set(promotionLocalizedName(p, lang));
+          this.headerSubtitle.set(promotionLocalizedDescription(p, lang));
+          this.breadcrumbs.set(this.buildPromotionBreadcrumbs(p));
+          const ik = p.imageKey?.trim();
+          if (ik) {
+            this.mediaUrlCache.getUrl(ik).subscribe((url) => this.headerImageUrl.set(url));
+          } else {
+            this.headerImageUrl.set(null);
+          }
+        });
+      return;
+    }
+
+    this.clearContextHeader();
+  }
+
+  private clearContextHeader(): void {
+    this.headerTitle.set('');
+    this.headerSubtitle.set(null);
+    this.headerImageUrl.set(null);
+    this.breadcrumbs.set([]);
+    this.headerLoading.set(false);
+  }
+
+  private buildCategoryBreadcrumbs(
+    cat: CategoryResponseDto,
+  ): { label: string; link: string[] | null; queryParams?: Record<string, string> }[] {
+    const lang = this.lang();
+    const t = (k: string) => this.translate.instant(k);
+    const chain: CategoryResponseDto[] = [];
+    const byId = new Map(this.allCategories().map((c) => [c.id, c]));
+    let cur: CategoryResponseDto | undefined = cat;
+    while (cur) {
+      chain.unshift(cur);
+      cur = cur.parentId ? byId.get(cur.parentId) : undefined;
+    }
+    const crumbs: { label: string; link: string[] | null; queryParams?: Record<string, string> }[] =
+      [
+        { label: t('HEADER.HOME'), link: ['/'] },
+        { label: t('PRODUCTS.TITLE'), link: ['/products'] },
+      ];
+    for (let i = 0; i < chain.length; i++) {
+      const c = chain[i];
+      const isLast = i === chain.length - 1;
+      crumbs.push({
+        label: categoryLocalizedName(c, lang),
+        link: isLast ? null : ['/products', 'category', c.slug],
+      });
+    }
+    return crumbs;
+  }
+
+  private buildBrandBreadcrumbs(
+    b: BrandResponseDto,
+  ): { label: string; link: string[] | null; queryParams?: Record<string, string> }[] {
+    const lang = this.lang();
+    const t = (k: string) => this.translate.instant(k);
+    return [
+      { label: t('HEADER.HOME'), link: ['/'] },
+      { label: t('PRODUCTS.TITLE'), link: ['/products'] },
+      { label: brandLocalizedName(b, lang), link: null },
+    ];
+  }
+
+  private buildPromotionBreadcrumbs(p: PromotionResponseDto): {
+    label: string;
+    link: string[] | null;
+    queryParams?: Record<string, string>;
+  }[] {
+    const lang = this.lang();
+    const t = (k: string) => this.translate.instant(k);
+    const slug = p.slug?.trim();
+    const crumbs: { label: string; link: string[] | null; queryParams?: Record<string, string> }[] =
+      [
+        { label: t('HEADER.HOME'), link: ['/'] },
+        { label: t('PRODUCTS.TITLE'), link: ['/products'] },
+      ];
+    if (slug) {
+      crumbs.push({
+        label: t('HEADER.PROMOTIONS'),
+        link: ['/promotions'],
+        queryParams: { slug },
+      });
+    } else {
+      crumbs.push({ label: t('HEADER.PROMOTIONS'), link: ['/promotions'] });
+    }
+    crumbs.push({ label: promotionLocalizedName(p, lang), link: null });
+    return crumbs;
+  }
+
   brandLabel(b: BrandResponseDto): string {
     return brandLocalizedName(b, this.lang());
+  }
+
+  showContextHero(): boolean {
+    if (this.routeCategorySlug() || this.routeBrandSlug()) {
+      return true;
+    }
+    if (this.promotionId()) {
+      return this.headerLoading() || !!this.headerTitle().trim();
+    }
+    return false;
   }
 
   private navigateToProducts(state: {
@@ -408,12 +665,15 @@ export class Products implements OnInit {
     sortBy?: ProductSortBy;
     priceFromStr?: string;
     priceToStr?: string;
+    /** Якщо не передано — скидаємо на 1 (новий фільтр). */
+    page?: number;
   }): void {
     const sortBy = state.sortBy ?? this.sortBy();
     const priceFromStr = state.priceFromStr ?? this.priceFromStr();
     const priceToStr = state.priceToStr ?? this.priceToStr();
     const brandId = state.brandId;
     const categoryId = state.categoryId;
+    const page = state.page ?? 1;
 
     const pf = parseOptionalFloat(priceFromStr);
     const pt = parseOptionalFloat(priceToStr);
@@ -427,6 +687,13 @@ export class Products implements OnInit {
     }
     if (pt != null) {
       query['priceTo'] = String(pt);
+    }
+    const promo = this.promotionId();
+    if (promo) {
+      query['promotionId'] = promo;
+    }
+    if (page > 1) {
+      query['page'] = String(page);
     }
 
     if (brandId && !categoryId) {
@@ -469,6 +736,19 @@ export class Products implements OnInit {
     this.navigateToProducts({
       brandId: this.brandId(),
       categoryId: v ?? this.rootCategoryId(),
+    });
+  }
+
+  /** Перехід у дочірню категорію з маршруту `/products/category/:slug`. */
+  onRouteCategoryChildChange(value: string | null): void {
+    const v = value === '' || value == null ? null : value;
+    if (!v) {
+      return;
+    }
+    this.navigateToProducts({
+      brandId: this.brandId(),
+      categoryId: v,
+      page: 1,
     });
   }
 

@@ -45,4 +45,16 @@ export class MediaService {
       params,
     });
   }
+
+  /**
+   * Публічний URL для ключа без JWT — на бекенді: GET /api/media/public-url з [AllowAnonymous].
+   * Використовується для гостей, якщо /url вимагає авторизації.
+   */
+  getPublicMediaUrl(key: string): Observable<MediaSignedUrlResponse> {
+    const params = new HttpParams().set('key', key);
+    return this.http.get<MediaSignedUrlResponse>(`${this.base}/public-url`, {
+      ...this.options,
+      params,
+    });
+  }
 }

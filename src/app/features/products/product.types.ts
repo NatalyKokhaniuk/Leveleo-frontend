@@ -1,3 +1,5 @@
+import type { PromotionTranslationDto } from '../promotions/promotion.types';
+
 /** Відповідає ProductSortBy на бекенді. */
 export enum ProductSortBy {
   PriceAsc = 0,
@@ -63,6 +65,8 @@ export interface AppliedPromotionDto {
   imageKey?: string | null;
   discountType?: number;
   discountValue?: number;
+  /** Переклади назви/опису — узгоджено з `AppliedPromotionDto` на API. */
+  translations?: PromotionTranslationDto[] | null;
 }
 
 export interface ProductResponseDto {
@@ -72,6 +76,8 @@ export interface ProductResponseDto {
   description?: string | null;
   price: number;
   mainImageKey?: string | null;
+  /** Пряме посилання на зображення з API (каталог для гостей), без GET /api/media/url. */
+  mainImageUrl?: string | null;
   stockQuantity: number;
   availableQuantity: number;
   isActive: boolean;

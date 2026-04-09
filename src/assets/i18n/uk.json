@@ -21,6 +21,7 @@
   },
   "PRODUCTS": {
     "TITLE": "Товари",
+    "BREADCRUMB_LABEL": "Навігаційний шлях",
     "DESCRIPTION": "Ознайомтесь із каталогом інструментів та обладнання. Ціни та наявність — у картці товару.",
     "EMPTY": "Поки що немає товарів для відображення.",
     "LOAD_ERROR": "Не вдалося завантажити товари. Спробуйте пізніше.",
@@ -31,6 +32,7 @@
     "CURRENCY": "₴",
     "FILTER_CATEGORY": "Категорія",
     "FILTER_SUBCATEGORY": "Підкатегорія",
+    "FILTER_SUBCATEGORY_PLACEHOLDER": "Оберіть підкатегорію",
     "FILTER_BRAND": "Бренд",
     "FILTER_ALL": "Усі",
     "FILTER_PRICE_FROM": "Ціна від",
@@ -49,6 +51,8 @@
     "FILTER_ATTR_DEC_FROM": "Від",
     "FILTER_ATTR_DEC_TO": "До",
     "FILTERS_SECTION": "Фільтри товарів",
+    "FILTERS_SHOW": "Показати фільтри",
+    "FILTERS_HIDE": "Сховати фільтри",
     "SORT_PRICE_ASC": "Ціна: від дешевших",
     "SORT_PRICE_DESC": "Ціна: від дорожчих",
     "SORT_RATING": "За рейтингом",
@@ -94,7 +98,6 @@
     "EMPTY": "Наразі активних акцій немає.",
     "NO_DESCRIPTION": "Без опису",
     "DISCOUNT": "Знижка",
-    "STATUS": "Активність",
     "PERIOD": "Період",
     "OPEN_PRODUCTS": "Переглянути товари акції"
   },

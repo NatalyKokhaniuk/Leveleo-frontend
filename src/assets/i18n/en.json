@@ -21,6 +21,7 @@
   },
   "PRODUCTS": {
     "TITLE": "Products",
+    "BREADCRUMB_LABEL": "Breadcrumb navigation",
     "DESCRIPTION": "Browse instruments and gear. Prices and availability are shown for each item.",
     "EMPTY": "No products to show yet.",
     "LOAD_ERROR": "Could not load products. Please try again later.",
@@ -31,6 +32,7 @@
     "CURRENCY": "UAH",
     "FILTER_CATEGORY": "Category",
     "FILTER_SUBCATEGORY": "Subcategory",
+    "FILTER_SUBCATEGORY_PLACEHOLDER": "Choose a subcategory",
     "FILTER_BRAND": "Brand",
     "FILTER_ALL": "All",
     "FILTER_PRICE_FROM": "Price from",
@@ -49,6 +51,8 @@
     "FILTER_ATTR_DEC_FROM": "From",
     "FILTER_ATTR_DEC_TO": "To",
     "FILTERS_SECTION": "Product filters",
+    "FILTERS_SHOW": "Show filters",
+    "FILTERS_HIDE": "Hide filters",
     "SORT_PRICE_ASC": "Price: low to high",
     "SORT_PRICE_DESC": "Price: high to low",
     "SORT_RATING": "Rating",
@@ -94,7 +98,6 @@
     "EMPTY": "No active promotions right now.",
     "NO_DESCRIPTION": "No description",
     "DISCOUNT": "Discount",
-    "STATUS": "Active",
     "PERIOD": "Period",
     "OPEN_PRODUCTS": "View promotion products"
   },

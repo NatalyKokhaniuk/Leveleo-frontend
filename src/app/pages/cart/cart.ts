@@ -25,6 +25,7 @@ import {
 } from '../../features/promotions/promotion-badge-label.util';
 import { computePricingFromCartItems } from '../../features/shopping-cart/cart-pricing.util';
 import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
+import type { PromotionTranslationDto } from '../../features/promotions/promotion.types';
 import { ProductService } from '../../features/products/product.service';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
@@ -72,6 +73,8 @@ export class CartPage implements OnInit {
     totalCartDiscount: number;
     totalPayable: number;
     promoName: string | null;
+    promoSlug: string | null;
+    promoTranslations: PromotionTranslationDto[] | null;
     promoDiscountType: number | null;
     promoDiscountValue: number | null;
   } | null>(null);
@@ -175,15 +178,18 @@ export class CartPage implements OnInit {
     const totalCartDiscount =
       apiCartDiscount > 0 ? apiCartDiscount : fromItems.totalCartDiscountFromLines;
 
+    const acp = cart.appliedCartPromotion;
     this.cartTotals.set({
       totalCatalogList: fromItems.totalCatalogList,
       totalProductDiscount: fromItems.totalProductDiscount,
       subtotalAfterProductPromotions: fromItems.subtotalAfterProductPromotions,
       totalCartDiscount,
       totalPayable: Number(cart.totalPayable ?? 0),
-      promoName: cart.appliedCartPromotion?.name?.trim() || null,
-      promoDiscountType: cart.appliedCartPromotion?.discountType ?? null,
-      promoDiscountValue: cart.appliedCartPromotion?.discountValue ?? null,
+      promoName: acp?.name?.trim() || null,
+      promoSlug: acp?.slug?.trim() || null,
+      promoTranslations: acp?.translations ?? null,
+      promoDiscountType: acp?.discountType ?? null,
+      promoDiscountValue: acp?.discountValue ?? null,
     });
     this.couponCode.set(String(cart.couponCode ?? ''));
     const raw = cart.items ?? [];
@@ -234,11 +240,16 @@ export class CartPage implements OnInit {
     if (!t) {
       return '';
     }
-    return formatCartLevelPromotionChip({
-      promoName: t.promoName,
-      promoDiscountType: t.promoDiscountType,
-      promoDiscountValue: t.promoDiscountValue,
-    });
+    return formatCartLevelPromotionChip(
+      {
+        promoName: t.promoName,
+        promoSlug: t.promoSlug,
+        promoTranslations: t.promoTranslations,
+        promoDiscountType: t.promoDiscountType,
+        promoDiscountValue: t.promoDiscountValue,
+      },
+      this.lang(),
+    );
   }
 
   onCouponInput(value: string): void {
@@ -352,7 +363,7 @@ export class CartPage implements OnInit {
   }
 
   linePromotionLabel(p: ProductResponseDto): string | null {
-    return formatAppliedPromotionBadgeLabel(p.appliedPromotion);
+    return formatAppliedPromotionBadgeLabel(p.appliedPromotion, this.lang());
   }
 
   linePromotionSlug(p: ProductResponseDto): string | null {

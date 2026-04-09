@@ -1,5 +1,6 @@
 import type { AppliedPromotionDto } from '../products/product.types';
-import { DiscountType } from './promotion.types';
+import { appliedPromotionLocalizedName, cartAppliedPromotionDisplayName } from './promotion-display-i18n';
+import { DiscountType, PromotionTranslationDto } from './promotion.types';
 import { toDiscountType } from './promotion-enum.util';
 
 /**
@@ -20,12 +21,15 @@ export function formatPromotionDiscountSuffix(
   return `${v.toLocaleString('uk-UA')} ₴`;
 }
 
-/** Плашка на картці товару: «Назва : - 10%» або «Назва : - 50 ₴». */
-export function formatAppliedPromotionBadgeLabel(pr: AppliedPromotionDto | null | undefined): string | null {
+/** Плашка на картці товару: «Назва : - 10%» або «Назва : - 50 ₴». `lang` — мова UI (ngx-translate). */
+export function formatAppliedPromotionBadgeLabel(
+  pr: AppliedPromotionDto | null | undefined,
+  lang: string,
+): string | null {
   if (!pr) {
     return null;
   }
-  const n = pr.name?.trim();
+  const n = appliedPromotionLocalizedName(pr, lang).trim();
   if (!n) {
     return null;
   }
@@ -36,13 +40,25 @@ export function formatAppliedPromotionBadgeLabel(pr: AppliedPromotionDto | null 
   return `${n} : - ${suffix}`;
 }
 
-/** Плашка знижки кошика в блоці «Разом». */
-export function formatCartLevelPromotionChip(t: {
-  promoName: string | null;
-  promoDiscountType: number | null;
-  promoDiscountValue: number | null;
-}): string {
-  const name = t.promoName?.trim() ?? '';
+/** Плашка знижки кошика (aria / текст без окремої плашки в блоці ціни). */
+export function formatCartLevelPromotionChip(
+  t: {
+    promoName: string | null;
+    promoSlug?: string | null;
+    promoTranslations?: PromotionTranslationDto[] | null;
+    promoDiscountType: number | null;
+    promoDiscountValue: number | null;
+  },
+  lang: string,
+): string {
+  const name = cartAppliedPromotionDisplayName(
+    {
+      name: t.promoName,
+      slug: t.promoSlug ?? '',
+      translations: t.promoTranslations,
+    },
+    lang,
+  );
   const suffix = formatPromotionDiscountSuffix(t.promoDiscountType, t.promoDiscountValue);
   if (name && suffix) {
     return `${name} : - ${suffix}`;

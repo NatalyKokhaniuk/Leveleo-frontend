@@ -13,3 +13,19 @@ export function categoryLocalizedName(category: CategoryResponseDto, lang: strin
   }
   return (category.name ?? '').trim();
 }
+
+/** Опис категорії для мови UI. */
+export function categoryLocalizedDescription(
+  category: CategoryResponseDto,
+  lang: string,
+): string | null {
+  const code = normalizeUiLang(lang);
+  const tr = category.translations?.find((t) =>
+    t.languageCode?.toLowerCase().startsWith(code),
+  );
+  const d = tr?.description?.trim();
+  if (d) {
+    return d;
+  }
+  return category.description?.trim() || null;
+}
