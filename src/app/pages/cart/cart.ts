@@ -22,9 +22,14 @@ import { ShoppingCartService } from '../../features/shopping-cart/shopping-cart.
 import {
   formatAppliedPromotionBadgeLabel,
   formatCartLevelPromotionChip,
+  formatPromotionDiscountSuffix,
 } from '../../features/promotions/promotion-badge-label.util';
-import { computePricingFromCartItems } from '../../features/shopping-cart/cart-pricing.util';
-import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
+import { cartAppliedPromotionDisplayName } from '../../features/promotions/promotion-display-i18n';
+import {
+  buildCartLineView,
+  computePricingFromCartItems,
+} from '../../features/shopping-cart/cart-pricing.util';
+import { CartLineView, ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
 import type { PromotionTranslationDto } from '../../features/promotions/promotion.types';
 import { ProductService } from '../../features/products/product.service';
 import { ProductResponseDto } from '../../features/products/product.types';
@@ -60,8 +65,8 @@ export class CartPage implements OnInit {
 
   loading = signal(true);
   loadError = signal(false);
-  /** Порядок як у відповіді кошика. */
-  lines = signal<{ product: ProductResponseDto; quantity: number }[]>([]);
+  /** Порядок як у відповіді кошика; ціни за одиницю з рядка GET /me. */
+  lines = signal<CartLineView[]>([]);
   cartTotals = signal<{
     /** Σ каталожних цін — для узгодженості з рядками. */
     totalCatalogList: number;
@@ -137,7 +142,7 @@ export class CartPage implements OnInit {
         catchError(() => {
           this.loadError.set(true);
           this.cartTotals.set(null);
-          return of([] as { product: ProductResponseDto; quantity: number }[]);
+          return of([] as CartLineView[]);
         }),
       )
       .subscribe((rows) => {
@@ -150,7 +155,7 @@ export class CartPage implements OnInit {
       });
   }
 
-  private loadRowMeta(rows: { product: ProductResponseDto; quantity: number }[]): void {
+  private loadRowMeta(rows: CartLineView[]): void {
     const products = rows.map((r) => r.product);
     if (products.length === 0) {
       this.imageUrls.set(new Map());
@@ -174,9 +179,24 @@ export class CartPage implements OnInit {
 
   private mapCartToRows(cart: ShoppingCartDto) {
     const fromItems = computePricingFromCartItems(cart.items);
-    const apiCartDiscount = Number(cart.totalCartDiscount ?? 0);
-    const totalCartDiscount =
-      apiCartDiscount > 0 ? apiCartDiscount : fromItems.totalCartDiscountFromLines;
+
+    /**
+     * Повна ціна / після товарних акцій / товарна знижка — лише з рядків (it.price, priceAfterProductPromotion),
+     * щоб не зрівнювати «Повна» і «Після товарів», коли API дає totalProductDiscount = 0 при наявних line-полях.
+     * Знижка кошика та totalPayable — з бекенду, якщо передано.
+     */
+    const apiCartDisc = cart.totalCartDiscount;
+    const apiPayable = cart.totalPayable;
+
+    let totalCartDiscount = fromItems.totalCartDiscountFromLines;
+    if (apiCartDisc != null && Number.isFinite(Number(apiCartDisc)) && Number(apiCartDisc) >= 0) {
+      totalCartDiscount = Number(apiCartDisc);
+    }
+
+    let totalPayable = Math.max(0, fromItems.subtotalAfterProductPromotions - totalCartDiscount);
+    if (apiPayable != null && Number.isFinite(Number(apiPayable))) {
+      totalPayable = Number(apiPayable);
+    }
 
     const acp = cart.appliedCartPromotion;
     this.cartTotals.set({
@@ -184,7 +204,7 @@ export class CartPage implements OnInit {
       totalProductDiscount: fromItems.totalProductDiscount,
       subtotalAfterProductPromotions: fromItems.subtotalAfterProductPromotions,
       totalCartDiscount,
-      totalPayable: Number(cart.totalPayable ?? 0),
+      totalPayable,
       promoName: acp?.name?.trim() || null,
       promoSlug: acp?.slug?.trim() || null,
       promoTranslations: acp?.translations ?? null,
@@ -194,38 +214,29 @@ export class CartPage implements OnInit {
     this.couponCode.set(String(cart.couponCode ?? ''));
     const raw = cart.items ?? [];
     if (raw.length === 0) {
-      return of([] as { product: ProductResponseDto; quantity: number }[]);
+      return of([] as CartLineView[]);
     }
     const ready = raw
       .map((it) => {
         const product = it.product;
-        const quantity = Math.max(0, Number(it.quantity) || 0);
         if (!product) return null;
-        return { product, quantity };
+        if (!product.isActive) return null;
+        return buildCartLineView(it, product);
       })
-      .filter(
-        (row): row is { product: ProductResponseDto; quantity: number } =>
-          row != null && row.product.isActive,
-      );
+      .filter((row): row is CartLineView => row != null);
     if (ready.length === raw.length) {
       return of(ready);
     }
     return forkJoin(
       raw.map((it) =>
         this.products.getById(String(it.productId ?? it.product?.id ?? '')).pipe(
-          map((p) => {
-            const quantity = Math.max(0, Number(it.quantity) || 0);
-            return { product: p, quantity };
-          }),
+          map((p) => buildCartLineView(it, p)),
           catchError(() => of(null)),
         ),
       ),
     ).pipe(
       map((list) =>
-        list.filter(
-          (row): row is { product: ProductResponseDto; quantity: number } =>
-            row != null && row.product.isActive,
-        ),
+        list.filter((row): row is CartLineView => row != null && row.product.isActive),
       ),
     );
   }
@@ -233,6 +244,47 @@ export class CartPage implements OnInit {
   hasCartPromotion(): boolean {
     const t = this.cartTotals();
     return !!t && t.totalCartDiscount > 0;
+  }
+
+  /** Банер зверху кошика: акція на кошик (назва + % або сума). */
+  showCartPromotionBanner(): boolean {
+    const t = this.cartTotals();
+    if (!t) return false;
+    if (t.totalCartDiscount > 0) return true;
+    const name = cartAppliedPromotionDisplayName(
+      {
+        name: t.promoName,
+        slug: t.promoSlug,
+        translations: t.promoTranslations,
+      },
+      this.lang(),
+    ).trim();
+    return name.length > 0;
+  }
+
+  cartPromotionTitle(): string {
+    const t = this.cartTotals();
+    if (!t) return '';
+    return cartAppliedPromotionDisplayName(
+      {
+        name: t.promoName,
+        slug: t.promoSlug,
+        translations: t.promoTranslations,
+      },
+      this.lang(),
+    );
+  }
+
+  /** Відсоток або фіксована знижка (рядок без мінуса — додається в шаблоні). */
+  cartPromotionDiscountLabel(): string | null {
+    const t = this.cartTotals();
+    if (!t) return null;
+    return formatPromotionDiscountSuffix(t.promoDiscountType, t.promoDiscountValue);
+  }
+
+  cartPromotionSlug(): string | null {
+    const s = this.cartTotals()?.promoSlug?.trim();
+    return s || null;
   }
 
   promoLabel(): string {
@@ -292,8 +344,9 @@ export class CartPage implements OnInit {
     });
   }
 
-  checkout(): void {
-    this.router.navigateByUrl('/checkout');
+  /** Сторінка оформлення замовлення (`/order-checkout`). */
+  goToOrderCheckout(): void {
+    this.router.navigate(['/order-checkout']);
   }
 
   dismissRemovedCartNotice(): void {
@@ -311,7 +364,7 @@ export class CartPage implements OnInit {
     }
   }
 
-  private writeCartSnapshotToSession(rows: { product: ProductResponseDto; quantity: number }[]): void {
+  private writeCartSnapshotToSession(rows: CartLineView[]): void {
     const lang = this.lang();
     const names: Record<string, string> = {};
     for (const r of rows) {
@@ -328,7 +381,7 @@ export class CartPage implements OnInit {
    * Порівнюємо поточні позиції з останнім знімком у sessionStorage: якщо id зник —
    * товар прибрали з кошика (бекенд або користувач), показуємо банер з назвами.
    */
-  private syncRemovedCartNotice(rows: { product: ProductResponseDto; quantity: number }[]): void {
+  private syncRemovedCartNotice(rows: CartLineView[]): void {
     const prevNames = this.readCartSnapshotFromSession();
     const currIds = new Set(rows.map((r) => r.product.id));
     const removed: string[] = [];
@@ -354,12 +407,17 @@ export class CartPage implements OnInit {
     return this.imageUrls().get(productId) ?? null;
   }
 
-  lineCurrentPrice(p: ProductResponseDto): number {
-    return p.discountedPrice != null ? p.discountedPrice : p.price;
+  /** Фінальна ціна за одиницю (після товарної та кошикової знижки на рядок). */
+  lineUnitFinal(row: CartLineView): number {
+    return row.unitAfterCartPromotion;
   }
 
-  lineHasDiscount(p: ProductResponseDto): boolean {
-    return p.discountedPrice != null && p.discountedPrice < p.price;
+  /**
+   * Закреслення базової ціни — лише якщо є **товарна** акція (до знижки кошика).
+   * Чисто кошикова знижка не закреслює вітринну ціну в картці рядка.
+   */
+  lineHasProductLevelDiscount(row: CartLineView): boolean {
+    return row.unitAfterProductPromotion < row.unitListPrice - 0.01;
   }
 
   linePromotionLabel(p: ProductResponseDto): string | null {

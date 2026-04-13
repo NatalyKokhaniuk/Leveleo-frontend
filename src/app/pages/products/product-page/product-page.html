@@ -1,0 +1,126 @@
+<main class="pt-37.5 pb-10 px-4 sm:px-6 md:px-10">
+  <div class="max-w-6xl mx-auto">
+    @if (loading()) {
+      <div class="min-h-[45vh] flex items-center justify-center">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (loadError()) {
+      <section
+        class="rounded-2xl border border-outline-variant/30 bg-surface-container/35 p-5 text-center flex flex-col items-center gap-3"
+      >
+        <mat-icon class="text-error !w-8 !h-8 !text-3xl">error_outline</mat-icon>
+        <p class="text-on-surface">{{ 'COMMON.LOAD_ERROR' | translate }}</p>
+        <a routerLink="/products" class="inline-flex items-center gap-2 text-primary hover:underline">
+          <mat-icon>arrow_back</mat-icon>
+          {{ 'PRODUCTS.TITLE' | translate }}
+        </a>
+      </section>
+    } @else if (product(); as p) {
+      <section
+        class="product-page__card rounded-2xl border border-outline-variant/30 bg-surface-container/35 p-3 sm:p-4 md:p-5 flex flex-col gap-4"
+      >
+        <div
+          class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 min-w-0"
+        >
+          <h1
+            class="modal-title text-xl sm:text-2xl md:text-3xl font-fixel font-semibold text-on-surface m-0 break-words [overflow-wrap:anywhere] flex-1 min-w-0"
+          >
+            {{ productTitle(p) }}
+          </h1>
+          <button
+            matButton="outlined"
+            type="button"
+            class="shrink-0 self-start sm:self-center"
+            (click)="toggleFavorite(p)"
+            [disabled]="favoriteBusy()"
+            [attr.aria-pressed]="isFavorite(p)"
+          >
+            <mat-icon>{{ isFavorite(p) ? 'favorite' : 'favorite_border' }}</mat-icon>
+            {{
+              (isFavorite(p) ? 'PRODUCTS.REMOVE_FAVORITES' : 'PRODUCTS.ADD_FAVORITES') | translate
+            }}
+          </button>
+        </div>
+        <app-product-detail-tabs
+          [product]="p"
+          [forceSquareMedia]="true"
+          [hideTitleInDetailsTab]="true"
+        />
+        <app-product-commerce-toolbar [productId]="p.id" />
+      </section>
+
+      <section
+        class="product-page__recommended mt-10 md:mt-12 flex flex-col gap-4 w-full min-w-0"
+        [attr.aria-label]="'PRODUCTS.YOU_MAY_ALSO_LIKE' | translate"
+      >
+        <h2 class="text-xl md:text-2xl font-semibold text-on-surface px-0.5">
+          {{ 'PRODUCTS.YOU_MAY_ALSO_LIKE' | translate }}
+        </h2>
+        @if (recommendedLoading()) {
+          <div class="flex justify-center py-12">
+            <mat-spinner diameter="40"></mat-spinner>
+          </div>
+        } @else if (recommendedProducts().length > 0) {
+          <div class="product-rec-carousel relative w-full">
+            <div
+              class="relative w-full overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container/20"
+              (mouseenter)="pauseRecCarousel()"
+              (mouseleave)="resumeRecCarousel()"
+            >
+              <div
+                #recScroller
+                class="product-rec-carousel__track flex gap-4 overflow-x-auto scroll-smooth py-4 px-3 md:px-4"
+                (scroll)="onRecScroll()"
+              >
+                @for (rp of recommendedProducts(); track rp.id) {
+                  <div
+                    class="product-rec-carousel__item shrink-0 w-[min(78vw,260px)] sm:w-[240px] md:w-[260px]"
+                  >
+                    <app-product-card
+                      [product]="rp"
+                      [isFavorite]="favoriteRecommended(rp.id)"
+                      (openDetail)="openRecommendedQuickView(rp)"
+                      (favoriteToggled)="toggleFavoriteRecommended(rp.id)"
+                    />
+                  </div>
+                }
+              </div>
+              @if (recommendedProducts().length > 1) {
+                <button
+                  type="button"
+                  (click)="recScrollPrev()"
+                  class="carousel-nav-btn absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+                  [attr.aria-label]="'CAROUSEL.PREV_SLIDE' | translate"
+                >
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+                <button
+                  type="button"
+                  (click)="recScrollNext()"
+                  class="carousel-nav-btn absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+                  [attr.aria-label]="'CAROUSEL.NEXT_SLIDE' | translate"
+                >
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+              }
+            </div>
+            @if (recommendedProducts().length > 1) {
+              <div class="flex justify-center gap-2 mt-5 md:mt-6 pb-3 md:pb-5 flex-wrap">
+                @for (rp of recommendedProducts(); track rp.id; let i = $index) {
+                  <button
+                    type="button"
+                    (click)="goToRecSlide(i)"
+                    class="w-2 h-2 rounded-full transition-all shrink-0"
+                    [class.bg-primary]="activeRecDot() === i"
+                    [class.scale-125]="activeRecDot() === i"
+                    [class.bg-gray-400]="activeRecDot() !== i"
+                  ></button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+    }
+  </div>
+</main>

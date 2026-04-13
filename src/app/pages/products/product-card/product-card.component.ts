@@ -148,16 +148,27 @@ export class ProductCardComponent implements OnInit, OnChanges {
 
   displayPrice(): number {
     const p = this.product;
-    return p.discountedPrice != null ? p.discountedPrice : p.price;
+    const list = Number(p.price);
+    const disc = p.discountedPrice;
+    if (disc != null && !Number.isNaN(Number(disc))) {
+      return Number(disc);
+    }
+    return list;
   }
 
   listPrice(): number {
-    return this.product.price;
+    return Number(this.product.price);
   }
 
+  /** Знижка на товар: друга ціна нижча за каталожну (з толерантністю до float). */
   hasDiscount(): boolean {
     const p = this.product;
-    return p.discountedPrice != null && p.discountedPrice < p.price;
+    const list = Number(p.price);
+    const disc = p.discountedPrice;
+    if (disc == null || Number.isNaN(Number(disc))) {
+      return false;
+    }
+    return Number(disc) < list - 0.01;
   }
 
   promotionLabel(): string | null {

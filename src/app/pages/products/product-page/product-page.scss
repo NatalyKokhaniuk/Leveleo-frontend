@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+/* Мінімальна висота зовнішньої картки: не менше половини її ширини. */
+.product-page__card {
+  aspect-ratio: 2 / 1;
+}
+
+/* Як у home `carousel` — кнопки навігації. */
+.product-rec-carousel .carousel-nav-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  mat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+    margin: 0;
+  }
+}
+
+.product-rec-carousel__track {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

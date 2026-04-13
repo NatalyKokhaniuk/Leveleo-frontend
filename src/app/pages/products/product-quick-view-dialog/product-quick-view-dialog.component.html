@@ -5,17 +5,37 @@
   <span
     class="min-w-0 flex-1 text-xl sm:text-2xl font-fixel font-semibold text-on-surface leading-snug break-words [overflow-wrap:anywhere] pr-2"
   >
-    {{ displayName() }}
+    @if (data.product.slug) {
+      <a
+        href="#"
+        class="hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+        (click)="$event.preventDefault(); openProductPage()"
+      >
+        {{ displayName() }}
+      </a>
+    } @else {
+      {{ displayName() }}
+    }
   </span>
-  <button
-    matIconButton
-    type="button"
-    class="shrink-0 -mt-1 -mr-1"
-    (click)="close()"
-    [attr.aria-label]="'PRODUCTS.MODAL_CLOSE' | translate"
-  >
-    <mat-icon>close</mat-icon>
-  </button>
+  <div class="shrink-0 -mt-1 -mr-1 inline-flex items-center gap-1">
+    <button
+      matIconButton
+      type="button"
+      (click)="openProductPage()"
+      [disabled]="!data.product.slug"
+      [attr.aria-label]="'PRODUCTS.OPEN_PRODUCT' | translate"
+    >
+      <mat-icon>open_in_new</mat-icon>
+    </button>
+    <button
+      matIconButton
+      type="button"
+      (click)="close()"
+      [attr.aria-label]="'PRODUCTS.MODAL_CLOSE' | translate"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
 </h2>
 
 <mat-dialog-content

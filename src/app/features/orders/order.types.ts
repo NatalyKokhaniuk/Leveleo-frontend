@@ -16,3 +16,14 @@ export interface CreateOrderResultDto {
   shoppingCart?: ShoppingCartDto | null;
   message?: string | null;
 }
+
+/** Елемент списку GET /api/Orders/my-orders — поля залежать від бекенду. */
+export interface OrderSummaryDto {
+  id: string;
+  orderNumber?: string | null;
+  createdAt?: string | null;
+  status?: string | null;
+  totalAmount?: number | null;
+  total?: number | null;
+  [key: string]: unknown;
+}

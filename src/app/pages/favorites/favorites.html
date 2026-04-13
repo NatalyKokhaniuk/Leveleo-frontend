@@ -26,8 +26,22 @@
           class="favorites-row rounded-2xl border border-outline-variant/25 bg-surface-container-lowest/50 p-4 md:p-5 w-full min-w-0 max-w-full overflow-hidden"
         >
           <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
+            <div class="min-w-0 w-full">
+              @if (p.slug) {
+                <a
+                  [routerLink]="['/products', p.slug]"
+                  class="text-base md:text-lg font-semibold text-on-surface hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded break-words [overflow-wrap:anywhere]"
+                >
+                  {{ productName(p) }}
+                </a>
+              } @else {
+                <span class="text-base md:text-lg font-semibold text-on-surface break-words [overflow-wrap:anywhere]">
+                  {{ productName(p) }}
+                </span>
+              }
+            </div>
             <div class="min-w-0 w-full max-w-full overflow-hidden">
-              <app-product-detail-tabs [product]="p" [roomyRating]="true" />
+              <app-product-detail-tabs [product]="p" [roomyRating]="true" [hideTitleInDetailsTab]="true" />
             </div>
             <app-product-commerce-toolbar class="w-full min-w-0" [productId]="p.id" />
             <div class="flex justify-end shrink-0">

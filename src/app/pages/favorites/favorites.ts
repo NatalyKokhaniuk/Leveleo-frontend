@@ -4,11 +4,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule } from '@ngx-translate/core';
+import { TranslateService } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import {
   FAVORITES_STORAGE_KEY,
 } from '../../core/favorites/favorites-storage';
 import { FavoritesStateService } from '../../core/favorites/favorites-state.service';
+import { productLocalizedName } from '../../features/products/product-display-i18n';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
@@ -30,6 +32,7 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
 })
 export class FavoritesPage implements OnInit, OnDestroy {
   private favorites = inject(FavoritesStateService);
+  private translate = inject(TranslateService);
 
   loading = signal(true);
   loadError = signal(false);
@@ -75,5 +78,9 @@ export class FavoritesPage implements OnInit, OnDestroy {
     this.favorites.removeFavorite(id).subscribe(() => {
       this.items.update((rows) => rows.filter((p) => p.id !== id));
     });
+  }
+
+  productName(p: ProductResponseDto): string {
+    return productLocalizedName(p, this.translate.currentLang || 'uk');
   }
 }

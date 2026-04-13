@@ -27,6 +27,44 @@
     } @else if (loadError()) {
       <p class="text-center text-on-surface/80 py-12">{{ 'CART.LOAD_ERROR' | translate }}</p>
     } @else {
+      @if (showCartPromotionBanner()) {
+        <section
+          class="rounded-2xl border border-primary/35 bg-primary/8 text-on-surface p-4 md:p-5 flex flex-col sm:flex-row sm:items-center gap-4 shadow-sm"
+          role="region"
+          [attr.aria-label]="'CART.PROMO_APPLIED' | translate"
+        >
+          <div
+            class="shrink-0 inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/15 text-primary"
+          >
+            <mat-icon class="!w-7 !h-7" aria-hidden="true">local_offer</mat-icon>
+          </div>
+          <div class="min-w-0 flex-1 flex flex-col gap-1">
+            <p class="text-xs font-semibold uppercase tracking-wide text-primary/90">
+              {{ 'CART.PROMO_APPLIED' | translate }}
+            </p>
+            <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              @if (cartPromotionTitle().trim()) {
+                @if (cartPromotionSlug(); as slug) {
+                  <a
+                    [routerLink]="['/promotions']"
+                    [queryParams]="{ slug: slug }"
+                    class="text-lg md:text-xl font-semibold text-on-surface hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded break-words"
+                  >
+                    {{ cartPromotionTitle() }}
+                  </a>
+                } @else {
+                  <span class="text-lg md:text-xl font-semibold text-on-surface break-words">{{
+                    cartPromotionTitle()
+                  }}</span>
+                }
+              }
+              @if (cartPromotionDiscountLabel(); as pct) {
+                <span class="text-2xl md:text-3xl font-bold tabular-nums text-primary">−{{ pct }}</span>
+              }
+            </div>
+          </div>
+        </section>
+      }
       @if (removedCartItemsNotice().length) {
         <section
           class="relative flex flex-col gap-2 rounded-2xl border border-outline-variant bg-[var(--mat-sys-error-container)] p-4 md:p-6 pr-14"
@@ -68,7 +106,16 @@
                   </div>
                   <div class="min-w-0 flex-1">
                     <h2 class="text-base md:text-lg font-semibold text-on-surface break-words [overflow-wrap:anywhere]">
-                      {{ productName(row.product) }}
+                      @if (row.product.slug) {
+                        <a
+                          [routerLink]="['/products', row.product.slug]"
+                          class="hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+                        >
+                          {{ productName(row.product) }}
+                        </a>
+                      } @else {
+                        {{ productName(row.product) }}
+                      }
                     </h2>
                     @if (productBrand(row.product); as brand) {
                       <p class="text-sm text-on-surface/70 mt-1">
@@ -94,11 +141,11 @@
                       }
                     }
                     <div class="text-lg md:text-xl font-semibold text-primary">
-                      {{ lineCurrentPrice(row.product) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                      {{ lineUnitFinal(row) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
                     </div>
-                    @if (lineHasDiscount(row.product)) {
+                    @if (lineHasProductLevelDiscount(row)) {
                       <div class="text-sm text-on-surface/55 line-through">
-                        {{ row.product.price | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                        {{ row.unitListPrice | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
                       </div>
                     }
                   </div>
@@ -158,7 +205,7 @@
               </div>
             </div>
           </div>
-          <button matButton="elevated" color="primary" type="button" (click)="checkout()">
+          <button matButton="elevated" color="primary" type="button" (click)="goToOrderCheckout()">
             {{ 'CART.CHECKOUT' | translate }}
           </button>
         </section>

@@ -8,9 +8,19 @@ export interface ShoppingCartItemDto {
   /** Актуальний формат з бекенду (див. ShoppingCartService.MapToDtoAsync). */
   product?: ProductResponseDto;
   quantity: number;
+  /** Оригінальна ціна за одиницю в контексті кошика (GET /me). */
   price?: number;
   priceAfterProductPromotion?: number;
   priceAfterCartPromotion?: number;
+}
+
+/** Рядок кошика на UI: товар + пер-юніт ціни з ShoppingCartItemDto (джерело істини — GET /me). */
+export interface CartLineView {
+  product: ProductResponseDto;
+  quantity: number;
+  unitListPrice: number;
+  unitAfterProductPromotion: number;
+  unitAfterCartPromotion: number;
 }
 
 export interface AppliedCartPromotionDto {

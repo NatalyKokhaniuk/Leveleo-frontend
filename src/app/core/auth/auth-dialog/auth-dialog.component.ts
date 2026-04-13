@@ -1,5 +1,6 @@
 import { UpperCasePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dialog';
@@ -38,6 +39,7 @@ export interface AuthDialogData {
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
+    RouterLink,
     IconComponent,
     UpperCasePipe,
     PasswordStrengthComponent,

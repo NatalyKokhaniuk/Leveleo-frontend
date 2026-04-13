@@ -102,6 +102,22 @@
   min-width: 0;
 }
 
+/* Для сторінки конкретного товару: медіа-картка щонайменше квадратна. */
+.product-detail-tabs__root--square-media .product-detail-tabs__media-outer {
+  aspect-ratio: 1 / 1;
+}
+
+.product-detail-tabs__root--square-media .product-detail-tabs__media {
+  height: 100%;
+}
+
+.product-detail-tabs__root--square-media .product-detail-tabs__img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+
 .product-detail-tabs__media {
   width: 100%;
   max-width: 100%;

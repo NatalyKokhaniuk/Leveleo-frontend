@@ -26,6 +26,11 @@ export interface ProductFilterDto {
   includeInactive: boolean;
   sortBy: ProductSortBy;
   promotionId?: string | null;
+  /**
+   * Лише товари з активною product-акцією (`OnlyWithActiveProductPromotion` у Base64-фільтрі на бекенді).
+   * На UI «Лише акційні» використовує окремий {@link ProductService.getPromotional}, коли це true.
+   */
+  onlyWithActiveProductPromotion?: boolean | null;
   page: number;
   pageSize: number;
   /**

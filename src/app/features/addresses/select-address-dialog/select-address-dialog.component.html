@@ -1,0 +1,83 @@
+<h2 mat-dialog-title>{{ 'ADDRESS.SELECT_TITLE' | translate }}</h2>
+
+<mat-dialog-content class="flex flex-col gap-4 min-w-0 min-h-[200px]">
+  @if (loading()) {
+    <div class="flex justify-center py-10">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (loadError()) {
+    <p class="text-sm text-[var(--mat-sys-error)]">{{ 'ADDRESS.LOAD_LIST_ERROR' | translate }}</p>
+    <button mat-stroked-button type="button" (click)="load()">{{ 'ADDRESS.RETRY' | translate }}</button>
+  } @else {
+    <div class="flex flex-col sm:flex-row gap-3 sm:items-center">
+      <mat-form-field class="flex-1 min-w-0">
+        <mat-label>{{ 'ADMIN.TABLE.SEARCH' | translate }}</mat-label>
+        <input matInput type="search" [ngModel]="searchText()" (ngModelChange)="searchText.set($event)" />
+        @if (searchText().trim()) {
+          <button matSuffix mat-icon-button type="button" (click)="searchText.set('')">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+      <button mat-flat-button color="primary" type="button" (click)="openCreate()" class="shrink-0 self-stretch sm:self-center">
+        <mat-icon>add</mat-icon>
+        {{ 'ADDRESS.ADD' | translate }}
+      </button>
+    </div>
+
+    @if (filtered().length === 0) {
+      <p class="text-sm opacity-80">{{ 'PROFILE.ADDRESSES_EMPTY' | translate }}</p>
+    } @else {
+      <mat-radio-group class="flex flex-col gap-2" [ngModel]="pickedId()" (ngModelChange)="pickedId.set($event)">
+        @for (a of filtered(); track a.id) {
+          <div
+            class="flex items-start gap-2 rounded-xl border border-outline-variant p-3 transition-colors"
+            [style.box-shadow]="
+              pickedId() === a.id ? '0 0 0 2px var(--mat-sys-primary, var(--color-primary))' : 'none'
+            "
+          >
+            <mat-radio-button class="shrink-0 pt-0.5" [value]="a.id"></mat-radio-button>
+            <div class="min-w-0 flex-1 text-sm">
+              <p class="font-medium break-words">{{ a.formattedAddress }}</p>
+              <p class="opacity-75 text-xs mt-1">
+                {{ a.firstName }} {{ a.lastName }} · {{ a.phoneNumber }}
+              </p>
+            </div>
+            <div class="inline-flex flex-wrap gap-1 justify-end shrink-0">
+              <button
+                mat-icon-button
+                type="button"
+                (click)="openEdit(a, $event)"
+                [attr.aria-label]="'ADMIN.TABLE.EDIT' | translate"
+              >
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                color="warn"
+                (click)="confirmDelete(a, $event)"
+                [attr.aria-label]="'ADMIN.TABLE.DELETE' | translate"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </mat-radio-group>
+    }
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">{{ 'ADDRESS.CANCEL' | translate }}</button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="confirm()"
+    [disabled]="loading() || !pickedId()"
+  >
+    {{ 'ADDRESS.SELECT_CONFIRM' | translate }}
+  </button>
+</mat-dialog-actions>

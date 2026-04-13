@@ -62,7 +62,19 @@
         <h2
           class="text-base font-medium text-on-surface line-clamp-2 min-h-[2.75rem] break-words hyphens-auto"
         >
-          {{ displayName() }}
+          @if (product.slug) {
+            <a
+              [routerLink]="['/products', product.slug]"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+              (click)="$event.stopPropagation()"
+            >
+              {{ displayName() }}
+            </a>
+          } @else {
+            {{ displayName() }}
+          }
         </h2>
 
         <div

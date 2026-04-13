@@ -61,8 +61,26 @@
               class="comparison-row rounded-2xl border border-outline-variant/25 bg-surface-container-lowest/50 p-4 md:p-5 w-full min-w-0 max-w-full overflow-hidden"
             >
               <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
+                <div class="min-w-0 w-full">
+                  @if (p.slug) {
+                    <a
+                      [routerLink]="['/products', p.slug]"
+                      class="text-base md:text-lg font-semibold text-on-surface hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded break-words [overflow-wrap:anywhere]"
+                    >
+                      {{ productLabel(p) }}
+                    </a>
+                  } @else {
+                    <span class="text-base md:text-lg font-semibold text-on-surface break-words [overflow-wrap:anywhere]">
+                      {{ productLabel(p) }}
+                    </span>
+                  }
+                </div>
                 <div class="min-w-0 w-full max-w-full overflow-hidden">
-                  <app-product-detail-tabs [product]="p" [roomyRating]="true" />
+                  <app-product-detail-tabs
+                    [product]="p"
+                    [roomyRating]="true"
+                    [hideTitleInDetailsTab]="true"
+                  />
                 </div>
                 <app-product-commerce-toolbar class="w-full min-w-0" [productId]="p.id" />
                 <div class="flex justify-end shrink-0">
@@ -99,13 +117,18 @@
                       class="sticky top-0 z-20 bg-surface-container-high text-left align-top p-3 md:p-4 border-b border-l border-outline-variant/20 min-w-[230px]"
                     >
                       <div class="flex flex-col gap-2">
-                        <a
-                          href="/products"
-                          class="font-semibold text-sm leading-snug break-words text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-sm w-fit"
-                          (click)="openQuickViewFromLink($event, p)"
-                        >
-                          {{ productLabel(p) }}
-                        </a>
+                        @if (p.slug) {
+                          <a
+                            [routerLink]="['/products', p.slug]"
+                            class="font-semibold text-sm leading-snug break-words text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-sm w-fit"
+                          >
+                            {{ productLabel(p) }}
+                          </a>
+                        } @else {
+                          <span class="font-semibold text-sm leading-snug break-words text-on-surface">
+                            {{ productLabel(p) }}
+                          </span>
+                        }
                         @if (productImageUrl(p.id); as img) {
                           <img
                             [src]="img"

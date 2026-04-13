@@ -134,6 +134,17 @@
           <mat-option [value]="ProductSortBy.TotalSoldDesc">{{ 'PRODUCTS.SORT_SOLD' | translate }}</mat-option>
         </mat-select>
       </mat-form-field>
+
+      @if (!promotionId()) {
+        <div class="flex items-center lg:self-end min-h-[56px]">
+          <mat-checkbox
+            [checked]="onlyPromotional()"
+            (change)="onOnlyPromotionalChange($event.checked)"
+          >
+            {{ 'PRODUCTS.FILTER_ON_SALE_ONLY' | translate }}
+          </mat-checkbox>
+        </div>
+      }
     </div>
 
     <div class="flex flex-col sm:flex-row gap-4 flex-wrap items-center">

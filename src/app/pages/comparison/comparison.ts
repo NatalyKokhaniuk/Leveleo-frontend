@@ -1,7 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -23,10 +22,6 @@ import { CategoryService } from '../../features/categories/category.service';
 import { HorizontalDragScrollDirective } from '../../shared/directives/horizontal-drag-scroll.directive';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
-import {
-  ProductQuickViewDialogComponent,
-  ProductQuickViewDialogData,
-} from '../products/product-quick-view-dialog/product-quick-view-dialog.component';
 
 @Component({
   selector: 'app-comparison',
@@ -46,7 +41,6 @@ import {
 })
 export class ComparisonPage implements OnInit {
   private auth = inject(AuthService);
-  private dialog = inject(MatDialog);
   private relations = inject(UserProductRelationsService);
   private comparison = inject(ComparisonStateService);
   private categories = inject(CategoryService);
@@ -223,21 +217,6 @@ export class ComparisonPage implements OnInit {
 
   productImageUrl(productId: string): string | null {
     return this.imageUrls().get(productId) ?? null;
-  }
-
-  openQuickViewFromLink(event: MouseEvent, product: ProductResponseDto): void {
-    event.preventDefault();
-    this.dialog.open<ProductQuickViewDialogComponent, ProductQuickViewDialogData>(
-      ProductQuickViewDialogComponent,
-      {
-        panelClass: ['auth-dialog', 'product-quick-view-panel'],
-        width: 'min(96vw - 24px, 1040px)',
-        maxWidth: 'calc(100vw - 24px)',
-        height: 'min(88vh, 820px)',
-        maxHeight: 'min(88vh, calc(100vh - 24px))',
-        data: { product },
-      },
-    );
   }
 
   private attributeLabel(attributeId: string): string {

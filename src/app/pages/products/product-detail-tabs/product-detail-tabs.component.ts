@@ -72,6 +72,8 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   @Input() hideDescription = false;
   /** Для компактних сценаріїв (наприклад, кошик) приховати атрибути. */
   @Input() hideAttributes = false;
+  /** Для окремої сторінки товару: медіа-блок квадратний (висота не менша за ширину). */
+  @Input() forceSquareMedia = false;
 
   private lang = signal(this.translate.currentLang || 'uk');
 
@@ -291,16 +293,26 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
 
   displayPrice(): number {
     const p = this.product;
-    return p.discountedPrice != null ? p.discountedPrice : p.price;
+    const list = Number(p.price);
+    const disc = p.discountedPrice;
+    if (disc != null && !Number.isNaN(Number(disc))) {
+      return Number(disc);
+    }
+    return list;
   }
 
   listPrice(): number {
-    return this.product.price;
+    return Number(this.product.price);
   }
 
   hasDiscount(): boolean {
     const p = this.product;
-    return p.discountedPrice != null && p.discountedPrice < p.price;
+    const list = Number(p.price);
+    const disc = p.discountedPrice;
+    if (disc == null || Number.isNaN(Number(disc))) {
+      return false;
+    }
+    return Number(disc) < list - 0.01;
   }
 
   promotionLabel(): string | null {

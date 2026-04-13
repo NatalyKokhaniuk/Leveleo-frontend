@@ -2,6 +2,7 @@ import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { ActivatedRoute, ParamMap, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, combineLatest, finalize, of } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { BrandService } from '../../features/brands/brand.service';
 import { BrandResponseDto } from '../../features/brands/brand.types';
 import { brandLocalizedName } from '../../features/brands/brand-display-i18n';
@@ -57,6 +59,7 @@ function parseOptionalFloat(s: string): number | null {
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatCheckboxModule,
     MatButtonModule,
     MatIconModule,
     MatPaginatorModule,
@@ -96,10 +99,14 @@ export class Products implements OnInit {
   priceFromStr = signal('');
   priceToStr = signal('');
   promotionId = signal<string | null>(null);
+  /** Лише товари з акцією; у URL як `onSale=1`. */
+  onlyPromotional = signal(false);
 
   /** Slug з маршруту `/products/brand/:slug` та `/products/category/:slug`. */
   routeBrandSlug = signal<string | null>(null);
   routeCategorySlug = signal<string | null>(null);
+  /** Slug з `/products/promotion/:promotionSlug` — для канонічних посилань без `?promotionId=`. */
+  routePromotionSlug = signal<string | null>(null);
 
   headerTitle = signal('');
   headerSubtitle = signal<string | null>(null);
@@ -246,13 +253,17 @@ export class Products implements OnInit {
     this.currentPage.set(1);
   }
 
-  private auxQueryFrom(query: ParamMap): Record<string, string | null> {
+  private auxQueryFrom(
+    query: ParamMap,
+    opts?: { omitPromotionId?: boolean },
+  ): Record<string, string | null> {
     const o: Record<string, string | null> = {};
     const s = query.get('sort');
     const pf = query.get('priceFrom');
     const pt = query.get('priceTo');
-    const promo = query.get('promotionId');
+    const promo = opts?.omitPromotionId ? null : query.get('promotionId');
     const pg = query.get('page');
+    const onSale = query.get('onSale');
     if (s !== null && s !== '') {
       o['sort'] = s;
     }
@@ -265,6 +276,9 @@ export class Products implements OnInit {
     if (promo !== null && promo !== '') {
       o['promotionId'] = promo;
     }
+    if (onSale === '1' || onSale === 'true') {
+      o['onSale'] = '1';
+    }
     if (pg !== null && pg !== '') {
       const n = parseInt(pg, 10);
       if (!Number.isNaN(n) && n > 1) {
@@ -276,7 +290,7 @@ export class Products implements OnInit {
 
   /** `/products?brandId=` або `?categoryId=` → канонічний slug-шлях, якщо лиш один тип фільтра. */
   private maybeCanonicalizeUrl(params: ParamMap, query: ParamMap): boolean {
-    if (params.get('brandSlug') || params.get('categorySlug')) {
+    if (params.get('brandSlug') || params.get('categorySlug') || params.get('promotionSlug')) {
       return false;
     }
     const qBrand = query.get('brandId');
@@ -309,6 +323,9 @@ export class Products implements OnInit {
 
   /** Суміш фільтрів на slug-сторінці → `/products?...` */
   private maybeResolveSlugConflicts(params: ParamMap, query: ParamMap): boolean {
+    if (params.get('promotionSlug')) {
+      return false;
+    }
     const bs = params.get('brandSlug');
     const cs = params.get('categorySlug');
     const qBrand = query.get('brandId');
@@ -342,6 +359,9 @@ export class Products implements OnInit {
   }
 
   private maybeRedirectInvalidSlug(params: ParamMap, query: ParamMap): boolean {
+    if (params.get('promotionSlug')) {
+      return false;
+    }
     const bs = params.get('brandSlug');
     if (bs && this.brands().length > 0) {
       const b = this.brands().find((x) => x.slug === bs);
@@ -361,7 +381,11 @@ export class Products implements OnInit {
     return false;
   }
 
-  private applyFromRoute(params: ParamMap, query: ParamMap): void {
+  private applyFromRoute(
+    params: ParamMap,
+    query: ParamMap,
+    promotionIdEffective: string | null,
+  ): void {
     let brandId: string | null = null;
     let categoryId: string | null = null;
 
@@ -384,7 +408,13 @@ export class Products implements OnInit {
 
     this.brandId.set(brandId);
     this.categoryId.set(categoryId);
-    this.promotionId.set(query.get('promotionId'));
+    this.promotionId.set(promotionIdEffective);
+    if (this.promotionId()) {
+      this.onlyPromotional.set(false);
+    } else {
+      const onSale = query.get('onSale');
+      this.onlyPromotional.set(onSale === '1' || onSale === 'true');
+    }
     this.syncCategorySelectors(categoryId);
     this.applySortAndPriceFromQuery(query);
     this.applyPageFromQuery(query);
@@ -420,7 +450,55 @@ export class Products implements OnInit {
 
     this.routeBrandSlug.set(params.get('brandSlug'));
     this.routeCategorySlug.set(params.get('categorySlug'));
+    const promoSlugParam = params.get('promotionSlug');
+    this.routePromotionSlug.set(promoSlugParam);
 
+    const promoIdFromQuery = query.get('promotionId')?.trim() ?? null;
+
+    /** `?promotionId=` → `/products/promotion/{slug}` (канонічна адреса). */
+    if (!promoSlugParam && promoIdFromQuery) {
+      this.promotionsApi
+        .getById(promoIdFromQuery)
+        .pipe(take(1), catchError(() => of(null)))
+        .subscribe((p) => {
+          const slug = p?.slug?.trim();
+          if (slug) {
+            this.router.navigate(['/products', 'promotion', slug], {
+              queryParams: this.auxQueryFrom(query, { omitPromotionId: true }),
+              replaceUrl: true,
+            });
+          } else {
+            this.finishRefreshFromRoute(params, query, promoIdFromQuery);
+          }
+        });
+      return;
+    }
+
+    if (promoSlugParam?.trim()) {
+      this.promotionsApi
+        .getBySlug(promoSlugParam.trim())
+        .pipe(take(1), catchError(() => of(null)))
+        .subscribe((p) => {
+          if (!p?.id) {
+            this.router.navigate(['/products'], {
+              queryParams: this.auxQueryFrom(query, { omitPromotionId: true }),
+              replaceUrl: true,
+            });
+            return;
+          }
+          this.finishRefreshFromRoute(params, query, p.id);
+        });
+      return;
+    }
+
+    this.finishRefreshFromRoute(params, query, promoIdFromQuery);
+  }
+
+  private finishRefreshFromRoute(
+    params: ParamMap,
+    query: ParamMap,
+    promotionIdEffective: string | null,
+  ): void {
     if (params.get('brandSlug') && !this.brandsCatalogResolved) {
       return;
     }
@@ -437,7 +515,7 @@ export class Products implements OnInit {
     if (this.maybeRedirectInvalidSlug(params, query)) {
       return;
     }
-    this.applyFromRoute(params, query);
+    this.applyFromRoute(params, query, promotionIdEffective);
     this.load();
     this.loadContextHeader();
   }
@@ -452,6 +530,7 @@ export class Products implements OnInit {
       categoryId: this.categoryId(),
       brandId: this.brandId(),
       promotionId: this.promotionId(),
+      onlyWithActiveProductPromotion: this.promotionId() ? false : this.onlyPromotional(),
       priceFrom: parseOptionalFloat(this.priceFromStr()),
       priceTo: parseOptionalFloat(this.priceToStr()),
       searchQuery: null,
@@ -689,11 +768,22 @@ export class Products implements OnInit {
       query['priceTo'] = String(pt);
     }
     const promo = this.promotionId();
-    if (promo) {
+    const promoSlug = this.routePromotionSlug()?.trim();
+    if (promo && !promoSlug) {
       query['promotionId'] = promo;
+    }
+    if (this.onlyPromotional()) {
+      query['onSale'] = '1';
     }
     if (page > 1) {
       query['page'] = String(page);
+    }
+
+    if (promo && promoSlug) {
+      query['brandId'] = brandId;
+      query['categoryId'] = categoryId;
+      this.router.navigate(['/products', 'promotion', promoSlug], { queryParams: query, replaceUrl: true });
+      return;
     }
 
     if (brandId && !categoryId) {
@@ -774,6 +864,15 @@ export class Products implements OnInit {
       categoryId: this.categoryId(),
       priceFromStr: this.priceFromStr(),
       priceToStr: this.priceToStr(),
+    });
+  }
+
+  onOnlyPromotionalChange(checked: boolean): void {
+    this.onlyPromotional.set(checked);
+    this.navigateToProducts({
+      brandId: this.brandId(),
+      categoryId: this.categoryId(),
+      page: 1,
     });
   }
 

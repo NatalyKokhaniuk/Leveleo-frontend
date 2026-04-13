@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -18,7 +18,7 @@ import { PromotionLevel } from '../../features/promotions/promotion.types';
 @Component({
   selector: 'app-promotions-page',
   standalone: true,
-  imports: [TranslateModule, RouterLink, MatIconModule, DatePipe, DecimalPipe],
+  imports: [TranslateModule, RouterLink, MatIconModule, DatePipe],
   templateUrl: './promotions.html',
   styleUrl: './promotions.scss',
 })
@@ -120,10 +120,23 @@ export class PromotionsPage {
   }
 
   promotionProductsLink(p: PromotionResponseDto): string[] | null {
-    return toPromotionLevel(p.level) === PromotionLevel.Product ? ['/products'] : null;
+    if (toPromotionLevel(p.level) !== PromotionLevel.Product) {
+      return null;
+    }
+    const slug = p.slug?.trim();
+    if (slug) {
+      return ['/products', 'promotion', slug];
+    }
+    return ['/products'];
   }
 
   promotionProductsQuery(p: PromotionResponseDto): Record<string, string> | null {
-    return toPromotionLevel(p.level) === PromotionLevel.Product ? { promotionId: p.id } : null;
+    if (toPromotionLevel(p.level) !== PromotionLevel.Product) {
+      return null;
+    }
+    if (p.slug?.trim()) {
+      return {};
+    }
+    return { promotionId: p.id };
   }
 }

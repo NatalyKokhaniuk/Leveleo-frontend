@@ -290,6 +290,11 @@ a.app-promo-badge:hover {
   max-width: min(100%, 18rem);
 }
 
+/* Список міст у діалозі адреси — поверх mat-dialog (overlay). */
+.leo-city-autocomplete-panel.mat-mdc-autocomplete-panel {
+  z-index: 10000 !important;
+}
+
 @layer utilities {
   .bg-primary-container {
     background-color: var(--mat-sys-primary-container);

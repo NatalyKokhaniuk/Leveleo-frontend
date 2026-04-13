@@ -110,11 +110,15 @@
                 </button>
               </mat-form-field>
 
-              <!-- Forgot password link -->
+              <!-- Посилання на сторінку відновлення пароля -->
               <div class="flex justify-end -mt-2 mb-3">
-                <button type="button" class="link-btn text-sm" (click)="openForgotPassword()">
+                <a
+                  routerLink="/forgot-password"
+                  class="link-btn text-sm"
+                  (click)="dialogRef.close()"
+                >
                   {{ 'AUTH.FORGOT_PASSWORD' | translate }}
-                </button>
+                </a>
               </div>
 
               @if (loginError(); as err) {

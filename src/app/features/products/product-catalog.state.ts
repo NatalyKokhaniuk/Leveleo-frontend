@@ -60,7 +60,18 @@ export class ProductCatalogStateService {
       });
     }
 
-    return this.productService.getPaged(filter).pipe(
+    const promo = !!filter.onlyWithActiveProductPromotion;
+    const req$ = promo
+      ? this.productService.getPromotional({
+          page: filter.page,
+          pageSize: filter.pageSize,
+          sortBy: filter.sortBy,
+          categoryId: filter.categoryId,
+          brandId: filter.brandId,
+        })
+      : this.productService.getPaged(filter);
+
+    return req$.pipe(
       tap((res) => {
         this.filterKey.set(key);
         this.items.set(res.items ?? []);

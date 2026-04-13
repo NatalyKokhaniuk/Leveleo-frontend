@@ -108,6 +108,11 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/contacts/contacts').then((m) => m.ContactsComponent),
   },
   {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./pages/forgot-password/forgot-password').then((m) => m.ForgotPasswordPage),
+  },
+  {
     path: 'newsletter/unsubscribe',
     loadComponent: () =>
       import('./pages/newsletter-unsubscribe/newsletter-unsubscribe').then(
@@ -135,6 +140,15 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/products/products').then((m) => m.Products),
   },
   {
+    path: 'products/promotion/:promotionSlug',
+    loadComponent: () => import('./pages/products/products').then((m) => m.Products),
+  },
+  {
+    path: 'products/:productSlug',
+    loadComponent: () =>
+      import('./pages/products/product-page/product-page').then((m) => m.ProductPage),
+  },
+  {
     path: 'products',
     loadComponent: () => import('./pages/products/products').then((m) => m.Products),
   },
@@ -153,6 +167,12 @@ export const routes: Routes = [
   {
     path: 'checkout',
     loadComponent: () => import('./pages/checkout/checkout').then((m) => m.CheckoutPage),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'order-checkout',
+    loadComponent: () =>
+      import('./pages/order-checkout/order-checkout').then((m) => m.OrderCheckoutPage),
     canActivate: [authGuard],
   },
   {

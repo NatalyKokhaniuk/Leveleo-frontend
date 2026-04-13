@@ -1,4 +1,5 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { DatePipe, DecimalPipe } from '@angular/common';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -9,17 +10,29 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { MediaService } from '../../core/services/media.service';
+import { AddressDeleteDialogComponent } from '../../features/addresses/address-delete-dialog/address-delete-dialog.component';
+import {
+  AddressFormDialogComponent,
+  AddressFormDialogData,
+} from '../../features/addresses/address-form-dialog/address-form-dialog.component';
+import { AddressService } from '../../features/addresses/address.service';
+import { AddressResponseDto } from '../../features/addresses/address.types';
+import { OrderService } from '../../features/orders/order.service';
+import { OrderSummaryDto } from '../../features/orders/order.types';
 import { UserService } from '../../features/users/user.service';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
   imports: [
+    DatePipe,
+    DecimalPipe,
     ReactiveFormsModule,
     MatFormFieldModule,
     MatInputModule,
@@ -43,6 +56,9 @@ export class ProfileComponent {
   private translate = inject(TranslateService);
   private router = inject(Router);
   private fb = inject(FormBuilder);
+  private dialog = inject(MatDialog);
+  private addressService = inject(AddressService);
+  private orderService = inject(OrderService);
 
   currentUser = this.auth.currentUser;
   isAdmin = this.auth.isAdmin;
@@ -79,6 +95,120 @@ export class ProfileComponent {
     { value: 'uk', label: 'Українська' },
     { value: 'en', label: 'English' },
   ];
+
+  addresses = signal<AddressResponseDto[]>([]);
+  addressesLoading = signal(false);
+  addressesLoaded = signal(false);
+  addressesError = signal<string | null>(null);
+
+  orders = signal<OrderSummaryDto[]>([]);
+  ordersLoading = signal(false);
+  ordersLoaded = signal(false);
+  ordersError = signal<string | null>(null);
+
+  constructor() {
+    effect(() => {
+      const u = this.currentUser();
+      if (!u) return;
+      untracked(() => {
+        if (!this.addressesLoaded() && !this.addressesLoading()) {
+          this.reloadAddresses();
+        }
+        if (!this.ordersLoaded() && !this.ordersLoading()) {
+          this.reloadOrders();
+        }
+      });
+    });
+  }
+
+  reloadAddresses(): void {
+    if (this.addressesLoaded() || this.addressesLoading()) return;
+    this.addressesLoading.set(true);
+    this.addressesError.set(null);
+    this.addressService.getMyAddresses().subscribe({
+      next: (list) => {
+        this.addresses.set(list);
+        this.addressesLoaded.set(true);
+        this.addressesLoading.set(false);
+      },
+      error: () => {
+        this.addressesLoading.set(false);
+        this.addressesError.set('PROFILE.ADDRESSES_LOAD_ERROR');
+      },
+    });
+  }
+
+  openAddAddress(): void {
+    const ref = this.dialog.open(AddressFormDialogComponent, {
+      width: 'min(560px, 100vw)',
+      data: {} satisfies AddressFormDialogData,
+    });
+    ref.afterClosed().subscribe((created) => {
+      if (created) {
+        this.addressesLoaded.set(true);
+        this.addresses.update((prev) => [created, ...prev]);
+      }
+    });
+  }
+
+  openEditAddress(a: AddressResponseDto): void {
+    const ref = this.dialog.open(AddressFormDialogComponent, {
+      width: 'min(560px, 100vw)',
+      data: { address: a } satisfies AddressFormDialogData,
+    });
+    ref.afterClosed().subscribe((updated) => {
+      if (updated) {
+        this.addresses.update((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
+      }
+    });
+  }
+
+  confirmDeleteAddress(a: AddressResponseDto): void {
+    const ref = this.dialog.open(AddressDeleteDialogComponent, {
+      width: 'min(440px, 100vw)',
+      data: { label: a.formattedAddress },
+    });
+    ref.afterClosed().subscribe((ok) => {
+      if (!ok) return;
+      this.addressService.delete(a.id).subscribe({
+        next: () => {
+          this.addresses.update((prev) => prev.filter((x) => x.id !== a.id));
+          this.snack.open(this.translate.instant('ADDRESS.DELETED'), 'OK', { duration: 2500 });
+        },
+        error: () => {
+          this.snack.open(this.translate.instant('ADDRESS.DELETE_ERROR'), 'OK', { duration: 4000 });
+        },
+      });
+    });
+  }
+
+  reloadOrders(): void {
+    if (this.ordersLoaded() || this.ordersLoading()) return;
+    this.ordersLoading.set(true);
+    this.ordersError.set(null);
+    this.orderService.getMyOrders().subscribe({
+      next: (list) => {
+        this.orders.set(list);
+        this.ordersLoaded.set(true);
+        this.ordersLoading.set(false);
+      },
+      error: () => {
+        this.ordersLoading.set(false);
+        this.ordersError.set('PROFILE.ORDERS_LOAD_ERROR');
+      },
+    });
+  }
+
+  orderPrimaryLabel(o: OrderSummaryDto): string {
+    const n = o.orderNumber;
+    if (typeof n === 'string' && n.trim()) return n;
+    return o.id;
+  }
+
+  orderTotal(o: OrderSummaryDto): number | null {
+    const t = o.totalAmount ?? o.total;
+    return typeof t === 'number' && !Number.isNaN(t) ? t : null;
+  }
 
   // ── Аватар ───────────────────────────────────────────────────────
 

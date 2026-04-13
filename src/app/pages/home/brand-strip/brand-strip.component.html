@@ -9,7 +9,7 @@
       @for (brand of visibleBrands(); track brand.id; let i = $index) {
         <a
           [routerLink]="['/products', 'brand', brand.slug]"
-          class="bg-surface rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-outline-variant/20 min-h-[7.5rem]"
+          class="bg-white text-black rounded-2xl p-6 flex flex-col items-center justify-center text-center shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer border border-black/10 min-h-[7.5rem]"
         >
           @if (logoUrlFor(brand.id); as logo) {
             <img
@@ -24,7 +24,7 @@
               {{ iconFor(brand, i) }}
             </mat-icon>
           }
-          <span class="font-medium text-sm md:text-base text-on-surface line-clamp-2 [overflow-wrap:anywhere]">
+          <span class="font-medium text-sm md:text-base text-black line-clamp-2 [overflow-wrap:anywhere]">
             {{ label(brand) }}
           </span>
         </a>
