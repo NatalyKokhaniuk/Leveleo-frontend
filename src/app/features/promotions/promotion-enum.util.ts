@@ -43,3 +43,18 @@ export function toDiscountType(v: unknown): DiscountType {
   }
   return DiscountType.Percentage;
 }
+
+/**
+ * Якщо в відповіді кошика немає `discountType`, не підставляти відсотки за замовчуванням для великих чисел:
+ * фіксована знижка в гривнях/копійках часто > 100, тоді показуємо «… ₴», а не «… %».
+ */
+export function inferDiscountTypeWhenTypeMissing(discountValue: number): DiscountType {
+  const v = Math.abs(Number(discountValue));
+  if (!Number.isFinite(v)) {
+    return DiscountType.Percentage;
+  }
+  if (v > 100) {
+    return DiscountType.FixedAmount;
+  }
+  return DiscountType.Percentage;
+}

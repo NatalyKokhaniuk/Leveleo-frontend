@@ -1,0 +1,106 @@
+<div class="coupon-assignments space-y-4 rounded-xl border border-outline-variant/40 bg-surface-container/40 p-4">
+  <h3 class="text-sm font-semibold m-0">{{ 'ADMIN.PROMOTION.COUPON_ASSIGNMENTS_TITLE' | translate }}</h3>
+
+  @if (loading()) {
+    <div class="flex justify-center py-4">
+      <mat-spinner diameter="36"></mat-spinner>
+    </div>
+  } @else {
+    <div class="space-y-2">
+      @for (a of assignments(); track a.id) {
+        <div
+          class="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-outline-variant/30 px-3 py-2 text-sm"
+        >
+          <div class="min-w-0 flex-1">
+            <div class="font-medium text-on-surface break-all">{{ a.email ?? '—' }}</div>
+            <div class="text-on-surface/75">{{ displayName(a) }}</div>
+            @if (a.maxUsagePerUser != null) {
+              <div class="text-xs text-on-surface/60 mt-0.5">
+                {{ 'ADMIN.PROMOTION.COUPON_ASSIGN_MAX' | translate }}: {{ a.maxUsagePerUser }}
+              </div>
+            }
+            @if (a.expiresAt) {
+              <div class="text-xs text-on-surface/60">
+                {{ 'ADMIN.PROMOTION.COUPON_ASSIGN_EXPIRES' | translate }}: {{ a.expiresAt | date: 'short' }}
+              </div>
+            }
+          </div>
+          <button
+            matIconButton
+            type="button"
+            color="warn"
+            [disabled]="saving()"
+            (click)="removeRow(a)"
+            [attr.aria-label]="'ADMIN.PROMOTION.COUPON_ASSIGN_REMOVE' | translate"
+          >
+            <mat-icon>delete_outline</mat-icon>
+          </button>
+        </div>
+      } @empty {
+        <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.PROMOTION.COUPON_ASSIGNMENTS_EMPTY' | translate }}</p>
+      }
+    </div>
+  }
+
+  <div class="border-t border-outline-variant/30 pt-4 space-y-3">
+    <p class="text-xs font-medium text-on-surface/80 m-0">{{ 'ADMIN.PROMOTION.COUPON_ASSIGN_ADD' | translate }}</p>
+    <div class="relative">
+      <mat-form-field class="w-full" subscriptSizing="dynamic">
+        <mat-label>{{ 'ADMIN.PROMOTION.COUPON_USER_SEARCH' | translate }}</mat-label>
+        <input
+          matInput
+          [(ngModel)]="userSearch"
+          (ngModelChange)="onUserSearchInput($event)"
+          [disabled]="saving()"
+          autocomplete="off"
+        />
+        @if (searchLoading()) {
+          <mat-spinner matSuffix diameter="20"></mat-spinner>
+        }
+      </mat-form-field>
+      @if (userSuggestions().length > 0) {
+        <ul
+          class="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-outline-variant bg-surface-container shadow-lg"
+          role="listbox"
+        >
+          @for (u of userSuggestions(); track u.id) {
+            <li>
+              <button
+                type="button"
+                class="w-full text-left px-3 py-2 text-sm hover:bg-surface-container-high border-0 bg-transparent cursor-pointer"
+                (click)="pickUser(u)"
+              >
+                <span class="font-medium">{{ u.email }}</span>
+                <span class="block text-on-surface/70 text-xs">
+                  {{ u.firstName }} {{ u.lastName }}
+                </span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+    @if (pickedUser()) {
+      <div class="flex flex-wrap gap-3 items-end">
+        <mat-form-field class="min-w-[120px]" subscriptSizing="dynamic">
+          <mat-label>{{ 'ADMIN.PROMOTION.COUPON_ASSIGN_MAX' | translate }}</mat-label>
+          <input matInput type="number" min="1" [(ngModel)]="addMaxUsage" [disabled]="saving()" />
+        </mat-form-field>
+        <mat-form-field class="min-w-[200px]" subscriptSizing="dynamic">
+          <mat-label>{{ 'ADMIN.PROMOTION.COUPON_ASSIGN_EXPIRES' | translate }}</mat-label>
+          <input matInput type="datetime-local" [(ngModel)]="addExpiresLocal" [disabled]="saving()" />
+        </mat-form-field>
+        <button mat-flat-button color="primary" type="button" [disabled]="saving()" (click)="submitAdd()">
+          @if (saving()) {
+            <mat-spinner diameter="20"></mat-spinner>
+          } @else {
+            {{ 'ADMIN.PROMOTION.COUPON_ASSIGN_SUBMIT' | translate }}
+          }
+        </button>
+        <button mat-button type="button" (click)="clearPick()" [disabled]="saving()">
+          {{ 'AUTH.CANCEL' | translate }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

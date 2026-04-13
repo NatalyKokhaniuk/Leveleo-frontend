@@ -29,11 +29,22 @@
   }
 }
 
-.product-rec-carousel__track {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.product-rec-carousel__viewport {
+  container-type: inline-size;
+}
 
-  &::-webkit-scrollbar {
-    display: none;
+.product-rec-carousel__track {
+  will-change: transform;
+}
+
+/* Картка трохи збільшується при наведенні (ручна прокрутка / кнопки без автопрокрутки). */
+.product-rec-carousel__item {
+  position: relative;
+  transition: transform 0.28s ease;
+  transform-origin: center center;
+
+  &:hover {
+    transform: scale(1.04);
+    z-index: 2;
   }
 }

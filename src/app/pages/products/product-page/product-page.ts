@@ -1,7 +1,9 @@
 import {
   afterNextRender,
   Component,
+  computed,
   DestroyRef,
+  effect,
   ElementRef,
   inject,
   Injector,
@@ -20,6 +22,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, of } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
+import { DocumentTitleService } from '../../../core/services/document-title.service';
 import { FavoritesStateService } from '../../../core/favorites/favorites-state.service';
 import { CategoryService } from '../../../features/categories/category.service';
 import { ProductService } from '../../../features/products/product.service';
@@ -38,6 +41,9 @@ import {
   findRootCategoryId,
   randomSample,
 } from './product-page-recommendations.util';
+
+/** Слот у треку каруселі (унікальний trackId для @for). */
+type RecTrackSlot = { trackId: string; product: ProductResponseDto };
 
 @Component({
   selector: 'app-product-page',
@@ -65,15 +71,66 @@ export class ProductPage implements OnInit {
   private translate = inject(TranslateService);
   private platformId = inject(PLATFORM_ID);
   private injector = inject(Injector);
+  private documentTitle = inject(DocumentTitleService);
 
-  /** Горизонтальний скрол «You may also like». */
-  recScroller = viewChild<ElementRef<HTMLElement>>('recScroller');
+  /** Viewport каруселі (ширина для розрахунку цілих карток). */
+  recViewport = viewChild<ElementRef<HTMLElement>>('recViewport');
 
-  /** Індекс активної точки (вирівнювання зліва по кроку скролу). */
-  activeRecDot = signal(0);
+  readonly recGapPx = 16;
+  readonly recMinCardPx = 200;
 
-  private recAutoPaused = false;
-  private recAutoIntervalId: ReturnType<typeof setInterval> | null = null;
+  /** Скільки карток одночасно видно (цілі, без обрізання). */
+  recVisibleCount = signal(1);
+
+  /** Ширина однієї картки в px (однакова для всіх у ряду). */
+  recCardWidthPx = signal(220);
+
+  /**
+   * Усі товари вміщуються в один ряд без прокрутки (n ≤ visible).
+   */
+  recAllFit = computed(() => {
+    const n = this.recommendedProducts().length;
+    const v = this.recVisibleCount();
+    return n > 0 && n <= v;
+  });
+
+  /**
+   * Потрібна безкінечна карусель (більше товарів, ніж видимих місць).
+   */
+  recCarouselMode = computed(() => {
+    const n = this.recommendedProducts().length;
+    const v = this.recVisibleCount();
+    return n > v && v >= 1;
+  });
+
+  /**
+   * Зсув у кроках «одна картка»: 0 … n−1, n — той самий кадр що 0 (для петлі).
+   */
+  recPos = signal(0);
+
+  /** Без анімації при миттєвому стрибку петлі. */
+  recSkipTransition = signal(false);
+
+  recTrackSlots = computed((): RecTrackSlot[] => {
+    const items = this.recommendedProducts();
+    if (items.length === 0) return [];
+    if (this.recAllFit()) {
+      return items.map((p, i) => ({ trackId: `fit-${i}-${p.id}`, product: p }));
+    }
+    return [...items, ...items].map((p, i) => ({
+      trackId: `dup-${i}-${p.id}`,
+      product: p,
+    }));
+  });
+
+  /** Активна крапка: 0 … n−1 (позиція n еквівалентна 0). */
+  activeRecDot = computed(() => {
+    const n = this.recommendedProducts().length;
+    if (n === 0) return 0;
+    const p = this.recPos();
+    const logical = p >= n ? p % n : p;
+    return logical % n;
+  });
 
   /** Мова для {@link productLocalizedName}. */
   private lang = signal(this.translate.currentLang || 'uk');
@@ -86,6 +143,8 @@ export class ProductPage implements OnInit {
   recommendedLoading = signal(false);
   recommendedProducts = signal<ProductResponseDto[]>([]);
 
+  private recResizeObserver: ResizeObserver | null = null;
+
   ngOnInit(): void {
     this.translate.onLangChange.subscribe(() => {
       this.lang.set(this.translate.currentLang || 'uk');
@@ -93,7 +152,13 @@ export class ProductPage implements OnInit {
   }
 
   constructor() {
-    this.destroyRef.onDestroy(() => this.stopRecAutoSlide());
+    this.destroyRef.onDestroy(() => this.teardownRecResizeObserver());
+
+    effect(() => {
+      const p = this.product();
+      if (!p) return;
+      this.documentTitle.setLeveleoPage(this.productTitle(p));
+    });
 
     this.route.paramMap
       .pipe(
@@ -155,84 +220,66 @@ export class ProductPage implements OnInit {
     this.favorites.toggleFavorite(id).subscribe();
   }
 
-  pauseRecCarousel(): void {
-    this.recAutoPaused = true;
-  }
-
-  resumeRecCarousel(): void {
-    this.recAutoPaused = false;
-  }
-
-  onRecScroll(): void {
-    const el = this.recScroller()?.nativeElement;
-    if (!el) return;
-    const step = this.getRecScrollStep(el);
-    if (step <= 0) return;
-    const idx = Math.round(el.scrollLeft / step);
-    const maxIdx = Math.max(0, this.recommendedProducts().length - 1);
-    this.activeRecDot.set(Math.min(Math.max(0, idx), maxIdx));
-  }
-
-  goToRecSlide(i: number): void {
-    const el = this.recScroller()?.nativeElement;
-    if (!el) return;
-    const step = this.getRecScrollStep(el);
-    const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
-    const target = Math.min(i * step, maxScroll);
-    el.scrollTo({ left: target, behavior: 'smooth' });
+  /** translateX у px: один крок = ширина картки + gap. */
+  recTranslatePx(): number {
+    const n = this.recommendedProducts().length;
+    if (n === 0) return 0;
+    const step = this.recCardWidthPx() + this.recGapPx;
+    return this.recPos() * step;
   }
 
   recScrollNext(): void {
-    const el = this.recScroller()?.nativeElement;
-    if (!el) return;
-    const step = this.getRecScrollStep(el);
-    const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
-    if (maxScroll < 2) return;
-    if (el.scrollLeft + el.clientWidth >= maxScroll - 2) {
-      el.scrollTo({ left: 0, behavior: 'smooth' });
-    } else {
-      el.scrollBy({ left: step, behavior: 'smooth' });
+    const n = this.recommendedProducts().length;
+    const v = this.recVisibleCount();
+    if (n === 0 || n <= v) return;
+    const p = this.recPos();
+    if (p < n - 1) {
+      this.recSkipTransition.set(false);
+      this.recPos.set(p + 1);
+    } else if (p === n - 1) {
+      this.recSkipTransition.set(false);
+      this.recPos.set(n);
     }
   }
 
   recScrollPrev(): void {
-    const el = this.recScroller()?.nativeElement;
-    if (!el) return;
-    const step = this.getRecScrollStep(el);
-    const maxScroll = Math.max(0, el.scrollWidth - el.clientWidth);
-    if (maxScroll < 2) return;
-    if (el.scrollLeft <= 2) {
-      el.scrollTo({ left: maxScroll, behavior: 'smooth' });
+    const n = this.recommendedProducts().length;
+    const v = this.recVisibleCount();
+    if (n === 0 || n <= v) return;
+    const p = this.recPos();
+    if (p === 0) {
+      this.recSkipTransition.set(true);
+      this.recPos.set(n);
+      requestAnimationFrame(() => {
+        this.recSkipTransition.set(false);
+        this.recPos.set(n - 1);
+      });
     } else {
-      el.scrollBy({ left: -step, behavior: 'smooth' });
+      this.recSkipTransition.set(false);
+      this.recPos.set(p - 1);
     }
   }
 
-  private getRecScrollStep(scroller: HTMLElement): number {
-    const item = scroller.querySelector('.product-rec-carousel__item') as HTMLElement | null;
-    if (!item) return 0;
-    const styles = getComputedStyle(scroller);
-    const gapRaw = styles.columnGap || styles.gap || '16px';
-    const gap = Number.parseFloat(gapRaw) || 16;
-    return item.offsetWidth + gap;
-  }
-
-  private startRecAutoSlide(): void {
-    this.stopRecAutoSlide();
-    if (!isPlatformBrowser(this.platformId)) return;
-    if (this.recommendedProducts().length <= 1) return;
-    this.recAutoIntervalId = setInterval(() => {
-      if (!this.recAutoPaused) {
-        this.recScrollNext();
-      }
-    }, 5000);
-  }
-
-  private stopRecAutoSlide(): void {
-    if (this.recAutoIntervalId != null) {
-      clearInterval(this.recAutoIntervalId);
-      this.recAutoIntervalId = null;
+  onRecTrackTransitionEnd(event: TransitionEvent): void {
+    if (event.propertyName !== 'transform') return;
+    if (event.target !== event.currentTarget) return;
+    const n = this.recommendedProducts().length;
+    if (n === 0) return;
+    if (this.recPos() === n) {
+      this.recSkipTransition.set(true);
+      this.recPos.set(0);
+      requestAnimationFrame(() => this.recSkipTransition.set(false));
     }
+  }
+
+  goToRecSlide(i: number): void {
+    const n = this.recommendedProducts().length;
+    const v = this.recVisibleCount();
+    if (n === 0 || n <= v) return;
+    if (i < 0 || i >= n) return;
+    this.recSkipTransition.set(true);
+    this.recPos.set(i);
+    requestAnimationFrame(() => this.recSkipTransition.set(false));
   }
 
   openRecommendedQuickView(product: ProductResponseDto): void {
@@ -255,7 +302,6 @@ export class ProductPage implements OnInit {
    * решта з того ж бренду (випадково).
    */
   private loadYouMayAlsoLike(p: ProductResponseDto): void {
-    this.stopRecAutoSlide();
     this.recommendedLoading.set(true);
     this.recommendedProducts.set([]);
     this.categoriesApi
@@ -319,9 +365,9 @@ export class ProductPage implements OnInit {
           if (isPlatformBrowser(this.platformId)) {
             afterNextRender(
               () => {
-                const el = this.recScroller()?.nativeElement;
-                if (el) el.scrollLeft = 0;
-                this.startRecAutoSlide();
+                this.recPos.set(0);
+                this.setupRecResizeObserver();
+                this.updateRecLayout();
               },
               { injector: this.injector },
             );
@@ -330,8 +376,50 @@ export class ProductPage implements OnInit {
       )
       .subscribe((list) => {
         this.recommendedProducts.set(dedupeProductsById(list).slice(0, 12));
-        this.activeRecDot.set(0);
       });
+  }
+
+  private setupRecResizeObserver(): void {
+    this.teardownRecResizeObserver();
+    if (!isPlatformBrowser(this.platformId)) return;
+    const el = this.recViewport()?.nativeElement;
+    if (!el) return;
+    this.recResizeObserver = new ResizeObserver(() => this.updateRecLayout());
+    this.recResizeObserver.observe(el);
+  }
+
+  private teardownRecResizeObserver(): void {
+    if (this.recResizeObserver) {
+      this.recResizeObserver.disconnect();
+      this.recResizeObserver = null;
+    }
+  }
+
+  private updateRecLayout(): void {
+    const el = this.recViewport()?.nativeElement;
+    const n = this.recommendedProducts().length;
+    if (!el || n === 0) return;
+    const W = el.clientWidth;
+    if (W < 1) return;
+    const gap = this.recGapPx;
+
+    let v = 6;
+    while (v > 1) {
+      const cw = (W - (v - 1) * gap) / v;
+      if (cw >= this.recMinCardPx) break;
+      v--;
+    }
+    v = Math.max(1, v);
+
+    if (n <= v) {
+      this.recVisibleCount.set(n);
+      this.recCardWidthPx.set((W - (n - 1) * gap) / n);
+      this.recPos.set(0);
+    } else {
+      this.recVisibleCount.set(v);
+      this.recCardWidthPx.set((W - (v - 1) * gap) / v);
+      this.recPos.update((p) => Math.min(p, n));
+    }
   }
 
   private fetchBrandFill(

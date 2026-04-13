@@ -64,28 +64,37 @@
           <div class="product-rec-carousel relative w-full">
             <div
               class="relative w-full overflow-hidden rounded-2xl border border-outline-variant/30 bg-surface-container/20"
-              (mouseenter)="pauseRecCarousel()"
-              (mouseleave)="resumeRecCarousel()"
             >
               <div
-                #recScroller
-                class="product-rec-carousel__track flex gap-4 overflow-x-auto scroll-smooth py-4 px-3 md:px-4"
-                (scroll)="onRecScroll()"
+                #recViewport
+                class="product-rec-carousel__viewport w-full overflow-hidden py-5 md:py-6 px-3 md:px-4"
               >
-                @for (rp of recommendedProducts(); track rp.id) {
-                  <div
-                    class="product-rec-carousel__item shrink-0 w-[min(78vw,260px)] sm:w-[240px] md:w-[260px]"
-                  >
-                    <app-product-card
-                      [product]="rp"
-                      [isFavorite]="favoriteRecommended(rp.id)"
-                      (openDetail)="openRecommendedQuickView(rp)"
-                      (favoriteToggled)="toggleFavoriteRecommended(rp.id)"
-                    />
-                  </div>
-                }
+                <div
+                  class="product-rec-carousel__track flex"
+                  [style.gap.px]="recGapPx"
+                  [style.transform]="'translateX(-' + recTranslatePx() + 'px)'"
+                  [class.transition-none]="recSkipTransition()"
+                  [class.transition-transform]="!recSkipTransition()"
+                  [class.duration-500]="!recSkipTransition()"
+                  [class.ease-out]="!recSkipTransition()"
+                  (transitionend)="onRecTrackTransitionEnd($event)"
+                >
+                  @for (slot of recTrackSlots(); track slot.trackId) {
+                    <div
+                      class="product-rec-carousel__item shrink-0"
+                      [style.width.px]="recCardWidthPx()"
+                    >
+                      <app-product-card
+                        [product]="slot.product"
+                        [isFavorite]="favoriteRecommended(slot.product.id)"
+                        (openDetail)="openRecommendedQuickView(slot.product)"
+                        (favoriteToggled)="toggleFavoriteRecommended(slot.product.id)"
+                      />
+                    </div>
+                  }
+                </div>
               </div>
-              @if (recommendedProducts().length > 1) {
+              @if (recCarouselMode()) {
                 <button
                   type="button"
                   (click)="recScrollPrev()"
@@ -104,7 +113,7 @@
                 </button>
               }
             </div>
-            @if (recommendedProducts().length > 1) {
+            @if (recCarouselMode()) {
               <div class="flex justify-center gap-2 mt-5 md:mt-6 pb-3 md:pb-5 flex-wrap">
                 @for (rp of recommendedProducts(); track rp.id; let i = $index) {
                   <button

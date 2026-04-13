@@ -10,35 +10,37 @@
   <mat-dialog-content class="flex flex-col gap-3 min-w-0 max-h-[70vh] overflow-y-auto">
     <p class="text-xs opacity-75 -mt-1">{{ 'ADDRESS.NP_HINT' | translate }}</p>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    @if (!addressFieldsOnly) {
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'AUTH.FIRST_NAME' | translate }}</mat-label>
+          <input matInput formControlName="firstName" autocomplete="given-name" />
+        </mat-form-field>
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'AUTH.LAST_NAME' | translate }}</mat-label>
+          <input matInput formControlName="lastName" autocomplete="family-name" />
+        </mat-form-field>
+      </div>
+
       <mat-form-field class="w-full">
-        <mat-label>{{ 'AUTH.FIRST_NAME' | translate }}</mat-label>
-        <input matInput formControlName="firstName" autocomplete="given-name" />
+        <mat-label>{{ 'ADDRESS.MIDDLE_NAME' | translate }}</mat-label>
+        <input matInput formControlName="middleName" />
       </mat-form-field>
+
       <mat-form-field class="w-full">
-        <mat-label>{{ 'AUTH.LAST_NAME' | translate }}</mat-label>
-        <input matInput formControlName="lastName" autocomplete="family-name" />
+        <mat-label>{{ 'PROFILE.PHONE' | translate }}</mat-label>
+        <input matInput formControlName="phoneNumber" type="tel" autocomplete="tel" />
       </mat-form-field>
-    </div>
 
-    <mat-form-field class="w-full">
-      <mat-label>{{ 'ADDRESS.MIDDLE_NAME' | translate }}</mat-label>
-      <input matInput formControlName="middleName" />
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>{{ 'PROFILE.PHONE' | translate }}</mat-label>
-      <input matInput formControlName="phoneNumber" type="tel" autocomplete="tel" />
-    </mat-form-field>
-
-    <mat-form-field class="w-full">
-      <mat-label>{{ 'ADDRESS.DELIVERY_TYPE' | translate }}</mat-label>
-      <mat-select formControlName="deliveryType">
-        <mat-option [value]="DeliveryType.Warehouse">{{ 'ADDRESS.TYPE_WAREHOUSE' | translate }}</mat-option>
-        <mat-option [value]="DeliveryType.Doors">{{ 'ADDRESS.TYPE_DOORS' | translate }}</mat-option>
-        <mat-option [value]="DeliveryType.Postomat">{{ 'ADDRESS.TYPE_POSTOMAT' | translate }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ADDRESS.DELIVERY_TYPE' | translate }}</mat-label>
+        <mat-select formControlName="deliveryType">
+          <mat-option [value]="DeliveryType.Warehouse">{{ 'ADDRESS.TYPE_WAREHOUSE' | translate }}</mat-option>
+          <mat-option [value]="DeliveryType.Doors">{{ 'ADDRESS.TYPE_DOORS' | translate }}</mat-option>
+          <mat-option [value]="DeliveryType.Postomat">{{ 'ADDRESS.TYPE_POSTOMAT' | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
 
     <mat-form-field class="w-full">
       <mat-label>{{ 'ADDRESS.CITY_SEARCH' | translate }}</mat-label>

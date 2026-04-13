@@ -4,3 +4,18 @@
 }
 
 /* Колір плашки — глобальні класи .app-promo-badge у styles.scss */
+
+.cart-page__summary {
+  box-sizing: border-box;
+}
+
+/* Підсумки на всю ширину картки; симетричні відступи. */
+.cart-page__price-summary {
+  padding-block: 0.875rem;
+  padding-inline: 1rem;
+
+  @media (min-width: 600px) {
+    padding-block: 1.125rem;
+    padding-inline: 1.5rem;
+  }
+}

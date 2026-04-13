@@ -1,11 +1,274 @@
-<main class="order-checkout pt-28 px-4 md:px-10 pb-16 max-w-2xl mx-auto">
+<main id="checkout-top" class="order-checkout pt-28 px-4 md:px-10 pb-20 max-w-6xl mx-auto w-full min-w-0">
   <a
     routerLink="/cart"
     class="inline-flex items-center gap-2 text-primary text-sm font-medium hover:underline mb-6"
   >
-    <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+    <mat-icon class="text-lg w-5 h-5 shrink-0">arrow_back</mat-icon>
     {{ 'ORDER_CHECKOUT.BACK_TO_CART' | translate }}
   </a>
-  <h1 class="text-2xl md:text-3xl font-semibold mb-3">{{ 'ORDER_CHECKOUT.TITLE' | translate }}</h1>
-  <p class="text-on-surface/80 leading-relaxed">{{ 'ORDER_CHECKOUT.PLACEHOLDER' | translate }}</p>
+
+  <h1 class="text-2xl md:text-3xl font-fixel font-semibold text-on-surface mb-8">
+    {{ 'ORDER_CHECKOUT.TITLE' | translate }}
+  </h1>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (loadError()) {
+    <p class="text-center text-on-surface/80 py-12">{{ 'ORDER_CHECKOUT.LOAD_ERROR' | translate }}</p>
+  } @else {
+    @if (cartEmpty()) {
+      <p class="text-on-surface/80 mb-4">{{ 'ORDER_CHECKOUT.CART_EMPTY' | translate }}</p>
+      <a
+        routerLink="/cart"
+        class="inline-flex items-center gap-2 text-primary font-medium hover:underline"
+        >{{ 'ORDER_CHECKOUT.TO_CART' | translate }}</a
+      >
+    } @else {
+      <!-- Контакти: той самий формат полів, що й /contacts -->
+      <section
+        id="order-checkout-contact"
+        class="w-full rounded-2xl border border-solid border-outline-variant bg-surface-container p-6 md:p-10 mb-6"
+        [attr.aria-labelledby]="'order-checkout-contact-heading'"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+          <h2
+            id="order-checkout-contact-heading"
+            class="text-lg md:text-xl font-semibold text-on-surface m-0"
+          >
+            {{ 'ORDER_CHECKOUT.CONTACT_TITLE' | translate }}
+          </h2>
+          <button
+            matButton="outlined"
+            type="button"
+            class="shrink-0"
+            (click)="toggleContactCollapsed()"
+          >
+            {{ (contactCollapsed() ? 'ORDER_CHECKOUT.EXPAND' : 'ORDER_CHECKOUT.COLLAPSE') | translate }}
+          </button>
+        </div>
+
+        @if (!contactCollapsed()) {
+          <div class="auth-modal-container items-stretch text-left w-full !p-0 !gap-4">
+            <form
+              [formGroup]="contactForm"
+              class="w-full max-w-full min-w-0 space-y-1 contacts-form"
+            >
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'ORDER_CHECKOUT.PHONE' | translate }}</mat-label>
+                <input matInput type="tel" formControlName="phoneNumber" autocomplete="tel" />
+                <mat-hint>{{ 'ORDER_CHECKOUT.PHONE_HINT' | translate }}</mat-hint>
+                @if (contactForm.controls.phoneNumber.touched && contactForm.controls.phoneNumber.invalid) {
+                  <mat-error>{{ 'ORDER_CHECKOUT.PHONE_REQUIRED' | translate }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'ORDER_CHECKOUT.LAST_NAME' | translate }}</mat-label>
+                <input matInput formControlName="lastName" autocomplete="family-name" />
+                @if (contactForm.controls.lastName.touched && contactForm.controls.lastName.invalid) {
+                  <mat-error>{{ 'ORDER_CHECKOUT.FIELD_REQUIRED' | translate }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'ORDER_CHECKOUT.FIRST_NAME' | translate }}</mat-label>
+                <input matInput formControlName="firstName" autocomplete="given-name" />
+                @if (contactForm.controls.firstName.touched && contactForm.controls.firstName.invalid) {
+                  <mat-error>{{ 'ORDER_CHECKOUT.FIELD_REQUIRED' | translate }}</mat-error>
+                }
+              </mat-form-field>
+              <mat-form-field class="w-full">
+                <mat-label>{{ 'ORDER_CHECKOUT.MIDDLE_NAME' | translate }}</mat-label>
+                <input matInput formControlName="middleName" autocomplete="additional-name" />
+              </mat-form-field>
+            </form>
+          </div>
+        } @else {
+          <p class="text-sm text-on-surface/80 m-0">
+            {{ contactForm.get('phoneNumber')?.value?.trim() || '—' }} · {{ recipientSummary() }}
+          </p>
+        }
+      </section>
+
+      <!-- Замовлення -->
+      <section
+        class="rounded-2xl border border-outline-variant/25 bg-surface-container/50 p-4 md:p-6 mb-6"
+      >
+        <h2 class="text-lg md:text-xl font-semibold text-on-surface m-0 mb-4">
+          {{ 'ORDER_CHECKOUT.ORDER_BLOCK_TITLE' | translate }}
+        </h2>
+        <p class="text-base md:text-lg text-on-surface m-0 mb-4">
+          <span class="text-on-surface/75">{{ 'ORDER_CHECKOUT.ORDER_TOTAL_LABEL' | translate }}</span>
+          <span class="font-semibold tabular-nums text-primary ms-1">
+            {{ totalPayable() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+          </span>
+        </p>
+        <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4">
+          <a
+            routerLink="/cart"
+            class="inline-flex items-center gap-1.5 text-primary font-medium hover:underline text-sm"
+          >
+            {{ 'ORDER_CHECKOUT.EDIT_CART' | translate }}
+          </a>
+          <a
+            routerLink="/products"
+            class="inline-flex items-center gap-1.5 text-primary font-medium hover:underline text-sm"
+          >
+            {{ 'ORDER_CHECKOUT.ADD_PRODUCTS' | translate }}
+          </a>
+        </div>
+      </section>
+
+      <!-- Доставка -->
+      <section
+        class="rounded-2xl border border-outline-variant/25 bg-surface-container/50 p-4 md:p-6 mb-6"
+      >
+        <h2 class="text-lg md:text-xl font-semibold text-on-surface m-0 mb-2">
+          {{ 'ORDER_CHECKOUT.DELIVERY_TITLE' | translate }}
+        </h2>
+        <p class="text-sm text-on-surface/70 m-0 mb-3">{{ 'ORDER_CHECKOUT.BRANCH_HINT' | translate }}</p>
+        <div class="flex flex-wrap gap-2 mb-6">
+          <button matButton="outlined" type="button" (click)="mapPlaceholderClick()">
+            {{ 'ORDER_CHECKOUT.PICK_ON_MAP' | translate }}
+          </button>
+        </div>
+
+        <mat-radio-group
+          class="flex flex-col gap-3"
+          [value]="deliveryType()"
+          (change)="onDeliveryChange($event)"
+        >
+          <label
+            class="flex items-start gap-3 rounded-xl border border-outline-variant/30 p-3 cursor-pointer hover:bg-surface-container/40 has-[:checked]:border-primary/50"
+          >
+            <mat-radio-button [value]="DeliveryType.Warehouse" />
+            <span class="min-w-0">
+              <span class="block font-medium text-on-surface">{{
+                'ORDER_CHECKOUT.DELIVERY_NP_WAREHOUSE' | translate
+              }}</span>
+              <span class="block text-xs text-on-surface/60 mt-0.5">{{
+                'ORDER_CHECKOUT.DELIVERY_TARIFF_NOTE' | translate
+              }}</span>
+            </span>
+          </label>
+          <label
+            class="flex items-start gap-3 rounded-xl border border-outline-variant/30 p-3 cursor-pointer hover:bg-surface-container/40 has-[:checked]:border-primary/50"
+          >
+            <mat-radio-button [value]="DeliveryType.Postomat" />
+            <span class="min-w-0">
+              <span class="block font-medium text-on-surface">{{
+                'ORDER_CHECKOUT.DELIVERY_NP_POSTOMAT' | translate
+              }}</span>
+              <span class="block text-xs text-on-surface/60 mt-0.5">{{
+                'ORDER_CHECKOUT.DELIVERY_TARIFF_NOTE' | translate
+              }}</span>
+            </span>
+          </label>
+          <label
+            class="flex items-start gap-3 rounded-xl border border-outline-variant/30 p-3 cursor-pointer hover:bg-surface-container/40 has-[:checked]:border-primary/50"
+          >
+            <mat-radio-button [value]="DeliveryType.Doors" />
+            <span class="min-w-0">
+              <span class="block font-medium text-on-surface">{{
+                'ORDER_CHECKOUT.DELIVERY_NP_COURIER' | translate
+              }}</span>
+              <span class="block text-xs text-on-surface/60 mt-0.5">{{
+                'ORDER_CHECKOUT.DELIVERY_TARIFF_NOTE' | translate
+              }}</span>
+            </span>
+          </label>
+        </mat-radio-group>
+      </section>
+
+      <!-- Адреса: лише після вибору типу доставки -->
+      @if (deliveryType() !== null) {
+        <section
+          class="rounded-2xl border border-outline-variant/25 bg-surface-container/50 p-4 md:p-6 mb-6"
+        >
+          <div class="flex flex-wrap items-start justify-between gap-3 mb-3">
+            <h2 class="text-lg md:text-xl font-semibold text-on-surface m-0">
+              {{ 'ORDER_CHECKOUT.ADDRESS_LABEL' | translate }}
+            </h2>
+            <button matButton="outlined" type="button" (click)="openAddressPicker()">
+              {{ 'ORDER_CHECKOUT.CHANGE' | translate }}
+            </button>
+          </div>
+          @if (selectedAddress(); as addr) {
+            <p class="text-base font-medium text-on-surface m-0 mb-1">
+              {{ addr.cityName || ('ORDER_CHECKOUT.CITY_EXAMPLE' | translate) }}
+            </p>
+            <p class="text-sm text-on-surface/75 m-0">
+              {{ addr.formattedAddress || ('ORDER_CHECKOUT.REGION_EXAMPLE' | translate) }}
+            </p>
+          } @else {
+            <p class="text-on-surface/70 m-0 mb-3">{{ 'ORDER_CHECKOUT.NO_ADDRESS' | translate }}</p>
+            <button matButton="filled" type="button" (click)="openAddressPicker()">
+              {{ 'ORDER_CHECKOUT.CHOOSE_ADDRESS' | translate }}
+            </button>
+          }
+        </section>
+      }
+
+      <!-- Отримувач: ПІБ, адреса, телефон (повний номер) -->
+      <section
+        class="rounded-2xl border border-outline-variant/25 bg-surface-container/50 p-4 md:p-6 mb-6"
+      >
+        <div class="flex flex-wrap items-start justify-between gap-3 mb-4">
+          <h2 class="text-lg md:text-xl font-semibold text-on-surface m-0">
+            {{ 'ORDER_CHECKOUT.RECIPIENT_TITLE' | translate }}
+          </h2>
+          <button matButton="text" type="button" (click)="scrollToContact()">
+            {{ 'ORDER_CHECKOUT.CHANGE' | translate }}
+          </button>
+        </div>
+        <div class="flex flex-col gap-3 text-on-surface">
+          <div>
+            <p class="text-xs font-medium text-on-surface/60 m-0 mb-1">
+              {{ 'ORDER_CHECKOUT.RECIPIENT_PIB' | translate }}
+            </p>
+            <p class="text-base font-medium m-0">{{ recipientSummary() }}</p>
+          </div>
+          <div>
+            <p class="text-xs font-medium text-on-surface/60 m-0 mb-1">
+              {{ 'ORDER_CHECKOUT.RECIPIENT_ADDRESS' | translate }}
+            </p>
+            @if (recipientAddressDisplay(); as addrText) {
+              <p class="text-sm m-0 leading-relaxed">{{ addrText }}</p>
+            } @else {
+              <p class="text-sm text-on-surface/60 m-0">{{ 'ORDER_CHECKOUT.NO_ADDRESS' | translate }}</p>
+            }
+          </div>
+          <div>
+            <p class="text-xs font-medium text-on-surface/60 m-0 mb-1">
+              {{ 'ORDER_CHECKOUT.RECIPIENT_PHONE' | translate }}
+            </p>
+            <p class="text-sm m-0 tabular-nums">{{ recipientPhoneDisplay() }}</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Попередження -->
+      <section
+        class="order-checkout__notice rounded-2xl border border-amber-500/35 bg-amber-500/10 text-on-surface p-4 md:p-5 mb-8"
+        role="note"
+      >
+        <p class="text-sm md:text-base m-0 leading-relaxed">
+          {{ 'ORDER_CHECKOUT.PASSPORT_NOTICE' | translate }}
+        </p>
+      </section>
+
+      <div class="flex flex-col sm:flex-row sm:justify-end gap-3">
+        <button
+          matButton="elevated"
+          color="primary"
+          type="button"
+          class="min-w-[200px]"
+          [disabled]="!canPurchase()"
+          (click)="goToPayment()"
+        >
+          {{ 'ORDER_CHECKOUT.PURCHASE' | translate }}
+        </button>
+      </div>
+    }
+  }
 </main>

@@ -1,7 +1,7 @@
 import type { AppliedPromotionDto } from '../products/product.types';
 import { appliedPromotionLocalizedName, cartAppliedPromotionDisplayName } from './promotion-display-i18n';
 import { DiscountType, PromotionTranslationDto } from './promotion.types';
-import { toDiscountType } from './promotion-enum.util';
+import { inferDiscountTypeWhenTypeMissing, toDiscountType } from './promotion-enum.util';
 
 /**
  * Суфікс знижки для плашки: відсоток або фіксована сума з ₴.
@@ -14,7 +14,10 @@ export function formatPromotionDiscountSuffix(
     return null;
   }
   const v = Number(discountValue);
-  const type = toDiscountType(discountType ?? DiscountType.Percentage);
+  const type =
+    discountType === null || discountType === undefined
+      ? inferDiscountTypeWhenTypeMissing(v)
+      : toDiscountType(discountType);
   if (type === DiscountType.Percentage) {
     return `${v}%`;
   }

@@ -1,4 +1,4 @@
-import { Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -23,6 +23,7 @@ import {
   categoryLocalizedDescription,
   categoryLocalizedName,
 } from '../../features/categories/category-display-i18n';
+import { DocumentTitleService } from '../../core/services/document-title.service';
 import { MediaUrlCacheService } from '../../core/services/media-url-cache.service';
 import { ProductCatalogStateService } from '../../features/products/product-catalog.state';
 import { defaultProductFilter } from '../../features/products/product-filter.encode';
@@ -81,6 +82,7 @@ export class Products implements OnInit {
   private favorites = inject(FavoritesStateService);
   private mediaUrlCache = inject(MediaUrlCacheService);
   private promotionsApi = inject(PromotionService);
+  private documentTitle = inject(DocumentTitleService);
 
   loading = signal(true);
   loadError = signal(false);
@@ -91,6 +93,14 @@ export class Products implements OnInit {
   readonly pageSize = 24;
   /** Фільтри за замовчуванням згорнуті; можна розгорнути. */
   filtersExpanded = signal(false);
+
+  constructor() {
+    effect(() => {
+      const h = this.headerTitle().trim();
+      const name = h || this.translate.instant('PRODUCTS.TITLE');
+      this.documentTitle.setLeveleoPage(name);
+    });
+  }
 
   /** Дзеркало query / slug-маршруту */
   categoryId = signal<string | null>(null);

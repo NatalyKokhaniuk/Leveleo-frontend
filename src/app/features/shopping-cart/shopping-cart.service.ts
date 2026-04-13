@@ -1,7 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
-import { AddCartItemDto, ApplyCouponDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
+import { normalizeShoppingCartDto } from './shopping-cart-normalize.util';
+import { AddCartItemDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
 
 /**
  * ShoppingCartController — операції кошика лише для авторизованих.
@@ -13,7 +15,9 @@ export class ShoppingCartService {
   private base = '/ShoppingCart';
 
   getMyCart(): Observable<ShoppingCartDto> {
-    return this.api.get<ShoppingCartDto>(`${this.base}/me`);
+    return this.api
+      .get<unknown>(`${this.base}/me`)
+      .pipe(map((raw) => normalizeShoppingCartDto(raw)));
   }
 
   addItem(dto: AddCartItemDto): Observable<ShoppingCartItemDto> {
@@ -41,11 +45,17 @@ export class ShoppingCartService {
   }
 
   applyCoupon(couponCode: string): Observable<ShoppingCartDto> {
-    const dto: ApplyCouponDto = { couponCode };
-    return this.api.post<ShoppingCartDto>(`${this.base}/coupon`, dto);
+    const code = couponCode.trim();
+    /** Деякі ендпоінти очікують PascalCase у тілі JSON. */
+    const body = { couponCode: code, CouponCode: code };
+    return this.api
+      .post<unknown>(`${this.base}/coupon`, body)
+      .pipe(map((raw) => normalizeShoppingCartDto(raw)));
   }
 
   removeCoupon(): Observable<ShoppingCartDto> {
-    return this.api.delete<ShoppingCartDto>(`${this.base}/coupon`);
+    return this.api
+      .delete<unknown>(`${this.base}/coupon`)
+      .pipe(map((raw) => normalizeShoppingCartDto(raw)));
   }
 }

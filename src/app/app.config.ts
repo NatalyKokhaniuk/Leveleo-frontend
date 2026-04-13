@@ -17,6 +17,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { firstValueFrom } from 'rxjs';
 import { routes } from './app.routes';
 import { AuthService } from './core/auth/services/auth.service';
+import { DocumentTitleService } from './core/services/document-title.service';
 import { ComparisonStateService } from './core/comparison/comparison-state.service';
 import { FavoritesStateService } from './core/favorites/favorites-state.service';
 import { CartStateService } from './core/shopping-cart/cart-state.service';
@@ -36,6 +37,10 @@ export const appConfig: ApplicationConfig = {
         prefix: '/assets/i18n/',
         suffix: '.json',
       }),
+    }),
+    provideAppInitializer(() => {
+      inject(DocumentTitleService);
+      return Promise.resolve();
     }),
     provideAppInitializer(() => {
       const auth = inject(AuthService);

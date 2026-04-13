@@ -13,13 +13,18 @@ import { AddressDeleteDialogComponent } from '../address-delete-dialog/address-d
 import {
   AddressFormDialogComponent,
   AddressFormDialogData,
+  AddressRecipientSnapshot,
 } from '../address-form-dialog/address-form-dialog.component';
 import { AddressService } from '../address.service';
-import { AddressResponseDto } from '../address.types';
+import { AddressResponseDto, DeliveryType } from '../address.types';
 
 export interface SelectAddressDialogData {
   /** Поточна адреса кошика (підсвітити в списку). */
   selectedId?: string | null;
+  /** Режим оформлення замовлення: у формі адреси лише НП-поля. */
+  addressFieldsOnly?: boolean;
+  fixedDeliveryType?: DeliveryType;
+  recipientFromCheckout?: AddressRecipientSnapshot;
 }
 
 @Component({
@@ -95,7 +100,11 @@ export class SelectAddressDialogComponent implements OnInit {
   openCreate(): void {
     const dref = this.dialog.open(AddressFormDialogComponent, {
       width: 'min(560px, 100vw)',
-      data: {} satisfies AddressFormDialogData,
+      data: {
+        addressFieldsOnly: this.data.addressFieldsOnly,
+        fixedDeliveryType: this.data.fixedDeliveryType,
+        recipientFromCheckout: this.data.recipientFromCheckout,
+      } satisfies AddressFormDialogData,
     });
     dref.afterClosed().subscribe((created) => {
       if (created) {
@@ -109,7 +118,12 @@ export class SelectAddressDialogComponent implements OnInit {
     ev.stopPropagation();
     const dref = this.dialog.open(AddressFormDialogComponent, {
       width: 'min(560px, 100vw)',
-      data: { address: a } satisfies AddressFormDialogData,
+      data: {
+        address: a,
+        addressFieldsOnly: this.data.addressFieldsOnly,
+        fixedDeliveryType: this.data.fixedDeliveryType,
+        recipientFromCheckout: this.data.recipientFromCheckout,
+      } satisfies AddressFormDialogData,
     });
     dref.afterClosed().subscribe((updated) => {
       if (updated) {

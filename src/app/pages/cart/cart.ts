@@ -1,5 +1,6 @@
 import { DecimalPipe } from '@angular/common';
 import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -41,6 +42,7 @@ import { ProductCommerceToolbarComponent } from '../products/product-commerce-to
   imports: [
     TranslateModule,
     RouterLink,
+    FormsModule,
     DecimalPipe,
     MatButtonModule,
     MatFormFieldModule,
@@ -316,7 +318,9 @@ export class CartPage implements OnInit {
       next: (cart) => {
         this.load();
         const applied = !!cart.appliedCartPromotion;
-        if (!applied) {
+        const hasCartDiscount =
+          cart.totalCartDiscount != null && Number(cart.totalCartDiscount) > 0;
+        if (!applied && !hasCartDiscount) {
           this.snack.open(this.translate.instant('CART.COUPON_NOT_ACTIVE'), 'OK', { duration: 3000 });
         }
         this.couponBusy.set(false);
@@ -413,11 +417,10 @@ export class CartPage implements OnInit {
   }
 
   /**
-   * Закреслення базової ціни — лише якщо є **товарна** акція (до знижки кошика).
-   * Чисто кошикова знижка не закреслює вітринну ціну в картці рядка.
+   * Закреслення каталожної ціни, якщо фактична ціна за одиницю нижча — після товарної акції та/або знижки кошика.
    */
-  lineHasProductLevelDiscount(row: CartLineView): boolean {
-    return row.unitAfterProductPromotion < row.unitListPrice - 0.01;
+  lineShowStrikethroughListPrice(row: CartLineView): boolean {
+    return row.unitAfterCartPromotion < row.unitListPrice - 0.01;
   }
 
   linePromotionLabel(p: ProductResponseDto): string | null {

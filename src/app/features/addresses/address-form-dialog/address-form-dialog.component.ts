@@ -29,7 +29,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { finalize, tap } from 'rxjs';
+import {
+  debounceTime,
+  distinctUntilChanged,
+  finalize,
+  map,
+  of,
+  switchMap,
+  tap,
+} from 'rxjs';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { NovaPoshtaService } from '../../shipping/nova-poshta.service';
 import { NpSettlementOption } from '../../shipping/nova-poshta.types';
@@ -40,9 +48,25 @@ import {
   DeliveryType,
 } from '../address.types';
 
+/** Дані отримувача зі сторінки оформлення (контактна форма), коли поля ПІБ/телефон приховані в діалозі. */
+export interface AddressRecipientSnapshot {
+  firstName: string;
+  lastName: string;
+  middleName: string;
+  phoneNumber: string;
+}
+
 export interface AddressFormDialogData {
   /** Якщо задано — режим редагування. */
   address?: AddressResponseDto | null;
+  /**
+   * Лише місто / відділення / вулиця тощо — без ПІБ, телефону та вибору типу доставки в модалці.
+   * Тип доставки береться з `fixedDeliveryType` (сторінка оформлення).
+   */
+  addressFieldsOnly?: boolean;
+  fixedDeliveryType?: DeliveryType;
+  /** Підставляються в DTO при збереженні, якщо `addressFieldsOnly`. */
+  recipientFromCheckout?: AddressRecipientSnapshot;
 }
 
 @Component({
@@ -78,8 +102,11 @@ export class AddressFormDialogComponent implements OnInit {
 
   busy = false;
 
-  /** Повний довідник НП (`/NovaPoshta/settlements`), підвантажується після фокусу на полі. */
-  settlementDirectory = signal<NpSettlementOption[]>([]);
+  /**
+   * Результати онлайн-пошуку населених пунктів (`GET /NovaPoshta/cities/search?query=`).
+   * Порожній `find` на `/settlements` на бекенді часто не повертає дані — покладаємось на search.
+   */
+  settlementSearchResults = signal<NpSettlementOption[]>([]);
   /** Локальний довідник з уже збережених адрес (додається до повного). */
   savedCityOptions = signal<NpSettlementOption[]>([]);
   /** Текст у полі — миттєве оновлення для клієнтського фільтра. */
@@ -92,8 +119,8 @@ export class AddressFormDialogComponent implements OnInit {
    */
   displayedCityOptions = computed(() => {
     const q = this.citySearchText().trim().toLowerCase();
-    const raw = mergeCityOptions(this.savedCityOptions(), this.settlementDirectory());
-    if (!q && !this.cityFieldEverFocused()) return [];
+    const raw = mergeCityOptions(this.savedCityOptions(), this.settlementSearchResults());
+    if (!this.cityFieldEverFocused()) return [];
     if (!q) return raw;
     return raw.filter((o) => o.description.toLowerCase().includes(q));
   });
@@ -114,6 +141,11 @@ export class AddressFormDialogComponent implements OnInit {
   /** mat-select інколи дає рядок — порівнюємо через число. */
   isDeliveryType(dt: DeliveryType): boolean {
     return Number(this.form.get('deliveryType')?.value) === dt;
+  }
+
+  /** Приховати ПІБ, телефон і тип доставки в модалці (оформлення замовлення). */
+  get addressFieldsOnly(): boolean {
+    return this.data.addressFieldsOnly === true;
   }
 
   form = this.fb.nonNullable.group({
@@ -182,22 +214,56 @@ export class AddressFormDialogComponent implements OnInit {
             this.form.get('citySearch')?.updateValueAndValidity({ emitEvent: false });
           }
         }),
+        debounceTime(300),
+        map((q) => String(q ?? '').trim()),
+        distinctUntilChanged(),
+        switchMap((t) => {
+          if (t.length < 1) {
+            this.settlementSearchResults.set([]);
+            return of<NpSettlementOption[]>([]);
+          }
+          this.directoryLoading.set(true);
+          return this.np.searchCities(t).pipe(finalize(() => this.directoryLoading.set(false)));
+        }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe();
+      .subscribe((results) => {
+        this.settlementSearchResults.set(results);
+      });
 
     const a = this.data.address;
+    if (this.data.addressFieldsOnly) {
+      this.form.get('firstName')?.clearValidators();
+      this.form.get('lastName')?.clearValidators();
+      this.form.get('phoneNumber')?.clearValidators();
+      this.form.get('firstName')?.updateValueAndValidity({ emitEvent: false });
+      this.form.get('lastName')?.updateValueAndValidity({ emitEvent: false });
+      this.form.get('phoneNumber')?.updateValueAndValidity({ emitEvent: false });
+      const fd = this.data.fixedDeliveryType;
+      if (fd !== undefined && fd !== null) {
+        this.form.patchValue({ deliveryType: fd }, { emitEvent: false });
+      }
+      this.form.get('deliveryType')?.disable({ emitEvent: false });
+    }
+
     if (a) {
       const cityName = a.cityName ?? '';
       this.lastPicked =
         a.cityRef && cityName ? { ref: a.cityRef, description: cityName } : null;
+      const deliveryForForm = this.data.addressFieldsOnly
+        ? (this.data.fixedDeliveryType ?? a.deliveryType)
+        : a.deliveryType;
       this.form.patchValue(
         {
-          firstName: a.firstName,
-          lastName: a.lastName,
-          middleName: a.middleName ?? '',
-          phoneNumber: a.phoneNumber,
-          deliveryType: a.deliveryType,
+          ...(this.data.addressFieldsOnly
+            ? {}
+            : {
+                firstName: a.firstName,
+                lastName: a.lastName,
+                middleName: a.middleName ?? '',
+                phoneNumber: a.phoneNumber,
+              }),
+          deliveryType: deliveryForForm,
           citySearch: cityName,
           cityRef: a.cityRef ?? '',
           cityName,
@@ -214,7 +280,17 @@ export class AddressFormDialogComponent implements OnInit {
       );
       this.citySearchText.set(cityName);
       this.cityFieldEverFocused.set(true);
-      this.loadSettlementDirectoryFromApi();
+      const cityQ = cityName.trim();
+      if (cityQ.length > 0) {
+        this.directoryLoading.set(true);
+        this.np
+          .searchCities(cityQ)
+          .pipe(
+            finalize(() => this.directoryLoading.set(false)),
+            takeUntilDestroyed(this.destroyRef),
+          )
+          .subscribe((results) => this.settlementSearchResults.set(results));
+      }
     } else {
       this.applyCreateDefaultsFromProfileAndSavedAddresses();
     }
@@ -225,27 +301,22 @@ export class AddressFormDialogComponent implements OnInit {
   /** Клік / фокус на «Населений пункт» — відкрити повний довідник (з кешу або з бекенду). */
   onCityFieldActivate(): void {
     this.cityFieldEverFocused.set(true);
-    if (this.settlementDirectory().length > 0) {
+    const t = this.citySearchText().trim();
+    if (t.length < 1) {
       queueMicrotask(() => this.cityTrigger?.openPanel());
       return;
     }
-    this.loadSettlementDirectoryFromApi();
-  }
-
-  private loadSettlementDirectoryFromApi(): void {
     if (this.directoryLoading()) return;
     this.directoryLoading.set(true);
     this.np
-      .loadAllSettlementsDirectory()
+      .searchCities(t)
       .pipe(
         finalize(() => this.directoryLoading.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe({
-        next: (all) => {
-          this.settlementDirectory.set(all);
-          queueMicrotask(() => this.cityTrigger?.openPanel());
-        },
+      .subscribe((results) => {
+        this.settlementSearchResults.set(results);
+        queueMicrotask(() => this.cityTrigger?.openPanel());
       });
   }
 
@@ -254,6 +325,9 @@ export class AddressFormDialogComponent implements OnInit {
    * по батькові — з першої збереженої адреси, де воно заповнене.
    */
   private applyCreateDefaultsFromProfileAndSavedAddresses(): void {
+    if (this.data.addressFieldsOnly) {
+      return;
+    }
     const u = this.auth.currentUser();
     if (u) {
       const patch: {
@@ -284,7 +358,7 @@ export class AddressFormDialogComponent implements OnInit {
   }
 
   onCityPicked(ref: string): void {
-    const merged = mergeCityOptions(this.savedCityOptions(), this.settlementDirectory());
+    const merged = mergeCityOptions(this.savedCityOptions(), this.settlementSearchResults());
     const opt =
       this.displayedCityOptions().find((o) => o.ref === ref) ?? merged.find((o) => o.ref === ref);
     if (!opt) return;
@@ -342,11 +416,32 @@ export class AddressFormDialogComponent implements OnInit {
     }
     const v = this.form.getRawValue();
     const deliveryType = Number(v.deliveryType) as DeliveryType;
+
+    let firstName = v.firstName.trim();
+    let lastName = v.lastName.trim();
+    let middleName = (v.middleName ?? '').trim();
+    let phoneNumber = v.phoneNumber.trim();
+    if (this.data.addressFieldsOnly) {
+      const snap = this.data.recipientFromCheckout;
+      if (snap) {
+        firstName = snap.firstName.trim();
+        lastName = snap.lastName.trim();
+        middleName = snap.middleName.trim();
+        phoneNumber = snap.phoneNumber.trim();
+      } else {
+        const u = this.auth.currentUser();
+        firstName = u?.firstName?.trim() ?? '';
+        lastName = u?.lastName?.trim() ?? '';
+        middleName = '';
+        phoneNumber = u?.phoneNumber?.trim() ?? '';
+      }
+    }
+
     const dto: CreateAddressDto = {
-      firstName: v.firstName.trim(),
-      lastName: v.lastName.trim(),
-      middleName: (v.middleName ?? '').trim(),
-      phoneNumber: v.phoneNumber.trim(),
+      firstName,
+      lastName,
+      middleName,
+      phoneNumber,
       deliveryType,
       cityRef: v.cityRef.trim(),
       cityName: v.cityName?.trim() || null,

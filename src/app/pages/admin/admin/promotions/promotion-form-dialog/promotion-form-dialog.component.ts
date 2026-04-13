@@ -22,9 +22,15 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { from, Observable, throwError } from 'rxjs';
+import { forkJoin, from, Observable, of, throwError } from 'rxjs';
 import { catchError, concatMap, finalize, map, switchMap } from 'rxjs/operators';
+import { AuthService } from '../../../../../core/auth/services/auth.service';
 import { MediaService } from '../../../../../core/services/media.service';
+import { PromotionCouponAdminService } from '../../../../../features/promotions/promotion-coupon-admin.service';
+import type {
+  PromotionCouponAdminDto,
+  UpdatePromotionCouponAdminDto,
+} from '../../../../../features/promotions/promotion-coupon-admin.types';
 import { PromotionService } from '../../../../../features/promotions/promotion.service';
 import {
   CartLevelConditionDto,
@@ -42,6 +48,7 @@ import {
   invalidGuidsInCsv,
   parseGuidCsv,
 } from '../../../../../features/promotions/promotion-optional.util';
+import { PromotionCouponAssignmentsComponent } from '../promotion-coupon-assignments/promotion-coupon-assignments.component';
 import { PromotionEntityIdsPickerComponent } from '../promotion-entity-ids-picker/promotion-entity-ids-picker.component';
 
 export interface PromotionFormDialogData {
@@ -101,6 +108,7 @@ function datesEqualValidator(group: AbstractControl): ValidationErrors | null {
     MatCheckboxModule,
     TranslateModule,
     PromotionEntityIdsPickerComponent,
+    PromotionCouponAssignmentsComponent,
   ],
   templateUrl: './promotion-form-dialog.component.html',
   styleUrl: './promotion-form-dialog.component.scss',
@@ -109,16 +117,23 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
   data = inject<PromotionFormDialogData>(MAT_DIALOG_DATA);
   private fb = inject(FormBuilder);
   private promotionService = inject(PromotionService);
+  private couponAdmin = inject(PromotionCouponAdminService);
+  private auth = inject(AuthService);
   private dialogRef = inject(MatDialogRef<PromotionFormDialogComponent, boolean>);
   private mediaService = inject(MediaService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
+
+  /** Лише адмін керує персональною акцією та призначеннями через `/admin/.../coupon`. */
+  readonly isAdmin = this.auth.isAdmin;
 
   saving = signal(false);
   loading = signal(false);
   error = signal<string | null>(null);
   /** Останній знімок з getById (переклади для upsert). */
   private promotionSnapshot: PromotionResponseDto | null = null;
+  /** GET `/admin/promotions/{id}/coupon` — для відображення лічильника та узгодження полів купона (лише адмін). */
+  couponAdminSnapshot = signal<PromotionCouponAdminDto | null>(null);
   isUploadingImage = signal(false);
   imagePreviewUrl = signal<string | null>(null);
   private imagePreviewBlobUrl: string | null = null;
@@ -175,15 +190,44 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     if (this.data.mode === 'edit' && this.data.promotion) {
       this.loading.set(true);
-      this.promotionService
-        .getById(this.data.promotion.id)
-        .pipe(finalize(() => this.loading.set(false)))
-        .subscribe({
-          next: (full) => this.patchFromPromotion(full),
-          error: () => {
-            this.patchFromPromotion(this.data.promotion!);
-          },
-        });
+      const id = this.data.promotion.id;
+      if (this.isAdmin()) {
+        forkJoin({
+          full: this.promotionService.getById(id),
+          coupon: this.couponAdmin.getCoupon(id).pipe(catchError(() => of(null))),
+        })
+          .pipe(finalize(() => this.loading.set(false)))
+          .subscribe({
+            next: ({ full, coupon }) => {
+              this.patchFromPromotion(full);
+              if (coupon) {
+                this.couponAdminSnapshot.set(coupon);
+                this.patchCouponFromAdmin(coupon);
+              } else {
+                this.couponAdminSnapshot.set(null);
+              }
+              this.syncPersonalControlForRole();
+            },
+            error: () => {
+              this.patchFromPromotion(this.data.promotion!);
+              this.syncPersonalControlForRole();
+            },
+          });
+      } else {
+        this.promotionService
+          .getById(id)
+          .pipe(finalize(() => this.loading.set(false)))
+          .subscribe({
+            next: (full) => {
+              this.patchFromPromotion(full);
+              this.syncPersonalControlForRole();
+            },
+            error: () => {
+              this.patchFromPromotion(this.data.promotion!);
+              this.syncPersonalControlForRole();
+            },
+          });
+      }
     } else {
       const now = new Date();
       const week = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
@@ -192,6 +236,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
         endDate: this.toDatetimeLocal(week),
         discountValue: null,
       });
+      this.syncPersonalControlForRole();
     }
 
     const ik = this.data.promotion?.imageKey?.trim();
@@ -218,6 +263,32 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
 
   compareDiscountType = (a: unknown, b: unknown): boolean =>
     toDiscountType(a) === toDiscountType(b);
+
+  /**
+   * Модератор не змінює «персональну» ознаку в UI — поле вимикається, значення береться зі знімка при збереженні.
+   */
+  private syncPersonalControlForRole(): void {
+    const c = this.form.get('isPersonal');
+    if (!c) {
+      return;
+    }
+    if (this.isAdmin()) {
+      c.enable({ emitEvent: false });
+    } else {
+      c.disable({ emitEvent: false });
+    }
+  }
+
+  /** Дані купона з адмін-ендпоінта мають пріоритет над полями в PromotionResponseDto. */
+  private patchCouponFromAdmin(c: PromotionCouponAdminDto): void {
+    const maxU = c.maxUsages != null ? String(c.maxUsages) : '';
+    this.form.patchValue({
+      isCoupon: c.isCoupon ?? this.form.get('isCoupon')?.value,
+      isPersonal: c.isPersonal ?? this.form.get('isPersonal')?.value,
+      couponCode: c.couponCode ?? '',
+      maxUsages: maxU,
+    });
+  }
 
   private patchFromPromotion(p: PromotionResponseDto): void {
     this.promotionSnapshot = p;
@@ -250,6 +321,24 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       couponCode: p.couponCode ?? '',
       maxUsages: p.maxUsages != null ? String(p.maxUsages) : '',
     });
+    this.syncPersonalControlForRole();
+  }
+
+  private buildCouponUpdateDto(): UpdatePromotionCouponAdminDto {
+    const v = this.form.getRawValue();
+    return {
+      isCoupon: v.isCoupon,
+      isPersonal: v.isPersonal,
+      couponCode: v.isCoupon ? v.couponCode.trim() : null,
+      maxUsages: v.isCoupon ? this.intOrNull(v.maxUsages) : null,
+    };
+  }
+
+  private effectiveIsPersonal(): boolean {
+    if (this.isAdmin()) {
+      return !!this.form.getRawValue().isPersonal;
+    }
+    return !!this.promotionSnapshot?.isPersonal;
   }
 
   /**
@@ -445,7 +534,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
         startDate: startIso,
         endDate: endIso,
         isCoupon: v.isCoupon,
-        isPersonal: v.isPersonal,
+        isPersonal: this.effectiveIsPersonal(),
         couponCode: v.isCoupon ? v.couponCode.trim() : null,
         maxUsages: v.isCoupon ? this.intOrNull(v.maxUsages) : null,
         translations: [enTr, ukTr],
@@ -453,6 +542,18 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
       this.promotionService
         .create(dto)
         .pipe(
+          switchMap((created) =>
+            this.isAdmin()
+              ? this.couponAdmin.updateCoupon(created.id, this.buildCouponUpdateDto()).pipe(
+                  catchError((e) => {
+                    this.saving.set(false);
+                    this.error.set(this.mapError(e));
+                    return throwError(() => e);
+                  }),
+                  map(() => created),
+                )
+              : of(created),
+          ),
           switchMap((created) =>
             this.ensureTranslationsPersisted(created.id, created.translations ?? [], enTr, ukTr),
           ),
@@ -480,13 +581,24 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
         startDate: startIso,
         endDate: endIso,
         isCoupon: v.isCoupon,
-        isPersonal: v.isPersonal,
+        isPersonal: this.effectiveIsPersonal(),
         couponCode: v.isCoupon ? v.couponCode.trim() : null,
         maxUsages: v.isCoupon ? this.intOrNull(v.maxUsages) : null,
       };
       this.promotionService
         .update(id, dto)
         .pipe(
+          switchMap(() =>
+            this.isAdmin()
+              ? this.couponAdmin.updateCoupon(id, this.buildCouponUpdateDto()).pipe(
+                  catchError((e) => {
+                    this.saving.set(false);
+                    this.error.set(this.mapError(e));
+                    return throwError(() => e);
+                  }),
+                )
+              : of(null),
+          ),
           switchMap(() =>
             this.upsertTranslation(id, existing, enTr).pipe(
               concatMap(() => this.upsertTranslation(id, existing, ukTr)),
