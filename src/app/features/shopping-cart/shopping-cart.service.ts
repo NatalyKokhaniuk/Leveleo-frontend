@@ -58,4 +58,8 @@ export class ShoppingCartService {
       .delete<unknown>(`${this.base}/coupon`)
       .pipe(map((raw) => normalizeShoppingCartDto(raw)));
   }
+
+  clear(): Observable<void> {
+    return this.api.delete<void>(`${this.base}/clear`);
+  }
 }

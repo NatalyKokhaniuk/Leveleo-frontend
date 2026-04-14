@@ -166,14 +166,13 @@ export class AddressFormDialogComponent implements OnInit {
     ],
     cityRef: ['', Validators.required],
     cityName: [''],
-    warehouseRef: [''],
+    warehouseName: [''],
     streetRef: [''],
     street: [''],
     house: [''],
     flat: [''],
     floor: [''],
-    postomatRef: [''],
-    postomatDescription: [''],
+    postomatName: [''],
     additionalInfo: [''],
   });
 
@@ -267,13 +266,12 @@ export class AddressFormDialogComponent implements OnInit {
           citySearch: cityName,
           cityRef: a.cityRef ?? '',
           cityName,
-          warehouseRef: a.warehouseRef ?? '',
+          warehouseName: a.warehouseDescription ?? a.warehouseRef ?? '',
           streetRef: a.streetRef ?? '',
           street: a.street ?? '',
           house: a.house ?? '',
           flat: a.flat ?? '',
-          postomatRef: a.postomatRef ?? '',
-          postomatDescription: a.postomatDescription ?? '',
+          postomatName: a.postomatDescription ?? a.postomatRef ?? '',
           additionalInfo: a.additionalInfo ?? '',
         },
         { emitEvent: false },
@@ -380,17 +378,15 @@ export class AddressFormDialogComponent implements OnInit {
     if (Number.isNaN(t)) {
       t = DeliveryType.Warehouse;
     }
-    const wRef = this.form.get('warehouseRef');
+    const wRef = this.form.get('warehouseName');
     const str = this.form.get('street');
     const h = this.form.get('house');
-    const pr = this.form.get('postomatRef');
-    const pd = this.form.get('postomatDescription');
+    const pr = this.form.get('postomatName');
 
     wRef?.clearValidators();
     str?.clearValidators();
     h?.clearValidators();
     pr?.clearValidators();
-    pd?.clearValidators();
 
     if (t === DeliveryType.Warehouse) {
       wRef?.setValidators([Validators.required]);
@@ -399,14 +395,12 @@ export class AddressFormDialogComponent implements OnInit {
       h?.setValidators([Validators.required]);
     } else if (t === DeliveryType.Postomat) {
       pr?.setValidators([Validators.required]);
-      pd?.setValidators([Validators.required]);
     }
 
     wRef?.updateValueAndValidity({ emitEvent: false });
     str?.updateValueAndValidity({ emitEvent: false });
     h?.updateValueAndValidity({ emitEvent: false });
     pr?.updateValueAndValidity({ emitEvent: false });
-    pd?.updateValueAndValidity({ emitEvent: false });
   }
 
   submit(): void {
@@ -445,6 +439,7 @@ export class AddressFormDialogComponent implements OnInit {
       deliveryType,
       cityRef: v.cityRef.trim(),
       cityName: v.cityName?.trim() || null,
+      warehouseDescription: null,
       warehouseRef: null,
       streetRef: v.streetRef?.trim() || null,
       street: v.street?.trim() || null,
@@ -457,11 +452,9 @@ export class AddressFormDialogComponent implements OnInit {
     };
 
     if (deliveryType === DeliveryType.Warehouse) {
-      dto.warehouseRef = v.warehouseRef.trim();
+      dto.warehouseDescription = v.warehouseName?.trim() || null;
     } else if (deliveryType === DeliveryType.Postomat) {
-      dto.postomatRef = v.postomatRef.trim();
-      dto.postomatDescription = v.postomatDescription.trim();
-      dto.warehouseRef = v.postomatRef.trim();
+      dto.postomatDescription = v.postomatName?.trim() || null;
     }
 
     this.busy = true;

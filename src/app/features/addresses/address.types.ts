@@ -37,6 +37,8 @@ export interface CreateAddressDto {
   deliveryType: DeliveryType;
   cityRef: string;
   cityName: string | null;
+  /** Назва/опис відділення (без ref). */
+  warehouseDescription?: string | null;
   warehouseRef: string | null;
   streetRef: string | null;
   street: string | null;
@@ -44,7 +46,7 @@ export interface CreateAddressDto {
   flat: string | null;
   floor: string | null;
   additionalInfo: string | null;
-  /** Якщо бекенд підтримує поштомат (поля можуть ігноруватись старим API). */
+  /** Якщо бекенд підтримує поштомат. */
   postomatRef?: string | null;
   postomatDescription?: string | null;
 }

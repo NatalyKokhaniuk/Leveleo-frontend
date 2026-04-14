@@ -74,7 +74,7 @@
     @if (isDeliveryType(DeliveryType.Warehouse)) {
       <mat-form-field class="w-full">
         <mat-label>{{ 'ADDRESS.WAREHOUSE_REF' | translate }}</mat-label>
-        <input matInput formControlName="warehouseRef" />
+        <input matInput formControlName="warehouseName" />
       </mat-form-field>
     }
 
@@ -106,11 +106,7 @@
     @if (isDeliveryType(DeliveryType.Postomat)) {
       <mat-form-field class="w-full">
         <mat-label>{{ 'ADDRESS.POSTOMAT_REF' | translate }}</mat-label>
-        <input matInput formControlName="postomatRef" />
-      </mat-form-field>
-      <mat-form-field class="w-full">
-        <mat-label>{{ 'ADDRESS.POSTOMAT_DESC' | translate }}</mat-label>
-        <input matInput formControlName="postomatDescription" />
+        <input matInput formControlName="postomatName" />
       </mat-form-field>
     }
 

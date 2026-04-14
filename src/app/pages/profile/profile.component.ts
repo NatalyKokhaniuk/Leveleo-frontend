@@ -45,7 +45,6 @@ import { UserService } from '../../features/users/user.service';
     MatTooltipModule,
   ],
   templateUrl: './profile.component.html',
-  styleUrl: './profile.component.scss',
 })
 export class ProfileComponent {
   private auth = inject(AuthService);
@@ -200,13 +199,13 @@ export class ProfileComponent {
   }
 
   orderPrimaryLabel(o: OrderSummaryDto): string {
-    const n = o.orderNumber;
+    const n = o.number ?? o.orderNumber;
     if (typeof n === 'string' && n.trim()) return n;
     return o.id;
   }
 
   orderTotal(o: OrderSummaryDto): number | null {
-    const t = o.totalAmount ?? o.total;
+    const t = o.totalPayable ?? o.totalAmount ?? o.total;
     return typeof t === 'number' && !Number.isNaN(t) ? t : null;
   }
 
