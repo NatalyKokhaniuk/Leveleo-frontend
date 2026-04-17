@@ -19,10 +19,12 @@ function serializeAddressBody(dto: CreateAddressDto | UpdateAddressDto): Record<
 }
 
 function asAddressList(data: unknown): AddressResponseDto[] {
-  if (Array.isArray(data)) return data as AddressResponseDto[];
+  if (Array.isArray(data)) return data.map(normalizeAddressResponse).filter((x): x is AddressResponseDto => !!x);
   if (data && typeof data === 'object' && 'items' in data) {
     const items = (data as { items?: unknown }).items;
-    if (Array.isArray(items)) return items as AddressResponseDto[];
+    if (Array.isArray(items)) {
+      return items.map(normalizeAddressResponse).filter((x): x is AddressResponseDto => !!x);
+    }
   }
   return [];
 }
@@ -37,11 +39,15 @@ export class AddressService {
   }
 
   getById(id: string): Observable<AddressResponseDto> {
-    return this.api.get<AddressResponseDto>(`${this.base}/${id}`);
+    return this.api.get<unknown>(`${this.base}/${id}`).pipe(
+      map((raw) => normalizeAddressResponse(raw) ?? ({} as AddressResponseDto)),
+    );
   }
 
   create(dto: CreateAddressDto): Observable<AddressResponseDto> {
-    return this.api.post<AddressResponseDto>(`${this.base}`, serializeAddressBody(dto));
+    return this.api
+      .post<unknown>(`${this.base}`, serializeAddressBody(dto))
+      .pipe(map((raw) => normalizeAddressResponse(raw) ?? ({} as AddressResponseDto)));
   }
 
   /**
@@ -49,7 +55,9 @@ export class AddressService {
    * Відправляємо повний набір полів як у CreateAddressDto; якщо десеріалізація Optional інша — узгодьте з бекендом.
    */
   update(id: string, dto: UpdateAddressDto): Observable<AddressResponseDto> {
-    return this.api.put<AddressResponseDto>(`${this.base}/${id}`, serializeAddressBody(dto));
+    return this.api
+      .put<unknown>(`${this.base}/${id}`, serializeAddressBody(dto))
+      .pipe(map((raw) => normalizeAddressResponse(raw) ?? ({} as AddressResponseDto)));
   }
 
   delete(id: string): Observable<unknown> {
@@ -57,6 +65,48 @@ export class AddressService {
   }
 
   setDefault(id: string): Observable<AddressResponseDto> {
-    return this.api.post<AddressResponseDto>(`${this.base}/${id}/default`, {});
+    return this.api
+      .post<unknown>(`${this.base}/${id}/default`, {})
+      .pipe(map((raw) => normalizeAddressResponse(raw) ?? ({} as AddressResponseDto)));
   }
+}
+
+function normalizeAddressResponse(raw: unknown): AddressResponseDto | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const o = raw as Record<string, unknown>;
+  const id = String(o['id'] ?? o['Id'] ?? '').trim();
+  if (!id) return null;
+  return {
+    id,
+    firstName: String(o['firstName'] ?? o['FirstName'] ?? ''),
+    lastName: String(o['lastName'] ?? o['LastName'] ?? ''),
+    middleName: String(o['middleName'] ?? o['MiddleName'] ?? ''),
+    phoneNumber: String(o['phoneNumber'] ?? o['PhoneNumber'] ?? ''),
+    deliveryType: parseDeliveryType(o['deliveryType'] ?? o['DeliveryType']),
+    formattedAddress: String(o['formattedAddress'] ?? o['FormattedAddress'] ?? ''),
+    cityName: strOrNull(o['cityName'] ?? o['CityName']),
+    warehouseDescription: strOrNull(o['warehouseDescription'] ?? o['WarehouseDescription']),
+    street: strOrNull(o['street'] ?? o['Street']),
+    house: strOrNull(o['house'] ?? o['House']),
+    flat: strOrNull(o['flat'] ?? o['Flat']),
+    additionalInfo: strOrNull(o['additionalInfo'] ?? o['AdditionalInfo']),
+    cityRef: strOrNull(o['cityRef'] ?? o['CityRef']),
+    warehouseRef: strOrNull(o['warehouseRef'] ?? o['WarehouseRef']),
+    streetRef: strOrNull(o['streetRef'] ?? o['StreetRef']),
+    postomatRef: strOrNull(o['postomatRef'] ?? o['PostomatRef']),
+    postomatDescription: strOrNull(o['postomatDescription'] ?? o['PostomatDescription']),
+  };
+}
+
+function parseDeliveryType(v: unknown): DeliveryType {
+  const s = String(v ?? '').trim().toLowerCase();
+  if (s === 'doors' || s === '1') return DeliveryType.Doors;
+  if (s === 'postomat' || s === '2') return DeliveryType.Postomat;
+  return DeliveryType.Warehouse;
+}
+
+function strOrNull(v: unknown): string | null {
+  if (v == null) return null;
+  const s = String(v).trim();
+  return s ? s : null;
 }

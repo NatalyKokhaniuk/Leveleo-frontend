@@ -187,41 +187,6 @@
               {{ 'ORDER_CHECKOUT.CHANGE' | translate }}
             </button>
           </div>
-          @if (deliveryType() === DeliveryType.Warehouse || deliveryType() === DeliveryType.Postomat) {
-            <p class="text-sm text-on-surface/70 m-0 mb-3">{{ 'ORDER_CHECKOUT.ADDRESS_MAP_HINT' | translate }}</p>
-            <mat-form-field class="w-full mb-3">
-              <mat-label>{{ 'ORDER_CHECKOUT.SETTLEMENT_FOR_MAP' | translate }}</mat-label>
-              <input
-                matInput
-                [formControl]="cityForm.controls.citySearch"
-                [matAutocomplete]="settlementAuto"
-                autocomplete="off"
-              />
-              @if (settlementSearchLoading()) {
-                <mat-spinner matSuffix diameter="20"></mat-spinner>
-              }
-              <mat-autocomplete
-                #settlementAuto="matAutocomplete"
-                autoActiveFirstOption
-                (optionSelected)="onSettlementSelected($event.option.value)"
-              >
-                @for (opt of settlementSearchResults(); track opt.ref) {
-                  <mat-option [value]="opt.ref">{{ opt.description }}</mat-option>
-                }
-              </mat-autocomplete>
-              <mat-hint>{{ 'ADDRESS.CITY_SEARCH_HINT' | translate }}</mat-hint>
-            </mat-form-field>
-            <div class="flex flex-wrap gap-2 mb-4">
-              <button
-                matButton="outlined"
-                type="button"
-                [disabled]="!canOpenMapForSelectedDelivery()"
-                (click)="openNpMapDialog()"
-              >
-                {{ 'ORDER_CHECKOUT.PICK_ON_MAP' | translate }}
-              </button>
-            </div>
-          }
           @if (selectedAddress(); as addr) {
             <p class="text-base font-medium text-on-surface m-0 mb-1">
               {{ addr.cityName || ('ORDER_CHECKOUT.CITY_EXAMPLE' | translate) }}
@@ -286,18 +251,47 @@
         </p>
       </section>
 
-      <div class="flex flex-col sm:flex-row sm:justify-end gap-3">
-        <button
-          matButton="elevated"
-          color="primary"
-          type="button"
-          class="min-w-[200px]"
-          [disabled]="placingOrder()"
-          (click)="goToPayment()"
-        >
-          {{ 'ORDER_CHECKOUT.PURCHASE' | translate }}
-        </button>
+      <div class="flex flex-col gap-3 w-full">
+        <div class="flex flex-col sm:flex-row sm:justify-end gap-3 w-full">
+          <button
+            matButton="elevated"
+            color="primary"
+            type="button"
+            class="min-w-[200px]"
+            [disabled]="placingOrder()"
+            (click)="goToPayment()"
+          >
+            {{ 'ORDER_CHECKOUT.PURCHASE' | translate }}
+          </button>
+        </div>
+        @if (orderPlacementError(); as errMsg) {
+          <section
+            class="w-full rounded-2xl border border-error/35 bg-error/8 text-error p-4 md:p-5 shadow-[0_1px_0_rgb(0_0_0_/_0.04)]"
+            role="alert"
+          >
+            <p class="text-sm md:text-base m-0 leading-relaxed">
+              {{ errMsg }}
+            </p>
+          </section>
+        }
       </div>
+
+      <footer
+        class="mt-10 pt-6 border-t border-outline-variant/40 flex flex-col gap-2 text-center sm:text-end"
+        aria-label="LiqPay"
+      >
+        <p class="text-xs text-on-surface/60 m-0 leading-relaxed max-w-2xl sm:ml-auto">
+          {{ 'ORDER_CHECKOUT.LIQPAY_FOOTER' | translate }}
+        </p>
+        <a
+          href="https://www.liqpay.ua/"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-xs text-primary font-medium hover:underline inline-block sm:ml-auto"
+        >
+          LiqPay
+        </a>
+      </footer>
     }
   }
 </main>

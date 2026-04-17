@@ -5,6 +5,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { extractLiqPayCheckoutParams, submitLiqPayCheckoutForm } from '../../features/orders/liqpay-checkout.util';
 import { OrderService } from '../../features/orders/order.service';
 
 @Component({
@@ -48,11 +49,14 @@ export class CheckoutPage implements OnInit {
           this.router.navigateByUrl('/cart');
           return;
         }
-        if (res.payload) {
-          this.redirectToLiqPay(res.payload);
+        const liqpay = extractLiqPayCheckoutParams(res);
+        if (liqpay) {
+          submitLiqPayCheckoutForm(liqpay.data, liqpay.signature);
           return;
         }
-        this.snack.open(this.translate.instant('CART.ORDER_CREATED'), 'OK', { duration: 3000 });
+        this.snack.open(this.translate.instant('ORDER_CHECKOUT.LIQPAY_REDIRECT_FAILED'), 'OK', {
+          duration: 6500,
+        });
       },
       error: (err) => {
         this.busy.set(false);
@@ -68,42 +72,4 @@ export class CheckoutPage implements OnInit {
     });
   }
 
-  private redirectToLiqPay(payload: string | Record<string, unknown>): void {
-    const parsed = this.parsePayload(payload);
-    const data = parsed?.['data'];
-    const signature = parsed?.['signature'];
-    if (typeof data !== 'string' || typeof signature !== 'string') {
-      this.snack.open(this.translate.instant('CART.ORDER_CREATED'), 'OK', { duration: 3000 });
-      return;
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://www.liqpay.ua/api/3/checkout';
-    form.style.display = 'none';
-
-    const dataInput = document.createElement('input');
-    dataInput.name = 'data';
-    dataInput.value = data;
-    form.appendChild(dataInput);
-
-    const signInput = document.createElement('input');
-    signInput.name = 'signature';
-    signInput.value = signature;
-    form.appendChild(signInput);
-
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
-  }
-
-  private parsePayload(payload: string | Record<string, unknown>): Record<string, unknown> | null {
-    if (typeof payload === 'object' && payload !== null) return payload;
-    try {
-      const parsed = JSON.parse(payload) as unknown;
-      return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
-    } catch {
-      return null;
-    }
-  }
 }

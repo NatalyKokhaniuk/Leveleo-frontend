@@ -1,16 +1,18 @@
 <div class="product-commerce-toolbar flex flex-wrap items-center gap-2 min-w-0">
-  <button
-    matIconButton
-    type="button"
-    class="shrink-0"
-    [disabled]="busy"
-    (click)="onCompare()"
-    [attr.aria-pressed]="inComparison()"
-    [attr.aria-label]="'HEADER.COMPARISON' | translate"
-    [class.text-primary]="inComparison()"
-  >
-    <mat-icon>balance</mat-icon>
-  </button>
+  @if (!hideCompare()) {
+    <button
+      matIconButton
+      type="button"
+      class="shrink-0"
+      [disabled]="busy"
+      (click)="onCompare()"
+      [attr.aria-pressed]="inComparison()"
+      [attr.aria-label]="'HEADER.COMPARISON' | translate"
+      [class.text-primary]="inComparison()"
+    >
+      <mat-icon>balance</mat-icon>
+    </button>
+  }
 
   @if (!isAuthed() || qty() === 0) {
     <button matButton="filled" color="primary" type="button" class="!min-h-10" [disabled]="busy || !canIncrease()" (click)="onAddToCart()">

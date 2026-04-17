@@ -8,7 +8,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { DefaultAddressPreferenceService } from '../../../core/services/default-address-preference.service';
 import { AddressDeleteDialogComponent } from '../address-delete-dialog/address-delete-dialog.component';
 import {
   AddressFormDialogComponent,
@@ -16,11 +18,18 @@ import {
   AddressRecipientSnapshot,
 } from '../address-form-dialog/address-form-dialog.component';
 import { AddressService } from '../address.service';
-import { AddressResponseDto, DeliveryType } from '../address.types';
+import {
+  AddressResponseDto,
+  DeliveryType,
+  filterAddressesByDeliveryType,
+  reorderAddressListPreferredFirst,
+} from '../address.types';
 
 export interface SelectAddressDialogData {
   /** Поточна адреса кошика (підсвітити в списку). */
   selectedId?: string | null;
+  /** Id з localStorage — основна адреса; якщо підходить під fixedDeliveryType, обирається автоматично. */
+  preferredDefaultId?: string | null;
   /** Режим оформлення замовлення: у формі адреси лише НП-поля. */
   addressFieldsOnly?: boolean;
   fixedDeliveryType?: DeliveryType;
@@ -39,12 +48,15 @@ export interface SelectAddressDialogData {
     MatIconModule,
     MatRadioModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     TranslateModule,
   ],
   templateUrl: './select-address-dialog.component.html',
+  styleUrl: './select-address-dialog.component.scss',
 })
 export class SelectAddressDialogComponent implements OnInit {
   private addressApi = inject(AddressService);
+  private preference = inject(DefaultAddressPreferenceService);
   private dialog = inject(MatDialog);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
@@ -56,12 +68,28 @@ export class SelectAddressDialogComponent implements OnInit {
   addresses = signal<AddressResponseDto[]>([]);
   searchText = signal('');
   pickedId = signal<string | null>(this.data.selectedId ?? null);
+  /** Для іконки «основна» після зміни без перезавантаження діалогу. */
+  preferredIdUi = signal<string | null>(null);
+  /** Коротка анімація рядка після «зробити за замовчуванням». */
+  highlightDefaultId = signal<string | null>(null);
+
+  /**
+   * Адреси, що відповідають обраному на checkout типу доставки (Warehouse / Postomat / Doors).
+   * Якщо fixedDeliveryType не задано — усі адреси (наприклад, загальний вибір у профілі).
+   * Адреса за замовчуванням — зверху.
+   */
+  matchingForDeliveryType = computed(() => {
+    const raw = filterAddressesByDeliveryType(this.addresses(), this.data.fixedDeliveryType);
+    return reorderAddressListPreferredFirst(raw, this.preferredIdUi());
+  });
 
   filtered = computed(() => {
     const q = this.searchText().trim().toLowerCase();
-    const list = this.addresses();
-    if (!q) return list;
-    return list.filter((a) => {
+    const base = this.matchingForDeliveryType();
+    if (!q) {
+      return base;
+    }
+    const narrowed = base.filter((a) => {
       const hay = [
         a.formattedAddress,
         a.firstName,
@@ -73,9 +101,32 @@ export class SelectAddressDialogComponent implements OnInit {
         .toLowerCase();
       return hay.includes(q);
     });
+    return reorderAddressListPreferredFirst(narrowed, this.preferredIdUi());
+  });
+
+  /** Підказка, коли список порожній після фільтрації та пошуку. */
+  listEmptyHint = computed((): 'search' | 'delivery' | 'profile-empty' | null => {
+    if (this.filtered().length > 0) {
+      return null;
+    }
+    const q = this.searchText().trim();
+    const matchCount = this.matchingForDeliveryType().length;
+    const allCount = this.addresses().length;
+    const fixed = this.data.fixedDeliveryType;
+
+    /* Спочатку: для обраного типу доставки немає жодної збереженої адреси */
+    if (fixed !== undefined && fixed !== null && matchCount === 0 && allCount > 0) {
+      return 'delivery';
+    }
+    /* Є адреси потрібного типу, але пошук нічого не знайшов */
+    if (q && matchCount > 0) {
+      return 'search';
+    }
+    return 'profile-empty';
   });
 
   ngOnInit(): void {
+    this.preferredIdUi.set(this.preference.getPreferredId());
     this.load();
   }
 
@@ -84,11 +135,26 @@ export class SelectAddressDialogComponent implements OnInit {
     this.loadError.set(false);
     this.addressApi.getMyAddresses().subscribe({
       next: (list) => {
-        this.addresses.set(list);
+        this.addresses.set(reorderAddressListPreferredFirst(list, this.preference.getPreferredId()));
         this.loading.set(false);
-        if (!this.pickedId() && list.length === 1) {
-          this.pickedId.set(list[0].id);
+        const forDelivery = this.matchingForDeliveryType();
+        let sel = this.pickedId();
+        if (sel && !forDelivery.some((a) => a.id === sel)) {
+          sel = null;
         }
+        if (!sel) {
+          const pref = (
+            this.data.preferredDefaultId?.trim() ||
+            this.preference.getPreferredId() ||
+            ''
+          ).trim();
+          if (pref && forDelivery.some((a) => a.id === pref)) {
+            sel = pref;
+          } else if (forDelivery.length === 1) {
+            sel = forDelivery[0].id;
+          }
+        }
+        this.pickedId.set(sel);
       },
       error: () => {
         this.loading.set(false);
@@ -149,6 +215,10 @@ export class SelectAddressDialogComponent implements OnInit {
           if (this.pickedId() === a.id) {
             this.pickedId.set(null);
           }
+          if (this.preference.getPreferredId() === a.id) {
+            this.preference.clearPreferred();
+            this.preferredIdUi.set(null);
+          }
           this.snack.open(this.translate.instant('ADDRESS.DELETED'), 'OK', { duration: 2500 });
         },
         error: () => {
@@ -158,9 +228,31 @@ export class SelectAddressDialogComponent implements OnInit {
     });
   }
 
+  isPreferredRow(a: AddressResponseDto): boolean {
+    const id = this.preferredIdUi();
+    return id != null && id === a.id;
+  }
+
+  setAsDefault(a: AddressResponseDto, ev: Event): void {
+    ev.stopPropagation();
+    this.addressApi.setDefault(a.id).subscribe({
+      next: () => {
+        this.preference.setPreferredId(a.id);
+        this.preferredIdUi.set(a.id);
+        this.addresses.update((prev) => reorderAddressListPreferredFirst(prev, a.id));
+        this.highlightDefaultId.set(a.id);
+        window.setTimeout(() => this.highlightDefaultId.set(null), 900);
+        this.snack.open(this.translate.instant('ADDRESS.DEFAULT_SET'), 'OK', { duration: 2800 });
+      },
+      error: () => {
+        this.snack.open(this.translate.instant('ADDRESS.DEFAULT_SET_ERROR'), 'OK', { duration: 4000 });
+      },
+    });
+  }
+
   confirm(): void {
     const id = this.pickedId();
-    const addr = this.addresses().find((x) => x.id === id);
+    const addr = this.filtered().find((x) => x.id === id);
     this.ref.close(addr);
   }
 

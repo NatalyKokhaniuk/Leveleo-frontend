@@ -4,6 +4,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { catchError, finalize, shareReplay, tap } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
+import { DefaultAddressPreferenceService } from '../../services/default-address-preference.service';
 import {
   AuthResponse,
   BackupCodesResponse,
@@ -30,6 +31,7 @@ import {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private api = inject(ApiService);
+  private defaultAddressPreference = inject(DefaultAddressPreferenceService);
   private ngZone = inject(NgZone);
   private _currentUser = signal<UserResponse | null>(null);
   private _accessToken = signal<string | null>(null);
@@ -261,5 +263,6 @@ export class AuthService {
     this._currentUser.set(null);
     this._accessToken.set(null);
     this._isAuthenticated.set(false);
+    this.defaultAddressPreference.clearPreferred();
   }
 }

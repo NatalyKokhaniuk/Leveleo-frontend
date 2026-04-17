@@ -208,7 +208,11 @@
     "MISSING_FIRST_NAME": "first name",
     "MISSING_DELIVERY_METHOD": "delivery method",
     "MISSING_ADDRESS": "delivery address",
-    "SELECT_DELIVERY_FIRST": "Choose a delivery type (Nova Poshta) first."
+    "SELECT_DELIVERY_FIRST": "Choose a delivery type (Nova Poshta) first.",
+    "ORDER_CREATE_FAILED": "Could not place the order. Please try again or contact support.",
+    "CONFLICT_ORDER_CREATION_FAILED": "We couldn't place your order. Tap Purchase again. If it keeps failing, check LiqPay settings on the server or contact support.",
+    "LIQPAY_REDIRECT_FAILED": "The order was created, but redirect to LiqPay failed: the API response did not include valid data and signature fields. Confirm the CreateOrderResultDto shape on the backend.",
+    "LIQPAY_FOOTER": "After you tap Purchase, card payment is handled by LiqPay (secure redirect to the payment page)."
   },
   "ADDRESS": {
     "ADD": "Add address",
@@ -247,7 +251,13 @@
     "SELECT_CONFIRM": "Select",
     "LOAD_LIST_ERROR": "Could not load addresses.",
     "RETRY": "Try again",
-    "STREET_SEARCH_HINT": "Type part of a street name and pick one of the Nova Poshta suggestions."
+    "STREET_SEARCH_HINT": "Type part of a street name and pick one of the Nova Poshta suggestions.",
+    "SEARCH_NO_MATCH": "No matches for your search. Try different keywords.",
+    "NO_ADDRESSES_FOR_DELIVERY_TYPE": "No saved addresses for this delivery method. Add a new address — it will be stored for the selected type (branch, parcel locker, or courier).",
+    "SET_DEFAULT": "Set as default shipping address",
+    "DEFAULT_BADGE": "Default",
+    "DEFAULT_SET": "This address is now your default for checkout",
+    "DEFAULT_SET_ERROR": "Could not save default address"
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Previous slide",

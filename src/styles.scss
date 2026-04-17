@@ -295,6 +295,23 @@ a.app-promo-badge:hover {
   z-index: 10000 !important;
 }
 
+/* Підсвітка рядка після «адреса за замовчуванням» (діалог вибору, профіль). */
+@keyframes address-default-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mat-sys-primary, var(--color-primary)) 55%, transparent);
+  }
+  55% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--mat-sys-primary, var(--color-primary)) 18%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.address-default-pulse {
+  animation: address-default-pulse 0.88s ease-out;
+}
+
 @layer utilities {
   .bg-primary-container {
     background-color: var(--mat-sys-primary-container);

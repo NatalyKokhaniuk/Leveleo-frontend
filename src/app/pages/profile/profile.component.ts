@@ -15,6 +15,7 @@ import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
 import { AuthService } from '../../core/auth/services/auth.service';
+import { DefaultAddressPreferenceService } from '../../core/services/default-address-preference.service';
 import { MediaService } from '../../core/services/media.service';
 import { AddressDeleteDialogComponent } from '../../features/addresses/address-delete-dialog/address-delete-dialog.component';
 import {
@@ -22,7 +23,7 @@ import {
   AddressFormDialogData,
 } from '../../features/addresses/address-form-dialog/address-form-dialog.component';
 import { AddressService } from '../../features/addresses/address.service';
-import { AddressResponseDto } from '../../features/addresses/address.types';
+import { AddressResponseDto, reorderAddressListPreferredFirst } from '../../features/addresses/address.types';
 import { OrderService } from '../../features/orders/order.service';
 import { OrderSummaryDto } from '../../features/orders/order.types';
 import { UserService } from '../../features/users/user.service';
@@ -57,6 +58,7 @@ export class ProfileComponent {
   private fb = inject(FormBuilder);
   private dialog = inject(MatDialog);
   private addressService = inject(AddressService);
+  private addressPreference = inject(DefaultAddressPreferenceService);
   private orderService = inject(OrderService);
 
   currentUser = this.auth.currentUser;
@@ -99,6 +101,15 @@ export class ProfileComponent {
   addressesLoading = signal(false);
   addressesLoaded = signal(false);
   addressesError = signal<string | null>(null);
+  /** Відображення «основна» (localStorage + POST .../default). */
+  preferredAddressId = signal<string | null>(this.addressPreference.getPreferredId());
+  /** Анімація після «зробити за замовчуванням». */
+  defaultHighlightId = signal<string | null>(null);
+
+  /** Основна адреса — зверху списку. */
+  sortedAddresses = computed(() =>
+    reorderAddressListPreferredFirst(this.addresses(), this.preferredAddressId()),
+  );
 
   orders = signal<OrderSummaryDto[]>([]);
   ordersLoading = signal(false);
@@ -162,6 +173,25 @@ export class ProfileComponent {
     });
   }
 
+  isPreferredAddress(a: AddressResponseDto): boolean {
+    return this.preferredAddressId() === a.id;
+  }
+
+  setDefaultAddress(a: AddressResponseDto): void {
+    this.addressService.setDefault(a.id).subscribe({
+      next: () => {
+        this.addressPreference.setPreferredId(a.id);
+        this.preferredAddressId.set(a.id);
+        this.defaultHighlightId.set(a.id);
+        window.setTimeout(() => this.defaultHighlightId.set(null), 900);
+        this.snack.open(this.translate.instant('ADDRESS.DEFAULT_SET'), 'OK', { duration: 2800 });
+      },
+      error: () => {
+        this.snack.open(this.translate.instant('ADDRESS.DEFAULT_SET_ERROR'), 'OK', { duration: 4000 });
+      },
+    });
+  }
+
   confirmDeleteAddress(a: AddressResponseDto): void {
     const ref = this.dialog.open(AddressDeleteDialogComponent, {
       width: 'min(440px, 100vw)',
@@ -172,6 +202,10 @@ export class ProfileComponent {
       this.addressService.delete(a.id).subscribe({
         next: () => {
           this.addresses.update((prev) => prev.filter((x) => x.id !== a.id));
+          if (this.preferredAddressId() === a.id) {
+            this.addressPreference.clearPreferred();
+            this.preferredAddressId.set(null);
+          }
           this.snack.open(this.translate.instant('ADDRESS.DELETED'), 'OK', { duration: 2500 });
         },
         error: () => {

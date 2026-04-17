@@ -26,12 +26,23 @@
     </div>
 
     @if (filtered().length === 0) {
-      <p class="text-sm opacity-80">{{ 'PROFILE.ADDRESSES_EMPTY' | translate }}</p>
+      @switch (listEmptyHint()) {
+        @case ('search') {
+          <p class="text-sm opacity-80">{{ 'ADDRESS.SEARCH_NO_MATCH' | translate }}</p>
+        }
+        @case ('delivery') {
+          <p class="text-sm opacity-80">{{ 'ADDRESS.NO_ADDRESSES_FOR_DELIVERY_TYPE' | translate }}</p>
+        }
+        @default {
+          <p class="text-sm opacity-80">{{ 'PROFILE.ADDRESSES_EMPTY' | translate }}</p>
+        }
+      }
     } @else {
       <mat-radio-group class="flex flex-col gap-2" [ngModel]="pickedId()" (ngModelChange)="pickedId.set($event)">
         @for (a of filtered(); track a.id) {
           <div
-            class="flex items-start gap-2 rounded-xl border border-outline-variant p-3 transition-colors"
+            class="select-address-row flex items-start gap-2 rounded-xl border border-outline-variant p-3"
+            [class.address-default-pulse]="highlightDefaultId() === a.id"
             [style.box-shadow]="
               pickedId() === a.id ? '0 0 0 2px var(--mat-sys-primary, var(--color-primary))' : 'none'
             "
@@ -44,6 +55,18 @@
               </p>
             </div>
             <div class="inline-flex flex-wrap gap-1 justify-end shrink-0">
+              <button
+                mat-icon-button
+                type="button"
+                class="select-address-star-btn"
+                (click)="setAsDefault(a, $event)"
+                [matTooltip]="'ADDRESS.SET_DEFAULT' | translate"
+                [attr.aria-label]="'ADDRESS.SET_DEFAULT' | translate"
+              >
+                <mat-icon class="select-address-star" [class.text-primary]="isPreferredRow(a)">{{
+                  isPreferredRow(a) ? 'star' : 'star_outline'
+                }}</mat-icon>
+              </button>
               <button
                 mat-icon-button
                 type="button"

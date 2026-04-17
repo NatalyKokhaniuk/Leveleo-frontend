@@ -53,3 +53,36 @@ export interface CreateAddressDto {
 
 /** Тіло PUT /api/Address/{id} — фактично повне оновлення полів як у створенні. */
 export type UpdateAddressDto = CreateAddressDto;
+
+/**
+ * Залишає лише адреси з тим самим `deliveryType`, що й обраний спосіб доставки на checkout.
+ * Warehouse — відділення НП, Postomat — поштомат, Doors — кур'єр.
+ * Якщо `deliveryType` не передано — повертає весь список (без фільтра).
+ */
+export function filterAddressesByDeliveryType(
+  addresses: AddressResponseDto[],
+  deliveryType: DeliveryType | null | undefined,
+): AddressResponseDto[] {
+  if (deliveryType === undefined || deliveryType === null) {
+    return addresses;
+  }
+  return addresses.filter((a) => a.deliveryType === deliveryType);
+}
+
+/** Адресу за замовчуванням (id) — на початок списку. */
+export function reorderAddressListPreferredFirst(
+  addresses: AddressResponseDto[],
+  preferredId: string | null | undefined,
+): AddressResponseDto[] {
+  const id = preferredId?.trim();
+  if (!id) {
+    return [...addresses];
+  }
+  const idx = addresses.findIndex((a) => a.id === id);
+  if (idx <= 0) {
+    return [...addresses];
+  }
+  const next = [...addresses];
+  const [row] = next.splice(idx, 1);
+  return [row, ...next];
+}

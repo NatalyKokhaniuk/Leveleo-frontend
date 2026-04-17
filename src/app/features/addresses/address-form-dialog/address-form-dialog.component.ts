@@ -250,8 +250,7 @@ export class AddressFormDialogComponent implements OnInit {
 
     if (a) {
       const cityName = a.cityName ?? '';
-      this.lastPicked =
-        a.cityRef && cityName ? { ref: a.cityRef, description: cityName } : null;
+      this.lastPicked = null;
       const deliveryForForm = this.data.addressFieldsOnly
         ? (this.data.fixedDeliveryType ?? a.deliveryType)
         : a.deliveryType;
@@ -293,7 +292,24 @@ export class AddressFormDialogComponent implements OnInit {
             finalize(() => this.directoryLoading.set(false)),
             takeUntilDestroyed(this.destroyRef),
           )
-          .subscribe((results) => this.settlementSearchResults.set(results));
+          .subscribe((results) => {
+            this.settlementSearchResults.set(results);
+            const byDelivery = results.find((x) => String(x.deliveryCityRef ?? '').trim() === String(a.cityRef ?? '').trim());
+            const byText = results.find((x) => x.description.trim() === cityName.trim());
+            const picked = byDelivery ?? byText ?? null;
+            if (picked) {
+              this.lastPicked = picked;
+              this.form.patchValue(
+                {
+                  settlementRef: picked.ref,
+                  cityRef: picked.deliveryCityRef?.trim() || picked.ref,
+                  cityName: picked.description,
+                  citySearch: picked.description,
+                },
+                { emitEvent: false },
+              );
+            }
+          });
       }
     } else {
       this.applyCreateDefaultsFromProfileAndSavedAddresses();

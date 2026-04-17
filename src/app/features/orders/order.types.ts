@@ -18,8 +18,20 @@ export interface AdminOrderListFilterDto extends OrderListFilterDto {
 }
 
 export interface CreateOrderResultDto {
+  /**
+   * При успішному створенні замовлення — реальний id.
+   * У гілці catch на бекенді (409, message «Order creation has failed») часто лишається Guid.Empty —
+   * такий id не використовуйте: замовлення не створено, транзакція відкочена.
+   */
   orderId?: string;
+  /**
+   * Дані для LiqPay: JSON-рядок або об'єкт з полями data + signature,
+   * або лише base64 `data`, якщо `signature` приходить окремим полем.
+   */
   payload?: string | Record<string, unknown> | null;
+  /** Класична форма checkout: base64-параметр `data` (якщо не всередині `payload`). */
+  data?: string | null;
+  signature?: string | null;
   shoppingCart?: ShoppingCartDto | null;
   message?: string | null;
 }

@@ -18,6 +18,8 @@ import { CartStateService } from '../../../core/shopping-cart/cart-state.service
 export class ProductCommerceToolbarComponent {
   productId = input.required<string>();
   maxQuantity = input<number | null>(null);
+  /** Приховати кнопку порівняння (наприклад у кошику). */
+  hideCompare = input(false);
 
   private auth = inject(AuthService);
   private authHandler = inject(AuthHandlerService);

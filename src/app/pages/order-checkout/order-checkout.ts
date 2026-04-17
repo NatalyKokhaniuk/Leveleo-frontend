@@ -4,7 +4,6 @@ import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angula
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,29 +13,16 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioChange, MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import {
-  catchError,
-  debounceTime,
-  distinctUntilChanged,
-  finalize,
-  map,
-  of,
-  switchMap,
-  tap,
-} from 'rxjs';
+import { catchError, of } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/services/auth.service';
+import { DefaultAddressPreferenceService } from '../../core/services/default-address-preference.service';
 import { AddressService } from '../../features/addresses/address.service';
 import { SelectAddressDialogComponent } from '../../features/addresses/select-address-dialog/select-address-dialog.component';
-import { AddressResponseDto, CreateAddressDto, DeliveryType } from '../../features/addresses/address.types';
+import { AddressResponseDto, DeliveryType } from '../../features/addresses/address.types';
+import { extractLiqPayCheckoutParams, submitLiqPayCheckoutForm } from '../../features/orders/liqpay-checkout.util';
 import { CreateOrderResultDto } from '../../features/orders/order.types';
 import { OrderService } from '../../features/orders/order.service';
-import { DeliveryPointDto } from '../../features/shipping/nova-poshta.types';
-import {
-  SelectDeliveryMapDialogComponent,
-  SelectDeliveryMapDialogData,
-} from '../../features/shipping/select-delivery-map-dialog/select-delivery-map-dialog.component';
-import { NovaPoshtaService } from '../../features/shipping/nova-poshta.service';
-import { NpSettlementOption } from '../../features/shipping/nova-poshta.types';
 import { computePricingFromCartItems } from '../../features/shopping-cart/cart-pricing.util';
 import { ShoppingCartService } from '../../features/shopping-cart/shopping-cart.service';
 import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
@@ -55,7 +41,6 @@ import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.type
     MatIconModule,
     MatProgressSpinnerModule,
     MatRadioModule,
-    MatAutocompleteModule,
   ],
   templateUrl: './order-checkout.html',
   styleUrl: './order-checkout.scss',
@@ -65,7 +50,7 @@ export class OrderCheckoutPage implements OnInit {
   private cartApi = inject(ShoppingCartService);
   private orders = inject(OrderService);
   private addressApi = inject(AddressService);
-  private np = inject(NovaPoshtaService);
+  private addressPreference = inject(DefaultAddressPreferenceService);
   private destroyRef = inject(DestroyRef);
   private router = inject(Router);
   private dialog = inject(MatDialog);
@@ -74,18 +59,6 @@ export class OrderCheckoutPage implements OnInit {
   private fb = inject(FormBuilder);
 
   readonly DeliveryType = DeliveryType;
-
-  /** Ref населеного пункту НП для мапи / адреси (settlementRef у контракті). */
-  settlementRef = signal('');
-  settlementCityName = signal('');
-  settlementSearchResults = signal<NpSettlementOption[]>([]);
-  settlementSearchLoading = signal(false);
-  private lastSettlementPick: NpSettlementOption | null = null;
-
-  /** Пошук міста перед «Обрати на мапі». */
-  cityForm = this.fb.nonNullable.group({
-    citySearch: [''],
-  });
 
   loading = signal(true);
   loadError = signal(false);
@@ -99,6 +72,19 @@ export class OrderCheckoutPage implements OnInit {
   selectedAddress = signal<AddressResponseDto | null>(null);
   deliveryType = signal<DeliveryType | null>(null);
   placingOrder = signal(false);
+  /** Last order API error message (shown under Purchase; cleared on a new attempt). */
+  orderPlacementError = signal<string | null>(null);
+
+  private static readonly emptyOrderId = '00000000-0000-0000-0000-000000000000';
+  /**
+   * Текст `message` з бекенду в catch OrderService.CreateOrderFromCartAsync (транзакція відкочена).
+   * Контролер віддає 409 Conflict з `shoppingCart` у тілі — це не успіх і не обов’язково «зміна кошика»:
+   * при нормальному кошику в тілі це внутрішня помилка (LiqPay, резерв стоку, БД тощо).
+   */
+  private static readonly backendOrderCreationFailed = 'Order creation has failed';
+
+  /** Invalidates contact summary computeds when form values change (forms are not signals). */
+  private contactFormRevision = signal(0);
 
   contactForm = this.fb.nonNullable.group({
     phoneNumber: ['', [Validators.required, Validators.minLength(5)]],
@@ -108,11 +94,13 @@ export class OrderCheckoutPage implements OnInit {
   });
 
   recipientSummary = computed(() => {
+    this.contactFormRevision();
     const v = this.contactForm.getRawValue();
     const parts = [v.lastName?.trim(), v.firstName?.trim(), v.middleName?.trim()].filter(Boolean);
     return parts.length ? parts.join(' ') : '—';
   });
   contactPhoneSummary = computed(() => {
+    this.contactFormRevision();
     const phone = this.contactForm.getRawValue().phoneNumber?.trim();
     return phone || '—';
   });
@@ -140,12 +128,6 @@ export class OrderCheckoutPage implements OnInit {
     return true;
   });
 
-  canOpenNpMap = computed(() => {
-    const dt = this.deliveryType();
-    if (dt !== DeliveryType.Warehouse && dt !== DeliveryType.Postomat) return false;
-    return this.settlementRef().trim().length > 0;
-  });
-
   ngOnInit(): void {
     const u = this.auth.currentUser();
     if (u) {
@@ -155,56 +137,10 @@ export class OrderCheckoutPage implements OnInit {
         firstName: u.firstName?.trim() ?? '',
       });
     }
-    this.setupSettlementSearch();
+    this.contactForm.valueChanges
+      .pipe(startWith(null), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.contactFormRevision.update((n) => n + 1));
     this.loadCart();
-  }
-
-  private setupSettlementSearch(): void {
-    this.cityForm.controls.citySearch.valueChanges
-      .pipe(
-        tap((q) => {
-          const t = String(q ?? '').trim();
-          if (!this.lastSettlementPick) return;
-          if (t === '' || t !== this.lastSettlementPick.description.trim()) {
-            this.lastSettlementPick = null;
-            this.settlementRef.set('');
-            this.settlementCityName.set('');
-          }
-        }),
-        debounceTime(300),
-        map((q) => String(q ?? '').trim()),
-        distinctUntilChanged(),
-        switchMap((t) => {
-          if (t.length < 1) {
-            this.settlementSearchResults.set([]);
-            return of<NpSettlementOption[]>([]);
-          }
-          this.settlementSearchLoading.set(true);
-          return this.np.searchCities(t).pipe(
-            finalize(() => this.settlementSearchLoading.set(false)),
-            catchError(() => of<NpSettlementOption[]>([])),
-          );
-        }),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe((results) => this.settlementSearchResults.set(results));
-  }
-
-  onSettlementSelected(ref: string): void {
-    const opt = this.settlementSearchResults().find((o) => o.ref === ref);
-    if (!opt) return;
-    this.lastSettlementPick = opt;
-    this.settlementRef.set(opt.ref);
-    this.settlementCityName.set(opt.description);
-    this.cityForm.patchValue({ citySearch: opt.description }, { emitEvent: false });
-  }
-
-  private clearSettlement(): void {
-    this.lastSettlementPick = null;
-    this.settlementRef.set('');
-    this.settlementCityName.set('');
-    this.cityForm.patchValue({ citySearch: '' }, { emitEvent: false });
-    this.settlementSearchResults.set([]);
   }
 
   private loadCart(): void {
@@ -262,6 +198,7 @@ export class OrderCheckoutPage implements OnInit {
       autoFocus: false,
       data: {
         selectedId: this.selectedAddress()?.id ?? null,
+        preferredDefaultId: this.addressPreference.getPreferredId(),
         addressFieldsOnly: true,
         fixedDeliveryType: dt,
         recipientFromCheckout: {
@@ -275,6 +212,7 @@ export class OrderCheckoutPage implements OnInit {
     ref.afterClosed().subscribe((addr) => {
       if (addr) {
         this.selectedAddress.set(addr);
+        this.applyMiddleNameFromAddress(addr);
       }
     });
   }
@@ -285,17 +223,29 @@ export class OrderCheckoutPage implements OnInit {
     if (addr && addr.deliveryType !== next) {
       this.selectedAddress.set(null);
     }
-    if (next === DeliveryType.Doors) {
-      this.clearSettlement();
-    }
     this.deliveryType.set(next);
+    const current = this.selectedAddress();
+    if (current && current.deliveryType === next) {
+      return;
+    }
+    this.applyPreferredAddressForDelivery(next);
   }
 
-  /** Для блоку «Адреса»: якщо спосіб НП, можна обрати точку на мапі після вибору міста. */
-  canOpenMapForSelectedDelivery(): boolean {
-    const dt = this.deliveryType();
-    if (dt !== DeliveryType.Warehouse && dt !== DeliveryType.Postomat) return false;
-    return this.canOpenNpMap();
+  /** Підставити збережену «основну» адресу, якщо вона підходить під обраний тип доставки. */
+  private applyPreferredAddressForDelivery(dt: DeliveryType): void {
+    const pref = this.addressPreference.getPreferredId();
+    if (!pref) {
+      return;
+    }
+    this.addressApi.getById(pref).subscribe({
+      next: (loaded) => {
+        if (loaded.deliveryType === dt) {
+          this.selectedAddress.set(loaded);
+          this.applyMiddleNameFromAddress(loaded);
+        }
+      },
+      error: () => this.addressPreference.clearPreferred(),
+    });
   }
 
   /** Повний номер телефону для відображення (без маскування). */
@@ -309,88 +259,6 @@ export class OrderCheckoutPage implements OnInit {
     el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  openNpMapDialog(): void {
-    const dt = this.deliveryType();
-    if (dt !== DeliveryType.Warehouse && dt !== DeliveryType.Postomat) {
-      this.snack.open(this.translate.instant('ORDER_CHECKOUT.MAP_NEED_NP_TYPE'), 'OK', {
-        duration: 3000,
-      });
-      return;
-    }
-    const settlement = this.settlementRef().trim();
-    if (!settlement) {
-      this.snack.open(this.translate.instant('ORDER_CHECKOUT.MAP_NEED_CITY'), 'OK', {
-        duration: 3000,
-      });
-      return;
-    }
-    const npType: SelectDeliveryMapDialogData['npType'] =
-      dt === DeliveryType.Warehouse ? 'branch' : 'postomat';
-    const ref = this.dialog.open(SelectDeliveryMapDialogComponent, {
-      width: 'min(96vw - 24px, 720px)',
-      maxWidth: '100vw',
-      maxHeight: '90vh',
-      autoFocus: false,
-      data: {
-        settlementRef: settlement,
-        cityName: this.settlementCityName().trim() || settlement,
-        npType,
-      } satisfies SelectDeliveryMapDialogData,
-    });
-    ref.afterClosed().subscribe((point) => {
-      if (point) this.saveAddressFromMapPoint(point);
-    });
-  }
-
-  private saveAddressFromMapPoint(point: DeliveryPointDto): void {
-    const v = this.contactForm.getRawValue();
-    const dt = this.deliveryType();
-    if (dt !== DeliveryType.Warehouse && dt !== DeliveryType.Postomat) return;
-
-    const cityRef = this.settlementRef().trim();
-    const cityName = this.settlementCityName().trim() || null;
-    const description = [point.name, point.shortAddress].filter(Boolean).join(' — ');
-
-    const dto: CreateAddressDto = {
-      firstName: v.firstName.trim(),
-      lastName: v.lastName.trim(),
-      middleName: (v.middleName ?? '').trim(),
-      phoneNumber: v.phoneNumber.trim(),
-      deliveryType: dt,
-      cityRef,
-      cityName,
-      warehouseRef: null,
-      warehouseDescription: null,
-      streetRef: null,
-      street: null,
-      house: null,
-      flat: null,
-      floor: null,
-      additionalInfo: null,
-      postomatRef: null,
-      postomatDescription: null,
-    };
-
-    if (dt === DeliveryType.Warehouse) {
-      dto.warehouseRef = point.ref;
-      dto.warehouseDescription = description;
-    } else {
-      dto.postomatRef = point.ref;
-      dto.postomatDescription = description;
-    }
-
-    this.addressApi.create(dto).subscribe({
-      next: (addr) => {
-        this.selectedAddress.set(addr);
-        this.snack.open(this.translate.instant('ORDER_CHECKOUT.MAP_ADDRESS_SAVED'), 'OK', {
-          duration: 2500,
-        });
-      },
-      error: () => {
-        this.snack.open(this.translate.instant('ADDRESS.SAVE_ERROR'), 'OK', { duration: 4000 });
-      },
-    });
-  }
 
   goToPayment(): void {
     if (this.placingOrder()) {
@@ -406,6 +274,7 @@ export class OrderCheckoutPage implements OnInit {
       );
       return;
     }
+    this.orderPlacementError.set(null);
     const addr = this.selectedAddress();
     if (!addr?.id) return;
 
@@ -459,27 +328,62 @@ export class OrderCheckoutPage implements OnInit {
   }
 
   private handleOrderCreateSuccess(res: CreateOrderResultDto): void {
-    if (res.shoppingCart) {
-      const message = res.message?.trim() || this.translate.instant('CART.CART_CHANGED');
-      this.snack.open(message, 'OK', { duration: 4500 });
-      if (this.isCartChanged(res.shoppingCart)) {
-        this.router.navigateByUrl('/cart');
-      }
+    const liqpay = extractLiqPayCheckoutParams(res);
+    if (liqpay) {
+      this.orderPlacementError.set(null);
+      submitLiqPayCheckoutForm(liqpay.data, liqpay.signature);
       return;
     }
-    if (res.payload) {
-      this.redirectToLiqPay(res.payload);
+
+    if (this.hasRealOrderId(this.normalizeOrderId(res))) {
+      const msg = this.translate.instant('ORDER_CHECKOUT.LIQPAY_REDIRECT_FAILED');
+      this.orderPlacementError.set(msg);
+      this.snack.open(msg, 'OK', { duration: 6500 });
       return;
     }
-    this.snack.open(this.translate.instant('CART.ORDER_CREATED'), 'OK', { duration: 3200 });
+
+    const rawMsg = res.message?.trim() ?? '';
+    const msg =
+      rawMsg === OrderCheckoutPage.backendOrderCreationFailed
+        ? this.translate.instant('ORDER_CHECKOUT.CONFLICT_ORDER_CREATION_FAILED')
+        : rawMsg || this.translate.instant('ORDER_CHECKOUT.ORDER_CREATE_FAILED');
+    this.orderPlacementError.set(msg);
+    this.snack.open(msg, 'OK', { duration: 6500 });
+
+    const cart = res.shoppingCart ?? null;
+    if (cart && this.isCartChanged(cart)) {
+      this.router.navigateByUrl('/cart');
+    }
   }
 
+  /**
+   * 409 Conflict: бекенд повертає його і при «кошик змінився», і при catch після невдалої транзакції
+   * (див. `message` та `cartAdjusted` / `removedItems`). Нульовий `orderId` у тілі ігноруємо.
+   */
   private handleOrderCreateError(err: HttpErrorResponse): void {
     if (err.status === 409) {
-      const conflictCart = (err.error?.shoppingCart as ShoppingCartDto | null | undefined) ?? null;
-      const message = err.error?.message || this.translate.instant('CART.CART_CHANGED');
-      this.snack.open(message, 'OK', { duration: 4500 });
-      if (!conflictCart || this.isCartChanged(conflictCart)) {
+      const body = err.error as Partial<CreateOrderResultDto> | null | undefined;
+      const conflictCart = (body?.shoppingCart as ShoppingCartDto | null | undefined) ?? null;
+      const raw = (typeof body?.message === 'string' && body.message.trim()) || '';
+
+      let message: string;
+      if (raw === OrderCheckoutPage.backendOrderCreationFailed) {
+        message = this.translate.instant('ORDER_CHECKOUT.CONFLICT_ORDER_CREATION_FAILED');
+      } else if (this.isBackendCartChangedMessage(raw)) {
+        message = this.translate.instant('CART.CART_CHANGED');
+      } else if (raw) {
+        message = raw;
+      } else {
+        message = this.translate.instant('ORDER_CHECKOUT.ORDER_CREATE_FAILED');
+      }
+
+      this.orderPlacementError.set(message);
+      this.snack.open(message, 'OK', { duration: 6500 });
+
+      if (conflictCart) {
+        this.applyCartSnapshot(conflictCart);
+      }
+      if (conflictCart && this.isCartChanged(conflictCart)) {
         this.router.navigateByUrl('/cart');
       }
       return;
@@ -487,7 +391,9 @@ export class OrderCheckoutPage implements OnInit {
 
     const code = String(err.error?.errorCode ?? '').toUpperCase();
     if (code.includes('ADDRESS_NOT_FOUND')) {
-      this.snack.open(this.translate.instant('ORDER_CHECKOUT.MISSING_ADDRESS'), 'OK', { duration: 4200 });
+      const m = this.translate.instant('ORDER_CHECKOUT.MISSING_ADDRESS');
+      this.orderPlacementError.set(m);
+      this.snack.open(m, 'OK', { duration: 4200 });
       return;
     }
     if (code.includes('CART_IS_EMPTY')) {
@@ -497,49 +403,44 @@ export class OrderCheckoutPage implements OnInit {
     }
 
     const message = err.error?.message || this.translate.instant('CART.CHECKOUT_ERROR');
+    this.orderPlacementError.set(message);
     this.snack.open(message, 'OK', { duration: 4500 });
-  }
-
-  private redirectToLiqPay(payload: string | Record<string, unknown>): void {
-    const parsed = this.parsePayload(payload);
-    const data = parsed?.['data'];
-    const signature = parsed?.['signature'];
-    if (typeof data !== 'string' || typeof signature !== 'string') {
-      this.snack.open(this.translate.instant('CART.ORDER_CREATED'), 'OK', { duration: 3000 });
-      return;
-    }
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = 'https://www.liqpay.ua/api/3/checkout';
-    form.style.display = 'none';
-
-    const dataInput = document.createElement('input');
-    dataInput.name = 'data';
-    dataInput.value = data;
-    form.appendChild(dataInput);
-
-    const signInput = document.createElement('input');
-    signInput.name = 'signature';
-    signInput.value = signature;
-    form.appendChild(signInput);
-
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
-  }
-
-  private parsePayload(payload: string | Record<string, unknown>): Record<string, unknown> | null {
-    if (typeof payload === 'object' && payload !== null) return payload;
-    try {
-      const parsed = JSON.parse(payload) as unknown;
-      return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
-    } catch {
-      return null;
-    }
   }
 
   private isCartChanged(cart: ShoppingCartDto): boolean {
     return Boolean(cart.cartAdjusted) || ((cart.removedItems?.length ?? 0) > 0);
+  }
+
+  /** Повідомлення про зміну кошика (окремо від загальної помилки створення замовлення). */
+  private isBackendCartChangedMessage(message: string): boolean {
+    const m = message.toLowerCase();
+    return m.includes('cart has changed') || m.includes('review your items');
+  }
+
+  /** Після 409 оновлюємо відображення сум / порожнечі з тіла відповіді. */
+  private applyCartSnapshot(cart: ShoppingCartDto): void {
+    this.totalPayable.set(this.resolveTotalPayable(cart));
+    const hasItems = (cart.items ?? []).some((it) => (Number(it.quantity) || 0) > 0);
+    this.cartEmpty.set(!hasItems);
+  }
+
+  /** Backend may echo an empty GUID when the order was not created. */
+  private hasRealOrderId(id: string | undefined | null): boolean {
+    const t = (id ?? '').trim().toLowerCase();
+    if (!t) return false;
+    return t !== OrderCheckoutPage.emptyOrderId;
+  }
+
+  private normalizeOrderId(res: CreateOrderResultDto): string | undefined {
+    const r = res as unknown as Record<string, unknown>;
+    const v = res.orderId ?? r['OrderId'];
+    return typeof v === 'string' ? v : undefined;
+  }
+
+  private applyMiddleNameFromAddress(addr: AddressResponseDto): void {
+    const middle = (addr.middleName ?? '').trim();
+    if (!middle) return;
+    this.contactForm.patchValue({ middleName: middle }, { emitEvent: false });
+    this.contactFormRevision.update((n) => n + 1);
   }
 }

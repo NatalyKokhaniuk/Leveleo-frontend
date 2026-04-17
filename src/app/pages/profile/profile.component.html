@@ -184,16 +184,38 @@
               </p>
             } @else {
               <ul class="flex flex-col gap-3 list-none p-0 m-0">
-                @for (addr of addresses(); track addr.id) {
-                  <li class="p-3 rounded-lg border border-[var(--color-border)] text-sm text-[var(--color-text)]">
+                @for (addr of sortedAddresses(); track addr.id) {
+                  <li
+                    class="p-3 rounded-lg border border-[var(--color-border)] text-sm text-[var(--color-text)] transition-shadow duration-300"
+                    [class.address-default-pulse]="defaultHighlightId() === addr.id"
+                  >
                     <div class="flex flex-wrap items-start justify-between gap-2">
                       <div class="min-w-0 flex-1">
-                        <p class="font-medium break-words">{{ addr.formattedAddress }}</p>
+                        <p class="font-medium break-words flex flex-wrap items-center gap-2">
+                          {{ addr.formattedAddress }}
+                          @if (isPreferredAddress(addr)) {
+                            <span
+                              class="text-xs font-normal px-2 py-0.5 rounded-full border border-[var(--color-primary)] text-[var(--color-primary)]"
+                              >{{ 'ADDRESS.DEFAULT_BADGE' | translate }}</span
+                            >
+                          }
+                        </p>
                         <p class="text-xs mt-1 opacity-80">
                           {{ addr.firstName }} {{ addr.lastName }} · {{ addr.phoneNumber }}
                         </p>
                       </div>
                       <div class="inline-flex flex-wrap gap-1 shrink-0">
+                        <button
+                          mat-icon-button
+                          type="button"
+                          (click)="setDefaultAddress(addr)"
+                          [matTooltip]="'ADDRESS.SET_DEFAULT' | translate"
+                          [attr.aria-label]="'ADDRESS.SET_DEFAULT' | translate"
+                        >
+                          <mat-icon [style.color]="isPreferredAddress(addr) ? 'var(--color-primary)' : ''">{{
+                            isPreferredAddress(addr) ? 'star' : 'star_outline'
+                          }}</mat-icon>
+                        </button>
                         <button
                           mat-icon-button
                           type="button"
