@@ -11,7 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog } from '@angular/material/dialog';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -44,6 +44,7 @@ import { UserService } from '../../features/users/user.service';
     MatSelectModule,
     TranslateModule,
     MatTooltipModule,
+    RouterLink,
   ],
   templateUrl: './profile.component.html',
 })

@@ -23,7 +23,6 @@ export class AdminComponent {
     { key: 'CATEGORIES', icon: 'category', link: '/admin/categories' },
     { key: 'PRODUCTS', icon: 'inventory_2', link: '/admin/products' },
     { key: 'ORDERS', icon: 'shopping_cart', link: '/admin/orders' },
-    { key: 'SHIPPING', icon: 'local_shipping', link: '/admin/shipping' },
     { key: 'SUBSCRIPTIONS', icon: 'subscriptions', link: '/admin/subscriptions' },
     { key: 'PAYMENTS', icon: 'payments', link: '/admin/payments' },
     { key: 'PROMOTIONS', icon: 'local_offer', link: '/admin/promotions' },

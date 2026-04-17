@@ -1,0 +1,144 @@
+<main class="pt-32 px-4 md:px-10 max-w-4xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
+  <a
+    routerLink="/admin/orders"
+    class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+  >
+    <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+    {{ 'ADMIN.ORDERS_PAGE.BACK_TO_LIST' | translate }}
+  </a>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (notFound()) {
+    <p class="modal-desc">{{ 'ADMIN.ORDERS_PAGE.DETAIL_NOT_FOUND' | translate }}</p>
+  } @else if (order(); as o) {
+    <div class="flex flex-col gap-6">
+      <h1 class="modal-title text-2xl md:text-3xl text-left break-words">
+        {{ 'ADMIN.ORDERS_PAGE.DETAIL_HEADING' | translate: { number: displayNumber(o) } }}
+      </h1>
+
+      <section
+        class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+      >
+        <h2 class="font-semibold text-base m-0">{{ 'ADMIN.ORDERS_PAGE.SECTION_META' | translate }}</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.ORDERS_PAGE.COL_DATE' | translate }}</span>
+            {{ o.createdAt ? (o.createdAt | date: 'medium') : '—' }}
+          </div>
+          <div>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.ORDERS_PAGE.COL_USER' | translate }}</span>
+            <span class="break-all">{{ o.userId || '—' }}</span>
+          </div>
+          @if (orderTotal(o); as tot) {
+            <div>
+              <span class="opacity-70 block text-xs">{{ 'ADMIN.ORDERS_PAGE.COL_TOTAL' | translate }}</span>
+              {{ tot | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+            </div>
+          }
+        </div>
+
+        <form [formGroup]="statusForm" (ngSubmit)="saveStatus()" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
+          <mat-form-field class="flex-1 min-w-0">
+            <mat-label>{{ 'ADMIN.ORDERS_PAGE.STATUS_EDIT' | translate }}</mat-label>
+            <input matInput formControlName="status" autocomplete="off" />
+          </mat-form-field>
+          <button matButton="filled" color="primary" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ADMIN.ORDERS_PAGE.SAVE_STATUS' | translate }}
+            }
+          </button>
+        </form>
+
+        <div class="flex flex-wrap gap-2">
+          <button matButton="outlined" color="warn" type="button" (click)="confirmCancelOrder()" [disabled]="cancelling()">
+            @if (cancelling()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ADMIN.ORDERS_PAGE.CANCEL_ORDER_BTN' | translate }}
+            }
+          </button>
+          @if (o.payment?.id; as pid) {
+            <a matButton="outlined" routerLink="/admin/payments" [queryParams]="{ paymentId: pid }">{{
+              'ADMIN.ORDERS_PAGE.GO_PAYMENT' | translate
+            }}</a>
+          }
+        </div>
+      </section>
+
+      @if (o.payment; as pay) {
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-2 text-sm"
+        >
+          <h2 class="font-semibold text-base m-0">{{ 'ADMIN.ORDERS_PAGE.SECTION_PAYMENT' | translate }}</h2>
+          <p class="m-0">
+            <span class="opacity-70">{{ 'ORDER_VIEW.PAYMENT_STATUS' | translate }}:</span> {{ pay.status }}
+          </p>
+          <p class="m-0">
+            {{ pay.amount | number: '1.2-2' }} {{ pay.currency }}
+            @if (pay.liqPayPaymentId) {
+              <span class="opacity-70 text-xs block sm:inline sm:ml-2">LiqPay: {{ pay.liqPayPaymentId }}</span>
+            }
+          </p>
+        </section>
+      }
+
+      @if (o.orderItems?.length) {
+        <section class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4">
+          <h2 class="font-semibold text-base m-0">{{ 'ADMIN.ORDERS_PAGE.SECTION_ITEMS' | translate }}</h2>
+          <div class="overflow-x-auto -mx-1">
+            <table mat-table [dataSource]="o.orderItems!" class="w-full min-w-[280px]">
+              <ng-container matColumnDef="productName">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ORDER_VIEW.COL_PRODUCT' | translate }}</th>
+                <td mat-cell *matCellDef="let item">{{ item.productName }}</td>
+              </ng-container>
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ORDER_VIEW.COL_QTY' | translate }}</th>
+                <td mat-cell *matCellDef="let item">{{ item.quantity }}</td>
+              </ng-container>
+              <ng-container matColumnDef="unit">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ORDER_VIEW.COL_UNIT' | translate }}</th>
+                <td mat-cell *matCellDef="let item">
+                  {{ lineUnitPrice(item) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="line">
+                <th mat-header-cell *matHeaderCellDef>{{ 'ORDER_VIEW.COL_LINE' | translate }}</th>
+                <td mat-cell *matCellDef="let item">
+                  {{ lineTotal(item) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="['productName', 'quantity', 'unit', 'line']"></tr>
+              <tr mat-row *matRowDef="let row; columns: ['productName', 'quantity', 'unit', 'line']"></tr>
+            </table>
+          </div>
+        </section>
+      }
+
+      @if (o.address; as addr) {
+        <section
+          class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-2 text-sm"
+        >
+          <h2 class="font-semibold text-base m-0">{{ 'ADMIN.ORDERS_PAGE.SECTION_DELIVERY' | translate }}</h2>
+          <p class="m-0">
+            <span class="opacity-70">{{ 'ORDER_VIEW.DELIVERY_TYPE' | translate }}:</span>
+            {{ deliveryTypeLabel(addr.deliveryType) }}
+          </p>
+          <p class="m-0">
+            <span class="opacity-70">{{ 'ORDER_VIEW.ADDRESS' | translate }}:</span> {{ addr.formattedAddress }}
+          </p>
+          <p class="m-0">
+            <span class="opacity-70">{{ 'ORDER_VIEW.RECIPIENT' | translate }}:</span> {{ recipientFullName(addr) }}
+          </p>
+          <p class="m-0">
+            <span class="opacity-70">{{ 'ORDER_VIEW.PHONE' | translate }}:</span> {{ addr.phoneNumber }}
+          </p>
+        </section>
+      }
+    </div>
+  }
+</main>

@@ -3,7 +3,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { forkJoin, take } from 'rxjs';
+import { forkJoin, from, Observable, take } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ComparisonStateService } from '../../comparison/comparison-state.service';
 import { FavoritesStateService } from '../../favorites/favorites-state.service';
 import { CartStateService } from '../../shopping-cart/cart-state.service';
@@ -228,6 +229,23 @@ export class AuthHandlerService {
         data: { defaultTab: tab },
       });
     });
+  }
+
+  /** Модальне вікно входу; після успішного логіну `afterClosed()` емітить `true`. */
+  openLoginDialog$(): Observable<boolean | undefined> {
+    return from(
+      import('../auth-dialog/auth-dialog.component').then((m) => m.AuthDialogComponent),
+    ).pipe(
+      switchMap((AuthDialogComponent) =>
+        this.dialog
+          .open(AuthDialogComponent, {
+            panelClass: 'auth-dialog',
+            maxHeight: '90vh',
+            data: { defaultTab: 'login' as const },
+          })
+          .afterClosed(),
+      ),
+    );
   }
 
   private exchangeSocialToken(tempToken: string): void {

@@ -63,7 +63,11 @@ export const httpInterceptor: HttpInterceptorFn = (req, next) => {
 
       // Для upsert перекладів промо 500 може бути робочим сигналом для локального fallback (PUT -> POST),
       // тому не робимо глобальний редірект і даємо викликачу обробити помилку.
-      if (error.status === 500 && !isPromotionTranslationRequest) {
+      const isOrderByIdGet =
+        error.status === 500 &&
+        req.method === 'GET' &&
+        /\/api\/Orders\/[^/?]+$/i.test(req.url.split('?')[0]);
+      if (error.status === 500 && !isPromotionTranslationRequest && !isOrderByIdGet) {
         router.navigate(['/internal-server-error']);
       }
       if (error.status === 503) router.navigate(['/service-unavailable']);

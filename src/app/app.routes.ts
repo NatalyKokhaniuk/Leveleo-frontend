@@ -111,6 +111,27 @@ export const routes: Routes = [
     canActivate: [adminOrModeratorGuard],
     data: docPage('ADMIN.STATISTICS'),
   },
+  {
+    path: 'admin/orders/:orderId',
+    loadComponent: () =>
+      import('./pages/admin/admin/orders/order-detail/order-detail').then((m) => m.AdminOrderDetailComponent),
+    canActivate: [adminOrModeratorGuard],
+    data: docPage('ADMIN.ORDERS_PAGE.DETAIL_DOC_TITLE'),
+  },
+  {
+    path: 'admin/orders',
+    loadComponent: () =>
+      import('./pages/admin/admin/orders/orders').then((m) => m.AdminOrdersComponent),
+    canActivate: [adminOrModeratorGuard],
+    data: docPage('ADMIN.ORDERS_PAGE.TITLE'),
+  },
+  {
+    path: 'admin/payments',
+    loadComponent: () =>
+      import('./pages/admin/admin/payments/payments').then((m) => m.AdminPaymentsComponent),
+    canActivate: [adminOrModeratorGuard],
+    data: docPage('ADMIN.PAYMENTS_PAGE.TITLE'),
+  },
 
   {
     path: 'about',
@@ -208,6 +229,19 @@ export const routes: Routes = [
       import('./pages/order-checkout/order-checkout').then((m) => m.OrderCheckoutPage),
     canActivate: [authGuard],
     data: docPage('ORDER_CHECKOUT.TITLE'),
+  },
+  {
+    path: 'order-success',
+    loadComponent: () =>
+      import('./pages/order-detail/order-detail').then((m) => m.OrderDetailPage),
+    canActivate: [authGuard],
+    data: docPage('DOC_TITLE.ORDER_SUCCESS'),
+  },
+  {
+    path: 'orders/:orderId',
+    loadComponent: () =>
+      import('./pages/order-detail/order-detail').then((m) => m.OrderDetailPage),
+    data: docPage('DOC_TITLE.ORDER_DETAIL'),
   },
   {
     path: 'profile',

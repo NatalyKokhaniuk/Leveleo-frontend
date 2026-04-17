@@ -73,6 +73,8 @@ export class OrderService {
       userId: filters.userId,
       startDate: filters.startDate,
       endDate: filters.endDate,
+      sortBy: filters.sortBy,
+      sortDirection: filters.sortDirection,
     });
     return this.api
       .get<unknown>(`${this.base}/admin/all${suffix}`)

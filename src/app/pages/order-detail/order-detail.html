@@ -1,0 +1,158 @@
+<main class="pt-28 px-4 md:px-10 pb-20 max-w-3xl mx-auto w-full min-w-0">
+  <a
+    routerLink="/"
+    class="inline-flex items-center gap-2 text-primary text-sm font-medium hover:underline mb-6"
+  >
+    <mat-icon class="text-lg w-5 h-5 shrink-0">arrow_back</mat-icon>
+    {{ 'ORDER_VIEW.BACK_HOME' | translate }}
+  </a>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  } @else if (!order() && !loadError() && !missingId()) {
+    <div class="rounded-2xl border border-solid border-outline-variant bg-surface-container p-6 md:p-8 space-y-4">
+      @if (loginCancelled()) {
+        <p class="text-on-surface m-0">{{ 'ORDER_VIEW.LOGIN_CANCELLED' | translate }}</p>
+        <button matButton="filled" color="primary" type="button" (click)="openLoginAgain()">
+          {{ 'ORDER_VIEW.LOGIN_AGAIN' | translate }}
+        </button>
+      } @else {
+        <p class="text-on-surface m-0">{{ 'ORDER_VIEW.AWAIT_LOGIN' | translate }}</p>
+      }
+    </div>
+  } @else if (loadError()) {
+    <p class="text-on-surface/80 py-8">
+      @if (missingId()) {
+        {{ 'ORDER_VIEW.MISSING_ORDER_ID' | translate }}
+      } @else {
+        {{ 'ORDER_VIEW.LOAD_ERROR' | translate }}
+      }
+    </p>
+  } @else if (order(); as o) {
+    @if (successMode()) {
+      <div
+        class="rounded-2xl border border-solid border-outline-variant bg-[color-mix(in_srgb,var(--color-success)_12%,transparent)] p-4 md:p-6 mb-8 flex gap-3 items-start"
+        role="status"
+      >
+        <mat-icon class="text-[var(--color-success)] shrink-0">check_circle</mat-icon>
+        <div>
+          <h2 class="text-lg font-semibold text-on-surface m-0 mb-1">
+            {{ 'ORDER_VIEW.SUCCESS_TITLE' | translate }}
+          </h2>
+          <p class="text-sm text-on-surface/80 m-0">{{ 'ORDER_VIEW.SUCCESS_SUBTITLE' | translate }}</p>
+        </div>
+      </div>
+    }
+
+    <h1 class="text-2xl md:text-3xl font-semibold text-on-surface mb-2">
+      @if (successMode()) {
+        {{ 'ORDER_VIEW.PAGE_TITLE_SUCCESS' | translate }}
+      } @else {
+        {{ 'ORDER_VIEW.PAGE_TITLE_DETAIL' | translate: { number: orderLabel() } }}
+      }
+    </h1>
+
+    <p class="text-on-surface/80 mb-6">
+      <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.ORDER_NUMBER' | translate }}:</span>
+      {{ orderLabel() }}
+      @if (o.createdAt) {
+        <span class="mx-2">·</span>
+        <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.ORDER_DATE' | translate }}:</span>
+        {{ o.createdAt | date: 'medium' }}
+      }
+    </p>
+
+    <section
+      class="rounded-2xl border border-solid border-outline-variant bg-surface-container p-6 md:p-8 mb-6 space-y-6"
+    >
+      <div class="grid gap-1 text-sm">
+        @if (o.status) {
+          <p class="m-0">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.ORDER_STATUS' | translate }}:</span>
+            {{ o.status }}
+          </p>
+        }
+        @if (o.payment; as pay) {
+          <p class="m-0">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.PAYMENT_STATUS' | translate }}:</span>
+            {{ pay.status }}
+            @if (pay.amount != null && pay.currency) {
+              <span class="text-on-surface/80">
+                ({{ pay.amount | number: '1.2-2' }} {{ pay.currency }})
+              </span>
+            }
+          </p>
+        }
+        @if (orderTotal(o); as tot) {
+          <p class="m-0 text-base pt-1">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.TOTAL' | translate }}:</span>
+            {{ tot | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+          </p>
+        }
+      </div>
+
+      @if (o.orderItems?.length) {
+        <div>
+          <h2 class="text-lg font-semibold text-on-surface m-0 mb-3">{{ 'ORDER_VIEW.ITEMS' | translate }}</h2>
+          <div class="overflow-x-auto -mx-1">
+            <table class="w-full text-sm border-collapse min-w-[280px]">
+              <thead>
+                <tr class="text-on-surface/70 text-left">
+                  <th class="pb-2 pr-3 font-medium">{{ 'ORDER_VIEW.COL_PRODUCT' | translate }}</th>
+                  <th class="pb-2 pr-3 font-medium whitespace-nowrap">{{ 'ORDER_VIEW.COL_QTY' | translate }}</th>
+                  <th class="pb-2 pr-3 font-medium whitespace-nowrap">{{ 'ORDER_VIEW.COL_UNIT' | translate }}</th>
+                  <th class="pb-2 font-medium whitespace-nowrap">{{ 'ORDER_VIEW.COL_LINE' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of o.orderItems; track item.id) {
+                  <tr class="border-t border-solid border-outline-variant text-on-surface">
+                    <td class="py-2 pr-3 align-top">{{ item.productName }}</td>
+                    <td class="py-2 pr-3 align-top whitespace-nowrap">{{ item.quantity }}</td>
+                    <td class="py-2 pr-3 align-top whitespace-nowrap">
+                      {{ lineUnitPrice(item) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                    </td>
+                    <td class="py-2 align-top whitespace-nowrap">
+                      {{ lineTotal(item) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      @if (o.address; as addr) {
+        <div class="space-y-3 text-sm">
+          <h2 class="text-lg font-semibold text-on-surface m-0">{{ 'ORDER_VIEW.DELIVERY_BLOCK' | translate }}</h2>
+          <p class="m-0">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.DELIVERY_TYPE' | translate }}:</span>
+            {{ deliveryTypeLabel(addr.deliveryType) }}
+          </p>
+          <p class="m-0">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.ADDRESS' | translate }}:</span>
+            {{ addr.formattedAddress }}
+          </p>
+          <p class="m-0">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.RECIPIENT' | translate }}:</span>
+            {{ recipientFullName(addr) }}
+          </p>
+          <p class="m-0">
+            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.PHONE' | translate }}:</span>
+            {{ addr.phoneNumber }}
+          </p>
+        </div>
+      }
+    </section>
+
+    <div class="flex flex-col sm:flex-row gap-3 flex-wrap">
+      <a matButton="filled" color="primary" routerLink="/profile" fragment="profile-orders">
+        {{ 'ORDER_VIEW.GO_PROFILE_ORDERS' | translate }}
+      </a>
+      <a matButton="outlined" routerLink="/catalog">{{ 'FOOTER.CATALOG' | translate }}</a>
+    </div>
+  }
+</main>

@@ -36,8 +36,9 @@ function parsePayloadObject(payload: unknown): Record<string, unknown> | null {
 }
 
 /**
- * Після POST /api/Orders (201): витягує пару полів для HTML-форми LiqPay checkout (data + signature).
- * Підтримує: окремі поля в DTO, JSON у `payload`, комбінацію base64 `data` у `payload` + `signature` окремо.
+ * Після POST /api/Orders (201): пара для HTML-форми LiqPay (`POST https://www.liqpay.ua/api/3/checkout`).
+ * Типовий успіх API: `payload` = значення для `name="data"`, `signature` = для `name="signature"`.
+ * Підтримує також: JSON у `payload`, PascalCase полів, лише `data` + `signature` у вкладеному об'єкті.
  */
 export function extractLiqPayCheckoutParams(res: CreateOrderResultDto): { data: string; signature: string } | null {
   const r = res as unknown as Record<string, unknown>;

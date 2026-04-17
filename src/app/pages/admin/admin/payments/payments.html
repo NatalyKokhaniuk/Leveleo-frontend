@@ -1,0 +1,115 @@
+<main class="pt-32 px-4 md:px-10 max-w-3xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
+  <div class="flex flex-col gap-2">
+    <a
+      routerLink="/admin"
+      class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+    >
+      <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+      {{ 'ADMIN.BACK' | translate }}
+    </a>
+    <h1 class="modal-title text-2xl md:text-3xl text-left">{{ 'ADMIN.PAYMENTS_PAGE.TITLE' | translate }}</h1>
+    <p class="modal-desc text-left max-w-none">{{ 'ADMIN.PAYMENTS_PAGE.DESCRIPTION' | translate }}</p>
+  </div>
+
+  <section class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4">
+    <form [formGroup]="lookupForm" (ngSubmit)="load()" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
+      <mat-form-field class="flex-1 min-w-0 w-full">
+        <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.PAYMENT_ID' | translate }}</mat-label>
+        <input matInput formControlName="paymentId" autocomplete="off" />
+        <mat-hint>{{ 'ADMIN.PAYMENTS_PAGE.PAYMENT_ID_HINT' | translate }}</mat-hint>
+      </mat-form-field>
+      <button matButton="filled" color="primary" type="submit" [disabled]="lookupForm.invalid || loading()">
+        @if (loading()) {
+          <mat-spinner diameter="20"></mat-spinner>
+        } @else {
+          {{ 'ADMIN.PAYMENTS_PAGE.LOAD' | translate }}
+        }
+      </button>
+    </form>
+  </section>
+
+  @if (loading() && !payment()) {
+    <div class="flex justify-center py-12">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  }
+
+  @if (payment(); as p) {
+    <section
+      class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4 text-sm"
+    >
+      <div class="flex flex-wrap justify-between gap-2 items-start">
+        <h2 class="font-semibold text-base m-0">{{ 'ADMIN.PAYMENTS_PAGE.CARD_TITLE' | translate }}</h2>
+        <button matButton="outlined" type="button" (click)="goOrder()">
+          {{ 'ADMIN.PAYMENTS_PAGE.GO_ORDER' | translate }}
+        </button>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <span class="opacity-70 block text-xs">{{ 'ADMIN.PAYMENTS_PAGE.COL_STATUS' | translate }}</span>
+          {{ p.status }}
+        </div>
+        <div>
+          <span class="opacity-70 block text-xs">{{ 'ADMIN.PAYMENTS_PAGE.COL_AMOUNT' | translate }}</span>
+          {{ p.amount | number: '1.2-2' }} {{ p.currency }}
+        </div>
+        <div class="sm:col-span-2">
+          <span class="opacity-70 block text-xs">ID</span>
+          <span class="break-all font-mono text-xs">{{ p.id }}</span>
+        </div>
+        <div class="sm:col-span-2">
+          <span class="opacity-70 block text-xs">{{ 'ADMIN.PAYMENTS_PAGE.COL_ORDER_ID' | translate }}</span>
+          <span class="break-all font-mono text-xs">{{ p.orderId }}</span>
+        </div>
+        @if (p.liqPayPaymentId) {
+          <div class="sm:col-span-2">
+            <span class="opacity-70 block text-xs">LiqPay</span>
+            {{ p.liqPayPaymentId }}
+          </div>
+        }
+        <div>
+          <span class="opacity-70 block text-xs">{{ 'ADMIN.PAYMENTS_PAGE.COL_CREATED' | translate }}</span>
+          {{ p.createdAt ? (p.createdAt | date: 'medium') : '—' }}
+        </div>
+        <div>
+          <span class="opacity-70 block text-xs">{{ 'ADMIN.PAYMENTS_PAGE.COL_UPDATED' | translate }}</span>
+          {{ p.updatedAt ? (p.updatedAt | date: 'medium') : '—' }}
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 pt-2 border-t border-outline-variant">
+        <button
+          matButton="outlined"
+          color="warn"
+          type="button"
+          (click)="confirmCancel()"
+          [disabled]="actionLoading()"
+        >
+          {{ 'ADMIN.PAYMENTS_PAGE.ACTION_CANCEL' | translate }}
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3 pt-2 border-t border-outline-variant">
+        <h3 class="text-sm font-semibold m-0">{{ 'ADMIN.PAYMENTS_PAGE.REFUND_SECTION' | translate }}</h3>
+        <p class="text-xs opacity-80 m-0">{{ 'ADMIN.PAYMENTS_PAGE.REFUND_HINT' | translate }}</p>
+        <form [formGroup]="refundForm" (ngSubmit)="submitRefund()" class="flex flex-col gap-3">
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.REFUND_AMOUNT' | translate }}</mat-label>
+            <input matInput formControlName="amount" type="text" inputmode="decimal" autocomplete="off" />
+          </mat-form-field>
+          <mat-form-field class="w-full">
+            <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.REFUND_REASON' | translate }}</mat-label>
+            <input matInput formControlName="reason" autocomplete="off" />
+          </mat-form-field>
+          <button matButton="filled" type="submit" [disabled]="actionLoading()">
+            @if (actionLoading()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ADMIN.PAYMENTS_PAGE.ACTION_REFUND' | translate }}
+            }
+          </button>
+        </form>
+      </div>
+    </section>
+  }
+</main>

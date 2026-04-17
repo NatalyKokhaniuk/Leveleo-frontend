@@ -15,6 +15,10 @@ export interface AdminOrderListFilterDto extends OrderListFilterDto {
   status?: string;
   orderNumber?: string;
   userId?: string;
+  /** CreatedAt | TotalPayable | Status */
+  sortBy?: string;
+  /** asc | desc */
+  sortDirection?: string;
 }
 
 export interface CreateOrderResultDto {
@@ -25,15 +29,20 @@ export interface CreateOrderResultDto {
    */
   orderId?: string;
   /**
-   * Дані для LiqPay: JSON-рядок або об'єкт з полями data + signature,
-   * або лише base64 `data`, якщо `signature` приходить окремим полем.
+   * Те саме, що поле **data** у формі LiqPay (base64 JSON параметрів платежу).
+   * У JSON API поле названо `payload` для сумісності; у `<input name="data">` підставляти це значення.
    */
   payload?: string | Record<string, unknown> | null;
-  /** Класична форма checkout: base64-параметр `data` (якщо не всередині `payload`). */
+  /** Альтернативна назва з бекенду для того ж значення, що й `payload` → `data` у формі. */
   data?: string | null;
+  /**
+   * Підпис для форми LiqPay (SHA1 + base64, як у LiqPayService.GenerateSignature).
+   * Поле форми: `name="signature"`.
+   */
   signature?: string | null;
   shoppingCart?: ShoppingCartDto | null;
   message?: string | null;
+  failureDetail?: string | null;
 }
 
 export interface OrderSummaryDto {
