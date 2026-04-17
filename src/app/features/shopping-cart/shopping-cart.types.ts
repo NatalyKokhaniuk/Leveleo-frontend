@@ -33,8 +33,12 @@ export interface AppliedCartPromotionDto {
 }
 
 export interface ShoppingCartDto {
+  id?: string;
+  userId?: string;
   couponCode?: string | null;
   items?: ShoppingCartItemDto[] | null;
+  removedItems?: ShoppingCartItemDto[] | null;
+  cartAdjusted?: boolean;
   totalOriginalPrice?: number;
   totalProductDiscount?: number;
   totalCartDiscount?: number;

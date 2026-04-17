@@ -77,6 +77,23 @@
           }
         </h2>
 
+        @if (brandName(); as bName) {
+          <div class="text-xs text-on-surface/65 min-w-0 -mt-0.5">
+            <span class="opacity-80">{{ 'PRODUCTS.FILTER_BRAND' | translate }}:</span>
+            @if (brandSlug(); as slug) {
+              <a
+                [routerLink]="['/products/brand', slug]"
+                class="ml-1 font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+                (click)="$event.stopPropagation()"
+              >
+                {{ bName }}
+              </a>
+            } @else {
+              <span class="ml-1 font-medium text-on-surface">{{ bName }}</span>
+            }
+          </div>
+        }
+
         <div
           class="product-card__rating flex flex-nowrap items-center gap-1 min-w-0 overflow-visible"
           [attr.aria-label]="product.averageRating + ' / 5'"

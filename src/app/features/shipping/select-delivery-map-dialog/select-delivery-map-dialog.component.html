@@ -1,0 +1,63 @@
+<h2 mat-dialog-title>{{ 'ORDER_CHECKOUT.MAP_DIALOG_TITLE' | translate }}</h2>
+
+<mat-dialog-content class="flex flex-col gap-3 min-w-0 max-h-[85vh]">
+  <p class="text-sm text-on-surface/80 m-0">
+    {{ data.cityName }}
+  </p>
+
+  <div class="relative rounded-xl overflow-hidden border border-outline-variant/30 bg-surface-container/30">
+    @if (loading()) {
+      <div class="absolute inset-0 z-[1000] flex items-center justify-center bg-surface/80">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+    <div #mapHost class="np-map-host w-full"></div>
+  </div>
+
+  @if (loadError()) {
+    <p class="text-sm text-error m-0">{{ 'ORDER_CHECKOUT.MAP_LOAD_ERROR' | translate }}</p>
+  }
+
+  @if (!loading() && points().length === 0 && !loadError()) {
+    <p class="text-sm text-on-surface/70 m-0">{{ 'ORDER_CHECKOUT.MAP_NO_POINTS' | translate }}</p>
+  }
+
+  @if (pointsWithoutCoords().length > 0) {
+    <div class="rounded-lg border border-outline-variant/30 p-3 bg-surface-container/40">
+      <p class="text-xs font-medium text-on-surface/70 m-0 mb-2">
+        {{ 'ORDER_CHECKOUT.MAP_NO_COORDS_HINT' | translate }}
+      </p>
+      <ul class="list-none m-0 p-0 flex flex-col gap-1 max-h-40 overflow-y-auto">
+        @for (p of pointsWithoutCoords(); track p.ref) {
+          <li>
+            <button
+              type="button"
+              mat-stroked-button
+              class="w-full justify-start !h-auto py-2 text-left whitespace-normal"
+              [class.ring-2]="selected()?.ref === p.ref"
+              [class.ring-primary]="selected()?.ref === p.ref"
+              (click)="selectPoint(p)"
+            >
+              <span class="block text-sm font-medium">{{ p.name }}</span>
+              <span class="block text-xs text-on-surface/70">{{ p.shortAddress }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  @if (selected(); as sel) {
+    <p class="text-sm m-0">
+      <span class="text-on-surface/70">{{ 'ORDER_CHECKOUT.MAP_SELECTED' | translate }}:</span>
+      {{ sel.name }}
+    </p>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button type="button" (click)="cancel()">{{ 'ADDRESS.CANCEL' | translate }}</button>
+  <button mat-flat-button color="primary" type="button" [disabled]="!selected()" (click)="confirm()">
+    {{ 'ORDER_CHECKOUT.MAP_CONFIRM' | translate }}
+  </button>
+</mat-dialog-actions>

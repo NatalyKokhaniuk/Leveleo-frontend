@@ -86,8 +86,35 @@
           </p>
         </section>
       }
+      @if (unavailableProductNotice().length) {
+        <section
+          class="relative flex flex-col gap-2 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 md:p-6 pr-14"
+          role="status"
+        >
+          <button
+            type="button"
+            class="absolute top-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full text-amber-950/80 hover:bg-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 dark:text-amber-100"
+            (click)="dismissUnavailableNotice()"
+            [attr.aria-label]="'CART.UNAVAILABLE_ITEMS_DISMISS' | translate"
+          >
+            <mat-icon class="!w-6 !h-6">close</mat-icon>
+          </button>
+          <p class="font-semibold text-amber-950 pr-2 dark:text-amber-50">
+            {{ 'CART.UNAVAILABLE_ITEMS_TITLE' | translate }}
+          </p>
+          <p class="text-amber-950/90 text-sm md:text-base break-words dark:text-amber-100/95">
+            {{ unavailableProductNotice().join(', ') }}
+          </p>
+        </section>
+      }
       @if (visibleLines().length === 0) {
-        <p class="text-center text-on-surface/80 py-12">{{ 'CART.EMPTY' | translate }}</p>
+        <p class="text-center text-on-surface/80 py-12">
+          @if (unavailableProductNotice().length) {
+            {{ 'CART.NO_AVAILABLE_ITEMS' | translate }}
+          } @else {
+            {{ 'CART.EMPTY' | translate }}
+          }
+        </p>
       } @else {
       <ul class="flex flex-col gap-6 list-none p-0 m-0 w-full min-w-0">
         @for (row of visibleLines(); track row.product.id) {
@@ -117,9 +144,34 @@
                         {{ productName(row.product) }}
                       }
                     </h2>
-                    @if (productBrand(row.product); as brand) {
+                    @if (productBrandLink(row.product); as bl) {
+                      <p class="text-sm text-on-surface/70 mt-1">
+                        {{ 'PRODUCTS.FILTER_BRAND' | translate }}:
+                        <a
+                          [routerLink]="['/products/brand', bl.slug]"
+                          class="font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+                        >
+                          {{ bl.name }}
+                        </a>
+                      </p>
+                    } @else if (productBrand(row.product); as brand) {
                       <p class="text-sm text-on-surface/70 mt-1">
                         {{ 'PRODUCTS.FILTER_BRAND' | translate }}: <span class="font-medium">{{ brand }}</span>
+                      </p>
+                    }
+                    @if (lineStockIssueKey(row); as stock) {
+                      <p
+                        class="mt-2 text-sm rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-950 dark:text-amber-50 px-3 py-2"
+                        role="alert"
+                      >
+                        @if (stock === 'out_of_stock') {
+                          {{ 'CART.LINE_OUT_OF_STOCK' | translate }}
+                        } @else {
+                          {{
+                            'CART.LINE_ONLY_AVAILABLE'
+                              | translate: { count: row.product.availableQuantity }
+                          }}
+                        }
                       </p>
                     }
                   </div>

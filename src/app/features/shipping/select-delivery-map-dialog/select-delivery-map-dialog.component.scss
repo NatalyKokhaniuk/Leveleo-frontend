@@ -1,0 +1,10 @@
+.np-map-host {
+  min-height: 280px;
+  height: min(50vh, 480px);
+  z-index: 0;
+}
+
+/* Leaflet у всередині Mat Dialog */
+:host ::ng-deep .leaflet-container {
+  font-family: inherit;
+}

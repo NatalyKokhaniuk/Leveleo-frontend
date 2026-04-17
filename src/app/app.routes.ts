@@ -203,12 +203,6 @@ export const routes: Routes = [
     data: docPage('CART.TITLE'),
   },
   {
-    path: 'checkout',
-    loadComponent: () => import('./pages/checkout/checkout').then((m) => m.CheckoutPage),
-    canActivate: [authGuard],
-    data: docPage('CART.CHECKOUT'),
-  },
-  {
     path: 'order-checkout',
     loadComponent: () =>
       import('./pages/order-checkout/order-checkout').then((m) => m.OrderCheckoutPage),

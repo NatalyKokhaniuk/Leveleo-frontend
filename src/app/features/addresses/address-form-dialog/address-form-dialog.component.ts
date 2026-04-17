@@ -40,7 +40,7 @@ import {
 } from 'rxjs';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { NovaPoshtaService } from '../../shipping/nova-poshta.service';
-import { NpSettlementOption } from '../../shipping/nova-poshta.types';
+import { NpSettlementOption, NpStreetDto, NpWarehouseDto } from '../../shipping/nova-poshta.types';
 import { AddressService } from '../address.service';
 import {
   AddressResponseDto,
@@ -107,8 +107,6 @@ export class AddressFormDialogComponent implements OnInit {
    * Порожній `find` на `/settlements` на бекенді часто не повертає дані — покладаємось на search.
    */
   settlementSearchResults = signal<NpSettlementOption[]>([]);
-  /** Локальний довідник з уже збережених адрес (додається до повного). */
-  savedCityOptions = signal<NpSettlementOption[]>([]);
   /** Текст у полі — миттєве оновлення для клієнтського фільтра. */
   citySearchText = signal('');
   /** Щоб не показувати тисячі пунктів до першого фокусу на полі. */
@@ -119,12 +117,18 @@ export class AddressFormDialogComponent implements OnInit {
    */
   displayedCityOptions = computed(() => {
     const q = this.citySearchText().trim().toLowerCase();
-    const raw = mergeCityOptions(this.savedCityOptions(), this.settlementSearchResults());
+    const raw = this.settlementSearchResults();
     if (!this.cityFieldEverFocused()) return [];
     if (!q) return raw;
     return raw.filter((o) => o.description.toLowerCase().includes(q));
   });
   directoryLoading = signal(false);
+  streetSearchResults = signal<NpStreetDto[]>([]);
+  warehouseSearchResults = signal<NpWarehouseDto[]>([]);
+  postomatSearchResults = signal<NpWarehouseDto[]>([]);
+  streetLoading = signal(false);
+  warehouseLoading = signal(false);
+  postomatLoading = signal(false);
 
   constructor() {
     effect(() => {
@@ -137,6 +141,9 @@ export class AddressFormDialogComponent implements OnInit {
 
   /** Останній вибір зі списку (щоб скинути ref при ручній зміні тексту). */
   private lastPicked: NpSettlementOption | null = null;
+  private lastPickedStreet: NpStreetDto | null = null;
+  private lastPickedWarehouse: NpWarehouseDto | null = null;
+  private lastPickedPostomat: NpWarehouseDto | null = null;
 
   /** mat-select інколи дає рядок — порівнюємо через число. */
   isDeliveryType(dt: DeliveryType): boolean {
@@ -165,6 +172,7 @@ export class AddressFormDialogComponent implements OnInit {
       ],
     ],
     cityRef: ['', Validators.required],
+    settlementRef: [''],
     cityName: [''],
     warehouseName: [''],
     streetRef: [''],
@@ -172,34 +180,15 @@ export class AddressFormDialogComponent implements OnInit {
     house: [''],
     flat: [''],
     floor: [''],
+    warehouseRef: [''],
     postomatName: [''],
+    postomatRef: [''],
     additionalInfo: [''],
   });
 
   ngOnInit(): void {
     const citySearchCtrl = this.form.get('citySearch');
     this.citySearchText.set(String(citySearchCtrl?.value ?? ''));
-
-    // Fallback-джерело міст: унікальні cityName з Address/myaddresses.
-    this.addressApi.getMyAddresses().subscribe({
-      next: (list) => {
-        const byRef = new Map<string, NpSettlementOption>();
-        for (const a of list) {
-          const cityName = String(a.cityName ?? '').trim();
-          if (!cityName) continue;
-          const ref = String(a.cityRef ?? cityName).trim();
-          if (!ref) continue;
-          if (!byRef.has(ref)) {
-            byRef.set(ref, { ref, description: cityName });
-          }
-        }
-        const local = Array.from(byRef.values());
-        this.savedCityOptions.set(local);
-      },
-      error: () => {
-        this.savedCityOptions.set([]);
-      },
-    });
 
     citySearchCtrl?.valueChanges
       .pipe(
@@ -208,8 +197,22 @@ export class AddressFormDialogComponent implements OnInit {
           const t = String(q ?? '').trim();
           if (!this.lastPicked) return;
           if (t === '' || t !== this.lastPicked.description.trim()) {
-            this.form.patchValue({ cityRef: '', cityName: '' }, { emitEvent: false });
+            this.form.patchValue(
+              {
+                cityRef: '',
+                settlementRef: '',
+                cityName: '',
+                warehouseRef: '',
+                warehouseName: '',
+                postomatRef: '',
+                postomatName: '',
+              },
+              { emitEvent: false },
+            );
             this.lastPicked = null;
+            this.streetSearchResults.set([]);
+            this.warehouseSearchResults.set([]);
+            this.postomatSearchResults.set([]);
             this.form.get('citySearch')?.updateValueAndValidity({ emitEvent: false });
           }
         }),
@@ -265,13 +268,16 @@ export class AddressFormDialogComponent implements OnInit {
           deliveryType: deliveryForForm,
           citySearch: cityName,
           cityRef: a.cityRef ?? '',
+          settlementRef: '',
           cityName,
           warehouseName: a.warehouseDescription ?? a.warehouseRef ?? '',
+          warehouseRef: a.warehouseRef ?? '',
           streetRef: a.streetRef ?? '',
           street: a.street ?? '',
           house: a.house ?? '',
           flat: a.flat ?? '',
           postomatName: a.postomatDescription ?? a.postomatRef ?? '',
+          postomatRef: a.postomatRef ?? '',
           additionalInfo: a.additionalInfo ?? '',
         },
         { emitEvent: false },
@@ -292,6 +298,9 @@ export class AddressFormDialogComponent implements OnInit {
     } else {
       this.applyCreateDefaultsFromProfileAndSavedAddresses();
     }
+    this.setupStreetSearch();
+    this.setupWarehouseSearch();
+    this.setupPostomatSearch();
     this.form.get('deliveryType')?.valueChanges.subscribe(() => this.applyTypeValidators());
     this.applyTypeValidators();
   }
@@ -356,16 +365,23 @@ export class AddressFormDialogComponent implements OnInit {
   }
 
   onCityPicked(ref: string): void {
-    const merged = mergeCityOptions(this.savedCityOptions(), this.settlementSearchResults());
     const opt =
-      this.displayedCityOptions().find((o) => o.ref === ref) ?? merged.find((o) => o.ref === ref);
+      this.displayedCityOptions().find((o) => o.ref === ref) ??
+      this.settlementSearchResults().find((o) => o.ref === ref);
     if (!opt) return;
     this.lastPicked = opt;
     this.form.patchValue(
       {
-        cityRef: opt.ref,
+        cityRef: opt.deliveryCityRef?.trim() || opt.ref,
+        settlementRef: opt.ref,
         cityName: opt.description,
         citySearch: opt.description,
+        warehouseRef: '',
+        warehouseName: '',
+        postomatRef: '',
+        postomatName: '',
+        streetRef: '',
+        street: '',
       },
       { emitEvent: false },
     );
@@ -379,28 +395,40 @@ export class AddressFormDialogComponent implements OnInit {
       t = DeliveryType.Warehouse;
     }
     const wRef = this.form.get('warehouseName');
+    const wRefId = this.form.get('warehouseRef');
     const str = this.form.get('street');
+    const strRef = this.form.get('streetRef');
     const h = this.form.get('house');
     const pr = this.form.get('postomatName');
+    const pRef = this.form.get('postomatRef');
 
     wRef?.clearValidators();
+    wRefId?.clearValidators();
     str?.clearValidators();
+    strRef?.clearValidators();
     h?.clearValidators();
     pr?.clearValidators();
+    pRef?.clearValidators();
 
     if (t === DeliveryType.Warehouse) {
       wRef?.setValidators([Validators.required]);
+      wRefId?.setValidators([Validators.required]);
     } else if (t === DeliveryType.Doors) {
       str?.setValidators([Validators.required]);
+      strRef?.setValidators([Validators.required]);
       h?.setValidators([Validators.required]);
     } else if (t === DeliveryType.Postomat) {
       pr?.setValidators([Validators.required]);
+      pRef?.setValidators([Validators.required]);
     }
 
     wRef?.updateValueAndValidity({ emitEvent: false });
+    wRefId?.updateValueAndValidity({ emitEvent: false });
     str?.updateValueAndValidity({ emitEvent: false });
+    strRef?.updateValueAndValidity({ emitEvent: false });
     h?.updateValueAndValidity({ emitEvent: false });
     pr?.updateValueAndValidity({ emitEvent: false });
+    pRef?.updateValueAndValidity({ emitEvent: false });
   }
 
   submit(): void {
@@ -452,8 +480,10 @@ export class AddressFormDialogComponent implements OnInit {
     };
 
     if (deliveryType === DeliveryType.Warehouse) {
+      dto.warehouseRef = v.warehouseRef?.trim() || null;
       dto.warehouseDescription = v.warehouseName?.trim() || null;
     } else if (deliveryType === DeliveryType.Postomat) {
+      dto.postomatRef = v.postomatRef?.trim() || null;
       dto.postomatDescription = v.postomatName?.trim() || null;
     }
 
@@ -483,20 +513,122 @@ export class AddressFormDialogComponent implements OnInit {
   cancel(): void {
     this.ref.close(undefined);
   }
-}
 
-function mergeCityOptions(
-  fromSaved: NpSettlementOption[],
-  fromApi: NpSettlementOption[],
-): NpSettlementOption[] {
-  const out = new Map<string, NpSettlementOption>();
-  for (const x of [...fromSaved, ...fromApi]) {
-    const ref = String(x.ref ?? '').trim();
-    const description = String(x.description ?? '').trim();
-    if (!ref || !description) continue;
-    if (!out.has(ref)) {
-      out.set(ref, { ref, description });
-    }
+  onStreetPicked(streetRef: string): void {
+    const opt = this.streetSearchResults().find((x) => x.settlementStreetRef === streetRef);
+    if (!opt) return;
+    this.lastPickedStreet = opt;
+    this.form.patchValue({ streetRef: opt.settlementStreetRef, street: opt.present }, { emitEvent: false });
   }
-  return Array.from(out.values());
+
+  onWarehousePicked(ref: string): void {
+    const opt = this.warehouseSearchResults().find((x) => x.ref === ref);
+    if (!opt) return;
+    this.lastPickedWarehouse = opt;
+    const label = opt.name?.trim() || opt.shortAddress?.trim() || opt.description?.trim() || ref;
+    this.form.patchValue({ warehouseRef: ref, warehouseName: label }, { emitEvent: false });
+  }
+
+  onPostomatPicked(ref: string): void {
+    const opt = this.postomatSearchResults().find((x) => x.ref === ref);
+    if (!opt) return;
+    this.lastPickedPostomat = opt;
+    const label = opt.name?.trim() || opt.shortAddress?.trim() || opt.description?.trim() || ref;
+    this.form.patchValue({ postomatRef: ref, postomatName: label }, { emitEvent: false });
+  }
+
+  private setupStreetSearch(): void {
+    this.form
+      .get('street')
+      ?.valueChanges.pipe(
+        tap((q) => {
+          const t = String(q ?? '').trim();
+          if (!this.lastPickedStreet) return;
+          if (t === '' || t !== this.lastPickedStreet.present.trim()) {
+            this.lastPickedStreet = null;
+            this.form.patchValue({ streetRef: '' }, { emitEvent: false });
+          }
+        }),
+        debounceTime(300),
+        map((q) => String(q ?? '').trim()),
+        distinctUntilChanged(),
+        switchMap((t) => {
+          const settlementRef = this.form.get('settlementRef')?.value?.trim() || this.lastPicked?.ref?.trim() || '';
+          if (!settlementRef || t.length < 1) {
+            this.streetSearchResults.set([]);
+            return of<NpStreetDto[]>([]);
+          }
+          this.streetLoading.set(true);
+          return this.np
+            .searchStreetsBySettlement(settlementRef, t)
+            .pipe(finalize(() => this.streetLoading.set(false)));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((list) => this.streetSearchResults.set(list));
+  }
+
+  private setupWarehouseSearch(): void {
+    this.form
+      .get('warehouseName')
+      ?.valueChanges.pipe(
+        tap((q) => {
+          const t = String(q ?? '').trim();
+          const current = this.lastPickedWarehouse?.name?.trim() || this.lastPickedWarehouse?.shortAddress?.trim();
+          if (!this.lastPickedWarehouse) return;
+          if (t === '' || t !== current) {
+            this.lastPickedWarehouse = null;
+            this.form.patchValue({ warehouseRef: '' }, { emitEvent: false });
+          }
+        }),
+        debounceTime(300),
+        map((q) => String(q ?? '').trim()),
+        distinctUntilChanged(),
+        switchMap((t) => {
+          const cityRef = this.form.get('cityRef')?.value?.trim() || '';
+          if (!cityRef || t.length < 1) {
+            this.warehouseSearchResults.set([]);
+            return of<NpWarehouseDto[]>([]);
+          }
+          this.warehouseLoading.set(true);
+          return this.np
+            .searchBranchesBySettlement(cityRef, t)
+            .pipe(finalize(() => this.warehouseLoading.set(false)));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((list) => this.warehouseSearchResults.set(list));
+  }
+
+  private setupPostomatSearch(): void {
+    this.form
+      .get('postomatName')
+      ?.valueChanges.pipe(
+        tap((q) => {
+          const t = String(q ?? '').trim();
+          const current = this.lastPickedPostomat?.name?.trim() || this.lastPickedPostomat?.shortAddress?.trim();
+          if (!this.lastPickedPostomat) return;
+          if (t === '' || t !== current) {
+            this.lastPickedPostomat = null;
+            this.form.patchValue({ postomatRef: '' }, { emitEvent: false });
+          }
+        }),
+        debounceTime(300),
+        map((q) => String(q ?? '').trim()),
+        distinctUntilChanged(),
+        switchMap((t) => {
+          const cityRef = this.form.get('cityRef')?.value?.trim() || '';
+          if (!cityRef || t.length < 1) {
+            this.postomatSearchResults.set([]);
+            return of<NpWarehouseDto[]>([]);
+          }
+          this.postomatLoading.set(true);
+          return this.np
+            .searchPostomatsBySettlement(cityRef, t)
+            .pipe(finalize(() => this.postomatLoading.set(false)));
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((list) => this.postomatSearchResults.set(list));
+  }
 }

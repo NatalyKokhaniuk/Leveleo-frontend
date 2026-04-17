@@ -34,8 +34,12 @@ export function normalizeShoppingCartDto(raw: unknown): ShoppingCartDto {
   }
 
   return {
+    id: (o['id'] ?? o['Id']) as string | undefined,
+    userId: (o['userId'] ?? o['UserId']) as string | undefined,
     couponCode: cc == null || cc === '' ? null : String(cc).trim(),
     items,
+    removedItems: (o['removedItems'] ?? o['RemovedItems']) as ShoppingCartItemDto[] | null | undefined,
+    cartAdjusted: Boolean(o['cartAdjusted'] ?? o['CartAdjusted']),
     totalOriginalPrice: numOpt(o['totalOriginalPrice'] ?? o['TotalOriginalPrice']),
     totalProductDiscount: numOpt(o['totalProductDiscount'] ?? o['TotalProductDiscount']),
     totalCartDiscount: numOpt(o['totalCartDiscount'] ?? o['TotalCartDiscount']),

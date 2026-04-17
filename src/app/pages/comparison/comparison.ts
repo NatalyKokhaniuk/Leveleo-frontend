@@ -60,10 +60,6 @@ export class ComparisonPage implements OnInit {
   allAttributes = signal<Map<string, ProductAttributeResponseDto>>(new Map());
   valuesByProduct = signal<Map<string, ProductAttributeValueResponseDto[]>>(new Map());
   lang = signal(this.translate.currentLang || 'uk');
-  brandNames = computed(() => {
-    const lang = this.lang();
-    return new Map(this.brandCatalog().map((b) => [b.id, brandLocalizedName(b, lang)]));
-  });
 
   grouped = computed(() => {
     const names = this.categoryNames();
@@ -89,7 +85,7 @@ export class ComparisonPage implements OnInit {
     return this.visibleItems().map((p) => this.productPriceLabel(p));
   });
   brandRow = computed(() => {
-    return this.visibleItems().map((p) => this.brandLabelById(p.brandId));
+    return this.visibleItems().map((p) => this.brandCellById(p.brandId));
   });
   attributeRows = computed(() => {
     const products = this.visibleItems();
@@ -258,7 +254,14 @@ export class ComparisonPage implements OnInit {
     return `${value} ${this.translate.instant('PRODUCTS.CURRENCY')}`;
   }
 
-  private brandLabelById(brandId: string): string {
-    return this.brandNames().get(brandId) ?? '—';
+  private brandCellById(brandId: string): { label: string; slug: string | null } {
+    const b = this.brandCatalog().find((x) => x.id === brandId);
+    if (!b) {
+      return { label: '—', slug: null };
+    }
+    return {
+      label: brandLocalizedName(b, this.lang()),
+      slug: b.slug?.trim() || null,
+    };
   }
 }

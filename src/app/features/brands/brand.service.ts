@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import {
   BrandResponseDto,
   BrandTranslationResponseDto,
@@ -13,6 +13,8 @@ import { ApiService } from '../../core/services/api.service';
 export class BrandService {
   private api = inject(ApiService);
   private base = '/brands';
+  /** Уникаємо дубльованих GET при багатьох картках з одним брендом. */
+  private readonly getById$ = new Map<string, Observable<BrandResponseDto>>();
 
   create(dto: CreateBrandDto): Observable<BrandResponseDto> {
     return this.api.post<BrandResponseDto>(this.base, dto);
@@ -27,7 +29,15 @@ export class BrandService {
   }
 
   getById(id: string): Observable<BrandResponseDto> {
-    return this.api.get<BrandResponseDto>(`${this.base}/${id}`);
+    const key = id.trim();
+    let cached = this.getById$.get(key);
+    if (!cached) {
+      cached = this.api.get<BrandResponseDto>(`${this.base}/${encodeURIComponent(key)}`).pipe(
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+      this.getById$.set(key, cached);
+    }
+    return cached;
   }
 
   getBySlug(slug: string): Observable<BrandResponseDto> {

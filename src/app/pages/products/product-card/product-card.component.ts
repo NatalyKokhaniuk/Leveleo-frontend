@@ -12,7 +12,11 @@ import {
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { catchError, of } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { MediaUrlCacheService } from '../../../core/services/media-url-cache.service';
+import { brandLocalizedName } from '../../../features/brands/brand-display-i18n';
+import { BrandService } from '../../../features/brands/brand.service';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
 import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
 import { ProductResponseDto } from '../../../features/products/product.types';
@@ -26,6 +30,7 @@ import { ProductResponseDto } from '../../../features/products/product.types';
 })
 export class ProductCardComponent implements OnInit, OnChanges {
   private mediaUrlCache = inject(MediaUrlCacheService);
+  private brands = inject(BrandService);
   private translate = inject(TranslateService);
 
   /** Поточна мова UI — для назви з перекладів товару. */
@@ -40,6 +45,10 @@ export class ProductCardComponent implements OnInit, OnChanges {
 
   imageUrl = signal<string | null>(null);
   imageLoading = signal(false);
+  /** Локалізована назва бренду для картки. */
+  brandName = signal<string | null>(null);
+  /** Slug для посилання `/products/brand/:slug`. */
+  brandSlug = signal<string | null>(null);
   /** Скільки разів уже перезавантажували URL після помилки &lt;img&gt; (захист від циклу). */
   private imageErrorRetries = 0;
   private readonly maxImageErrorRetries = 2;
@@ -47,9 +56,11 @@ export class ProductCardComponent implements OnInit, OnChanges {
   ngOnInit(): void {
     this.translate.onLangChange.subscribe(() => {
       this.lang.set(this.translate.currentLang || 'uk');
+      this.loadBrand();
     });
     if (this.product) {
       this.loadImage();
+      this.loadBrand();
     }
   }
 
@@ -62,8 +73,34 @@ export class ProductCardComponent implements OnInit, OnChanges {
       this.imageErrorRetries = 0;
       if (!changes['product'].firstChange && this.product) {
         this.loadImage();
+        this.loadBrand();
       }
     }
+  }
+
+  private loadBrand(): void {
+    const brandId = this.product?.brandId?.trim();
+    if (!brandId) {
+      this.brandName.set(null);
+      this.brandSlug.set(null);
+      return;
+    }
+    this.brands
+      .getById(brandId)
+      .pipe(take(1), catchError(() => of(null)))
+      .subscribe((brand) => {
+        if (this.product?.brandId?.trim() !== brandId) {
+          return;
+        }
+        if (!brand) {
+          this.brandName.set(null);
+          this.brandSlug.set(null);
+          return;
+        }
+        const slug = brand.slug?.trim() || null;
+        this.brandSlug.set(slug);
+        this.brandName.set(brandLocalizedName(brand, this.lang()));
+      });
   }
 
   private loadImage(): void {

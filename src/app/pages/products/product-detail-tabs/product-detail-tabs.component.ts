@@ -86,6 +86,8 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   attributeRows = signal<{ id: string; label: string; value: string }[]>([]);
   breadcrumbs = signal<{ label: string; slug: string }[]>([]);
   brandLabel = signal<string | null>(null);
+  /** Для посилання на каталог за брендом. */
+  brandSlug = signal<string | null>(null);
 
   ngOnInit(): void {
     this.translate.onLangChange.subscribe(() => {
@@ -241,6 +243,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
     const brandId = this.product?.brandId;
     if (!brandId) {
       this.brandLabel.set(null);
+      this.brandSlug.set(null);
       return;
     }
     this.brands
@@ -249,9 +252,11 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
       .subscribe((brand: BrandResponseDto | null) => {
         if (!brand) {
           this.brandLabel.set(null);
+          this.brandSlug.set(null);
           return;
         }
         this.brandLabel.set(brandLocalizedName(brand, this.lang()));
+        this.brandSlug.set(brand.slug?.trim() || null);
       });
   }
 

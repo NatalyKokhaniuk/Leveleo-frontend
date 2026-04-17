@@ -3,9 +3,13 @@ import { Observable, of } from 'rxjs';
 import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import {
+  DeliveryPointDto,
+  DeliveryPointsQueryParams,
+  DeliveryPointKind,
   NpSettlementDirectoryDto,
   NpSettlementOption,
   NpSettlementsPageDto,
+  NpStreetDto,
   NpWarehouseDto,
 } from './nova-poshta.types';
 
@@ -16,7 +20,8 @@ import {
  * - `GET .../cities/search?query=&limit=` — автокомпліт міст;
  * - `GET .../settlements?page=&find=` — довідник з пагінацією;
  * - `GET .../settlements/{ref}/postomats` — поштомати;
- * - `GET .../settlements/{ref}/branches` — відділення (не поштомати).
+ * - `GET .../settlements/{ref}/branches` — відділення (не поштомати);
+ * - `GET .../settlements/{ref}/delivery-points` — універсальний список точок для мапи.
  */
 @Injectable({ providedIn: 'root' })
 export class NovaPoshtaService {
@@ -123,6 +128,21 @@ export class NovaPoshtaService {
     );
   }
 
+  searchPostomatsBySettlement(settlementRef: string, findByString: string): Observable<NpWarehouseDto[]> {
+    const ref = settlementRef.trim();
+    if (!ref) return of([]);
+    const find = findByString.trim();
+    const q = find ? `?findByString=${encodeURIComponent(find)}` : '';
+    const url = `${this.base}/settlements/${encodeURIComponent(ref)}/postomats${q}`;
+    return this.api.get<unknown>(url).pipe(
+      map((data) => normalizeWarehouses(data)),
+      catchError((err) => {
+        console.warn('[NovaPoshta] searchPostomatsBySettlement failed', url, err);
+        return of([]);
+      }),
+    );
+  }
+
   /** Відділення (не поштомати) для населеного пункту. */
   getBranchesBySettlement(settlementRef: string): Observable<NpWarehouseDto[]> {
     const ref = settlementRef.trim();
@@ -132,6 +152,63 @@ export class NovaPoshtaService {
       map((data) => normalizeWarehouses(data)),
       catchError((err) => {
         console.warn('[NovaPoshta] getBranchesBySettlement failed', url, err);
+        return of([]);
+      }),
+    );
+  }
+
+  searchBranchesBySettlement(settlementRef: string, findByString: string): Observable<NpWarehouseDto[]> {
+    const ref = settlementRef.trim();
+    if (!ref) return of([]);
+    const find = findByString.trim();
+    const q = find ? `?findByString=${encodeURIComponent(find)}` : '';
+    const url = `${this.base}/settlements/${encodeURIComponent(ref)}/branches${q}`;
+    return this.api.get<unknown>(url).pipe(
+      map((data) => normalizeWarehouses(data)),
+      catchError((err) => {
+        console.warn('[NovaPoshta] searchBranchesBySettlement failed', url, err);
+        return of([]);
+      }),
+    );
+  }
+
+  searchStreetsBySettlement(settlementRef: string, query: string): Observable<NpStreetDto[]> {
+    const ref = settlementRef.trim();
+    const q = query.trim();
+    if (!ref || q.length < 1) return of([]);
+    const url = `${this.base}/settlements/${encodeURIComponent(ref)}/streets/search?query=${encodeURIComponent(q)}`;
+    return this.api.get<unknown>(url).pipe(
+      map((data) => normalizeStreets(data)),
+      catchError((err) => {
+        console.warn('[NovaPoshta] searchStreetsBySettlement failed', url, err);
+        return of([]);
+      }),
+    );
+  }
+
+  /**
+   * Точки для мапи: `GET .../settlements/{settlementRef}/delivery-points`.
+   * Параметри: type, bbox, near, radius — як у контракту бекенду.
+   */
+  getDeliveryPoints(
+    settlementRef: string,
+    params: DeliveryPointsQueryParams = {},
+  ): Observable<DeliveryPointDto[]> {
+    const ref = settlementRef.trim();
+    if (!ref) return of([]);
+    const qs: string[] = [];
+    if (params.type) qs.push(`type=${encodeURIComponent(params.type)}`);
+    if (params.bbox) qs.push(`bbox=${encodeURIComponent(params.bbox)}`);
+    if (params.near) qs.push(`near=${encodeURIComponent(params.near)}`);
+    if (params.radius != null && Number.isFinite(params.radius)) {
+      qs.push(`radius=${encodeURIComponent(String(params.radius))}`);
+    }
+    const q = qs.length ? `?${qs.join('&')}` : '';
+    const url = `${this.base}/settlements/${encodeURIComponent(ref)}/delivery-points${q}`;
+    return this.api.get<unknown>(url).pipe(
+      map((data) => normalizeDeliveryPoints(data)),
+      catchError((err) => {
+        console.warn('[NovaPoshta] getDeliveryPoints failed', url, err);
         return of([]);
       }),
     );
@@ -212,6 +289,10 @@ function extractSettlementArrays(data: unknown, depth = 0): unknown[] {
     'Addresses',
     'cities',
     'Cities',
+    'deliveryPoints',
+    'DeliveryPoints',
+    'points',
+    'Points',
   ];
 
   for (const k of keys) {
@@ -280,9 +361,61 @@ function rowToSettlementOption(x: unknown): NpSettlementOption | null {
       '',
   ).trim();
   if (ref && description) {
-    return { ref, description };
+    const deliveryCityRef = String(r['deliveryCity'] ?? r['DeliveryCity'] ?? '').trim() || null;
+    return { ref, description, deliveryCityRef };
   }
   return null;
+}
+
+function normalizeStreets(data: unknown): NpStreetDto[] {
+  const raw = extractSettlementArrays(data);
+  const out: NpStreetDto[] = [];
+  for (const x of raw) {
+    if (!x || typeof x !== 'object') continue;
+    const r = x as Record<string, unknown>;
+    const settlementRef = String(r['settlementRef'] ?? r['SettlementRef'] ?? '').trim();
+    const settlementStreetRef = String(r['settlementStreetRef'] ?? r['SettlementStreetRef'] ?? '').trim();
+    const present = String(r['present'] ?? r['Present'] ?? '').trim();
+    if (!settlementRef || !settlementStreetRef || !present) continue;
+    out.push({
+      settlementRef,
+      settlementStreetRef,
+      present,
+      streetsType: str(r['streetsType'] ?? r['StreetsType']),
+      streetsTypeDescription: str(r['streetsTypeDescription'] ?? r['StreetsTypeDescription']),
+    });
+  }
+  return out;
+}
+
+function normalizeDeliveryPoints(data: unknown): DeliveryPointDto[] {
+  const raw = extractSettlementArrays(data);
+  const out: DeliveryPointDto[] = [];
+  for (const x of raw) {
+    const p = rowToDeliveryPoint(x);
+    if (p) out.push(p);
+  }
+  return out;
+}
+
+function rowToDeliveryPoint(x: unknown): DeliveryPointDto | null {
+  if (!x || typeof x !== 'object') return null;
+  const r = x as Record<string, unknown>;
+  const ref = String(r['ref'] ?? r['Ref'] ?? '').trim();
+  if (!ref) return null;
+  const typeRaw = String(r['type'] ?? r['Type'] ?? 'Branch')
+    .trim()
+    .toLowerCase();
+  const type: DeliveryPointKind = typeRaw === 'postomat' ? 'Postomat' : 'Branch';
+  const name =
+    String(r['name'] ?? r['Name'] ?? r['description'] ?? r['Description'] ?? '').trim() || ref;
+  const shortAddress = String(
+    r['shortAddress'] ?? r['ShortAddress'] ?? r['name'] ?? r['Name'] ?? name,
+  ).trim();
+  const cityRef = String(r['cityRef'] ?? r['CityRef'] ?? '').trim();
+  const lat = num(r['lat'] ?? r['Lat'], 0);
+  const lng = num(r['lng'] ?? r['Lng'] ?? r['lon'] ?? r['Lon'], 0);
+  return { ref, type, name, shortAddress, cityRef, lat, lng };
 }
 
 function normalizeWarehouses(data: unknown): NpWarehouseDto[] {
@@ -295,6 +428,7 @@ function normalizeWarehouses(data: unknown): NpWarehouseDto[] {
     if (!ref) continue;
     out.push({
       ref,
+      name: str(r['name'] ?? r['Name']),
       description: str(r['description'] ?? r['Description']),
       shortAddress: str(r['shortAddress'] ?? r['ShortAddress']),
       typeOfWarehouse: str(r['typeOfWarehouse'] ?? r['TypeOfWarehouse']),

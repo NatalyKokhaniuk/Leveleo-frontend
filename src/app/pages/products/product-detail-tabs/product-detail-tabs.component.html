@@ -115,7 +115,16 @@
           @if (brandLabel(); as brand) {
             <div class="text-sm text-on-surface/80">
               <span class="opacity-75">{{ 'PRODUCTS.FILTER_BRAND' | translate }}:</span>
-              <span class="ml-1 font-medium">{{ brand }}</span>
+              @if (brandSlug(); as slug) {
+                <a
+                  [routerLink]="['/products/brand', slug]"
+                  class="ml-1 font-medium text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+                >
+                  {{ brand }}
+                </a>
+              } @else {
+                <span class="ml-1 font-medium">{{ brand }}</span>
+              }
             </div>
           }
 

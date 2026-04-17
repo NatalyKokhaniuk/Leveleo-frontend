@@ -171,7 +171,16 @@
                   </td>
                   @for (brand of brandRow(); track $index) {
                     <td class="p-3 md:p-4 align-top border-b border-l border-outline-variant/15">
-                      {{ brand }}
+                      @if (brand.slug) {
+                        <a
+                          [routerLink]="['/products/brand', brand.slug]"
+                          class="text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+                        >
+                          {{ brand.label }}
+                        </a>
+                      } @else {
+                        {{ brand.label }}
+                      }
                     </td>
                   }
                 </tr>

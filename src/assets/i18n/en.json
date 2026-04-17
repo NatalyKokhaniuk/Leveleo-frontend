@@ -109,6 +109,12 @@
     "BACK_TO_PRODUCTS": "Back to product selection",
     "EMPTY": "Your cart is empty.",
     "REMOVED_ITEMS_TITLE": "The following items were removed from your cart:",
+    "UNAVAILABLE_ITEMS_TITLE": "These items cannot be ordered (discontinued, out of stock, or removed from the catalog):",
+    "UNAVAILABLE_ITEMS_DISMISS": "Dismiss message",
+    "LINE_OUT_OF_STOCK": "This product is temporarily out of stock. Reduce the quantity or remove the line from your cart.",
+    "LINE_ONLY_AVAILABLE": "Only {{count}} in stock. Reduce the quantity in your cart.",
+    "NO_AVAILABLE_ITEMS": "There are no items available to order.",
+    "UNAVAILABLE_ITEM_FALLBACK": "Unavailable item ({{id}})",
     "REMOVED_ITEMS_DISMISS": "Dismiss message",
     "REMOVED_ITEMS_CLOSE": "Dismiss message",
     "LOAD_ERROR": "Could not load cart. Please try again later.",
@@ -174,7 +180,17 @@
     "DELIVERY_TITLE": "Delivery:",
     "BRANCH_HINT": "choose the appropriate branch",
     "PICK_ON_MAP": "Pick on map",
-    "MAP_HINT": "Map selection will be available later.",
+    "ADDRESS_MAP_HINT": "Choose a saved address or add a new one for the selected delivery method.",
+    "SETTLEMENT_FOR_MAP": "Settlement (Nova Poshta)",
+    "MAP_DIALOG_TITLE": "Pick a pickup point",
+    "MAP_LOAD_ERROR": "Could not load pickup points.",
+    "MAP_NO_POINTS": "No pickup points for this area.",
+    "MAP_NO_COORDS_HINT": "Points without map coordinates — tap to select",
+    "MAP_SELECTED": "Selected",
+    "MAP_CONFIRM": "Use this point",
+    "MAP_NEED_CITY": "Search and select a settlement first.",
+    "MAP_NEED_NP_TYPE": "Map selection is only for Nova Poshta branch or parcel locker.",
+    "MAP_ADDRESS_SAVED": "Address saved",
     "DELIVERY_NP_WAREHOUSE": "Pickup at Nova Poshta branch",
     "DELIVERY_NP_POSTOMAT": "Pickup at Nova Poshta parcel locker",
     "DELIVERY_NP_COURIER": "Nova Poshta courier",
@@ -186,6 +202,12 @@
     "PASSPORT_NOTICE": "Please note: order pickup may require an ID. Enter last name, first name, and patronymic exactly as in your document, and the recipient's mobile phone number.",
     "PURCHASE": "Purchase",
     "FILL_REQUIRED": "Fill in contacts, choose an address and delivery method.",
+    "FILL_REQUIRED_LIST": "Please fill in: {{fields}}.",
+    "MISSING_PHONE": "mobile phone",
+    "MISSING_LAST_NAME": "last name",
+    "MISSING_FIRST_NAME": "first name",
+    "MISSING_DELIVERY_METHOD": "delivery method",
+    "MISSING_ADDRESS": "delivery address",
     "SELECT_DELIVERY_FIRST": "Choose a delivery type (Nova Poshta) first."
   },
   "ADDRESS": {
@@ -207,7 +229,7 @@
     "TYPE_DOORS": "Courier to address",
     "TYPE_POSTOMAT": "Parcel locker",
     "CITY_SEARCH": "Settlement",
-    "CITY_SEARCH_HINT": "Saved cities appear after focus. Type part of a name to load matches from Nova Poshta.",
+    "CITY_SEARCH_HINT": "Type part of a city name and choose one of the Nova Poshta suggestions.",
     "CITY_REQUIRED": "Select a settlement from the list.",
     "CITY_REF": "City ref (NP)",
     "CITY_REF_HINT": "Required by the backend to save the address.",
@@ -224,7 +246,8 @@
     "SELECT_TITLE": "Choose delivery address",
     "SELECT_CONFIRM": "Select",
     "LOAD_LIST_ERROR": "Could not load addresses.",
-    "RETRY": "Try again"
+    "RETRY": "Try again",
+    "STREET_SEARCH_HINT": "Type part of a street name and pick one of the Nova Poshta suggestions."
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Previous slide",
@@ -706,7 +729,6 @@
     "DELIVERY": "Delivery",
     "RETURN": "Returns",
     "CONTACTS": "Terms and regulations",
-
     "SUBSCRIBE_DESC": "Get updates and special offers",
     "EMAIL": "Your email",
     "SUBSCRIBE_BTN": "Subscribe",
@@ -744,7 +766,6 @@
     "LATEST_PRODUCTS_SHOW_MORE": "Show more products",
     "LATEST_PRODUCTS_SHOW_LESS": "Show fewer products"
   },
-
   "CONTACTS": {
     "MAINTITLE": "Contact Us",
     "SUBTITLE": "A music instruments store for professionals and beginners",
@@ -1033,7 +1054,6 @@
   "USER_NOT_FOUND": "Login and password combination not found",
   "UNKNOWN_ERROR": "Unknown error",
   "VALIDATION_ERROR": "Validation error",
-
   "DELIVERY": {
     "TITLE": "Payment & Delivery",
     "SUBTITLE": "Choose the convenient delivery and payment method for your order",
@@ -1075,21 +1095,15 @@
   "ABOUT": {
     "TITLE": "About Us",
     "SUBTITLE": "Leveleo Chernivtsi — next-generation music hypermarket",
-
     "INTRO_TITLE": "Who we are",
     "INTRO_TEXT": "Leveleo Chernivtsi is a modern music hypermarket offering a wide range of musical instruments, sound, lighting, and studio equipment across Ukraine. Thanks to a professional team, high-quality products, and advanced technologies, our store holds a leading position in the market.",
-
     "CATALOG_TITLE": "Product range",
     "CATALOG_TEXT": "Our catalog includes a wide variety of musical instruments and equipment: from rare instruments to advanced professional studio solutions, meeting the needs of any customer.",
-
     "PRICING_TITLE": "Affordability",
     "PRICING_TEXT": "We offer products for both beginners and professionals. Regular sales and promotions allow customers to purchase high-quality equipment at the best prices.",
-
     "SUPPORT_TITLE": "Customer support",
     "SUPPORT_TEXT": "Our technical support team is always ready to assist. You can contact us anytime via phone or website for professional advice.",
-
     "ADVANTAGES_TITLE": "Advantages",
-
     "ADVANTAGES": [
       "Warranty and certified quality for all products",
       "Fast and secure delivery across Ukraine",
@@ -1099,16 +1113,12 @@
       "Loyalty bonus program",
       "Return and exchange according to legislation"
     ],
-
     "MISSION_TITLE": "Our mission",
     "MISSION_TEXT": "We aim to deliver emotions through music by providing quality service, reliable instruments, and a comfortable shopping experience."
   },
-
   "RETURNS": {
     "TITLE": "Returns & Exchange",
-
     "INTRO": "According to Ukrainian consumer protection law, you can return goods within 14 days if all conditions are met.",
-
     "GOOD_QUALITY_TITLE": "Return conditions (good quality)",
     "GOOD_QUALITY_LIST": [
       "Item was not used",
@@ -1116,9 +1126,7 @@
       "Seals and labels intact",
       "Receipt and warranty provided"
     ],
-
     "GOOD_QUALITY_NOTE": "The item must be in new condition without scratches or signs of use.",
-
     "NOT_RETURNABLE_TITLE": "Non-returnable items",
     "NOT_RETURNABLE_LIST": [
       "Microphones (hygiene products)",
@@ -1128,11 +1136,13 @@
       "Accessories and components",
       "Custom-made products"
     ],
-
     "BAD_QUALITY_TITLE": "Defective goods",
     "BAD_QUALITY_TEXT": "If defects are found during warranty period, you may request:",
-    "BAD_QUALITY_LIST": ["Price reduction", "Free repair", "Repair cost compensation"],
-
+    "BAD_QUALITY_LIST": [
+      "Price reduction",
+      "Free repair",
+      "Repair cost compensation"
+    ],
     "HOW_TO_RETURN_TITLE": "How to return",
     "HOW_TO_RETURN_STEPS": [
       "Fill and sign return form",
@@ -1140,10 +1150,8 @@
       "Send via Nova Poshta",
       "Wait for refund (up to 10 days)"
     ],
-
     "DELIVERY_TITLE": "Shipping via Nova Poshta",
     "DELIVERY_TEXT": "Shipping cost is paid by customer according to carrier тарифs.",
-
     "IMPORTANT_TITLE": "Important",
     "IMPORTANT_LIST": [
       "Only unused items can be returned",
@@ -1152,7 +1160,6 @@
       "Refund goes to original payment method",
       "Refund time — up to 10 business days"
     ],
-
     "FINAL_NOTE": "Only unused items without damage are accepted. Otherwise return may be rejected."
   },
   "HOME_LINKS": {
@@ -1167,41 +1174,32 @@
     "TITLE": "Terms of Use",
     "SUBTITLE": "Please read the rules for using the Leveleo online store",
     "WARNING": "Attention! Please read these terms before using the website. If you disagree — do not use the site.",
-
     "SECTION_1_TITLE": "1. Website Usage",
     "SECTION_1_TEXT": "Leveleo provides access to browse and purchase products.",
     "SECTION_1_LIST_1": "Copying materials is prohibited",
     "SECTION_1_LIST_2": "Commercial use is not allowed",
     "SECTION_1_LIST_3": "Distribution without permission is forbidden",
-
     "SECTION_2_TITLE": "2. Disclaimer",
     "SECTION_2_1": "Information is provided \"as is\"",
     "SECTION_2_2": "Prices may change",
     "SECTION_2_3": "We are not liable for damages",
-
     "SECTION_3_TITLE": "3. Registration",
     "SECTION_3_1": "Users must provide accurate data",
     "SECTION_3_2": "User is responsible for account security",
-
     "SECTION_4_TITLE": "4. Orders and Payment",
     "SECTION_4_1": "Confirm product details",
     "SECTION_4_2": "Agree with pricing and delivery",
     "SECTION_4_3": "Orders may be canceled",
-
     "SECTION_5_TITLE": "5. Feedback",
     "SECTION_5_1": "No offensive content",
     "SECTION_5_2": "No false information",
     "SECTION_5_3": "Content may be removed",
-
     "SECTION_6_TITLE": "6. Personal Data",
     "SECTION_6_TEXT": "We process data according to Ukrainian law.",
-
     "SECTION_7_TITLE": "7. Cookies",
     "SECTION_7_TEXT": "We use cookies to improve the website.",
-
     "SECTION_8_TITLE": "8. Changes",
     "SECTION_8_TEXT": "We may update terms at any time.",
-
     "CONTACT_TITLE": "Contacts",
     "CONTACT_CITY": "Chernivtsi, Ukraine",
     "CONTACT_PHONE": "+380 XX XXX XX XX",

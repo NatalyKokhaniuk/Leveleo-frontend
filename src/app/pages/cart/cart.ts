@@ -10,7 +10,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { CartStateService } from '../../core/shopping-cart/cart-state.service';
@@ -30,7 +30,7 @@ import {
   buildCartLineView,
   computePricingFromCartItems,
 } from '../../features/shopping-cart/cart-pricing.util';
-import { CartLineView, ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.types';
+import { CartLineView, ShoppingCartDto, ShoppingCartItemDto } from '../../features/shopping-cart/shopping-cart.types';
 import type { PromotionTranslationDto } from '../../features/promotions/promotion.types';
 import { ProductService } from '../../features/products/product.service';
 import { ProductResponseDto } from '../../features/products/product.types';
@@ -108,6 +108,12 @@ export class CartPage implements OnInit {
   /** Назви товарів, що зникли з кошика порівняно з попереднім знімком (sessionStorage). */
   removedCartItemsNotice = signal<string[]>([]);
 
+  /**
+   * Позиції з відповіді API, які не відображаємо в списку: знято з продажу (`!isActive`),
+   * товар не знайдено в каталозі тощо.
+   */
+  unavailableProductNotice = signal<string[]>([]);
+
   private readonly CART_SNAPSHOT_STORAGE_KEY = 'leveleo.cart.snapshot.v1';
 
   constructor() {
@@ -144,11 +150,13 @@ export class CartPage implements OnInit {
         catchError(() => {
           this.loadError.set(true);
           this.cartTotals.set(null);
-          return of([] as CartLineView[]);
+          return of({ lines: [] as CartLineView[], unavailableNames: [] as string[] });
         }),
       )
-      .subscribe((rows) => {
+      .subscribe((result) => {
+        const rows = result.lines;
         this.lines.set(rows);
+        this.unavailableProductNotice.set(result.unavailableNames);
         this.loadRowMeta(rows);
         this.loading.set(false);
         if (!this.loadError()) {
@@ -216,31 +224,80 @@ export class CartPage implements OnInit {
     this.couponCode.set(String(cart.couponCode ?? ''));
     const raw = cart.items ?? [];
     if (raw.length === 0) {
-      return of([] as CartLineView[]);
+      return of({ lines: [] as CartLineView[], unavailableNames: [] as string[] });
     }
-    const ready = raw
-      .map((it) => {
-        const product = it.product;
-        if (!product) return null;
-        if (!product.isActive) return null;
-        return buildCartLineView(it, product);
-      })
-      .filter((row): row is CartLineView => row != null);
-    if (ready.length === raw.length) {
-      return of(ready);
+    const lang = this.lang();
+    return forkJoin(raw.map((it) => this.resolveCartLineItem(it, lang))).pipe(
+      map((parts) => {
+        const lines: CartLineView[] = [];
+        const unavailableNames: string[] = [];
+        for (const p of parts) {
+          if (p.line) {
+            lines.push(p.line);
+          }
+          if (p.unavailableLabel) {
+            unavailableNames.push(p.unavailableLabel);
+          }
+        }
+        return { lines, unavailableNames };
+      }),
+    );
+  }
+
+  /**
+   * Один рядок кошика: показуємо лише активні товари; для знятих з продажу / помилки завантаження — накопичуємо підпис для банера.
+   */
+  private resolveCartLineItem(
+    it: ShoppingCartItemDto,
+    lang: string,
+  ): Observable<{ line: CartLineView | null; unavailableLabel: string | null }> {
+    const id = String(it.productId ?? it.product?.id ?? '').trim();
+    if (!id) {
+      return of({ line: null, unavailableLabel: null });
     }
-    return forkJoin(
-      raw.map((it) =>
-        this.products.getById(String(it.productId ?? it.product?.id ?? '')).pipe(
-          map((p) => buildCartLineView(it, p)),
-          catchError(() => of(null)),
-        ),
-      ),
-    ).pipe(
-      map((list) =>
-        list.filter((row): row is CartLineView => row != null && row.product.isActive),
+    if (it.product) {
+      if (!it.product.isActive) {
+        return of({
+          line: null,
+          unavailableLabel: productLocalizedName(it.product, lang),
+        });
+      }
+      return of({ line: buildCartLineView(it, it.product), unavailableLabel: null });
+    }
+    return this.products.getById(id).pipe(
+      map((p) => {
+        if (!p.isActive) {
+          return { line: null, unavailableLabel: productLocalizedName(p, lang) };
+        }
+        return { line: buildCartLineView(it, p), unavailableLabel: null };
+      }),
+      catchError(() =>
+        of({
+          line: null,
+          unavailableLabel: this.translate.instant('CART.UNAVAILABLE_ITEM_FALLBACK', {
+            id: id.length > 12 ? `${id.slice(0, 8)}...` : id,
+          }),
+        }),
       ),
     );
+  }
+
+  /**
+   * Для відображуваного рядка: залишок на складі 0 або кількість у кошику більша за доступну.
+   */
+  lineStockIssueKey(row: CartLineView): 'out_of_stock' | 'exceeds' | null {
+    const q = row.quantity;
+    if (q <= 0) {
+      return null;
+    }
+    const avail = Math.max(0, Math.floor(Number(row.product.availableQuantity) || 0));
+    if (avail <= 0) {
+      return 'out_of_stock';
+    }
+    if (q > avail) {
+      return 'exceeds';
+    }
+    return null;
   }
 
   hasCartPromotion(): boolean {
@@ -357,6 +414,10 @@ export class CartPage implements OnInit {
     this.removedCartItemsNotice.set([]);
   }
 
+  dismissUnavailableNotice(): void {
+    this.unavailableProductNotice.set([]);
+  }
+
   private readCartSnapshotFromSession(): Record<string, string> {
     try {
       const raw = sessionStorage.getItem(this.CART_SNAPSHOT_STORAGE_KEY);
@@ -405,6 +466,16 @@ export class CartPage implements OnInit {
   productBrand(p: ProductResponseDto): string | null {
     const b = this.brandCatalog().find((x) => x.id === p.brandId);
     return b ? brandLocalizedName(b, this.lang()) : null;
+  }
+
+  /** Якщо є slug у довіднику брендів — показуємо посилання на `/products/brand/:slug`. */
+  productBrandLink(p: ProductResponseDto): { name: string; slug: string } | null {
+    const b = this.brandCatalog().find((x) => x.id === p.brandId);
+    const slug = b?.slug?.trim();
+    if (!b || !slug) {
+      return null;
+    }
+    return { name: brandLocalizedName(b, this.lang()), slug };
   }
 
   productImageUrl(productId: string): string | null {

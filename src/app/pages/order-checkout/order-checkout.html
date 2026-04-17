@@ -84,9 +84,10 @@
             </form>
           </div>
         } @else {
-          <p class="text-sm text-on-surface/80 m-0">
-            {{ contactForm.get('phoneNumber')?.value?.trim() || '—' }} · {{ recipientSummary() }}
-          </p>
+          <div class="text-sm text-on-surface/80 m-0 flex flex-col gap-1">
+            <p class="m-0">{{ 'ORDER_CHECKOUT.PHONE' | translate }}: {{ contactPhoneSummary() }}</p>
+            <p class="m-0">{{ 'ORDER_CHECKOUT.RECIPIENT_PIB' | translate }}: {{ recipientSummary() }}</p>
+          </div>
         }
       </section>
 
@@ -126,13 +127,6 @@
         <h2 class="text-lg md:text-xl font-semibold text-on-surface m-0 mb-2">
           {{ 'ORDER_CHECKOUT.DELIVERY_TITLE' | translate }}
         </h2>
-        <p class="text-sm text-on-surface/70 m-0 mb-3">{{ 'ORDER_CHECKOUT.BRANCH_HINT' | translate }}</p>
-        <div class="flex flex-wrap gap-2 mb-6">
-          <button matButton="outlined" type="button" (click)="mapPlaceholderClick()">
-            {{ 'ORDER_CHECKOUT.PICK_ON_MAP' | translate }}
-          </button>
-        </div>
-
         <mat-radio-group
           class="flex flex-col gap-3"
           [value]="deliveryType()"
@@ -193,6 +187,41 @@
               {{ 'ORDER_CHECKOUT.CHANGE' | translate }}
             </button>
           </div>
+          @if (deliveryType() === DeliveryType.Warehouse || deliveryType() === DeliveryType.Postomat) {
+            <p class="text-sm text-on-surface/70 m-0 mb-3">{{ 'ORDER_CHECKOUT.ADDRESS_MAP_HINT' | translate }}</p>
+            <mat-form-field class="w-full mb-3">
+              <mat-label>{{ 'ORDER_CHECKOUT.SETTLEMENT_FOR_MAP' | translate }}</mat-label>
+              <input
+                matInput
+                [formControl]="cityForm.controls.citySearch"
+                [matAutocomplete]="settlementAuto"
+                autocomplete="off"
+              />
+              @if (settlementSearchLoading()) {
+                <mat-spinner matSuffix diameter="20"></mat-spinner>
+              }
+              <mat-autocomplete
+                #settlementAuto="matAutocomplete"
+                autoActiveFirstOption
+                (optionSelected)="onSettlementSelected($event.option.value)"
+              >
+                @for (opt of settlementSearchResults(); track opt.ref) {
+                  <mat-option [value]="opt.ref">{{ opt.description }}</mat-option>
+                }
+              </mat-autocomplete>
+              <mat-hint>{{ 'ADDRESS.CITY_SEARCH_HINT' | translate }}</mat-hint>
+            </mat-form-field>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <button
+                matButton="outlined"
+                type="button"
+                [disabled]="!canOpenMapForSelectedDelivery()"
+                (click)="openNpMapDialog()"
+              >
+                {{ 'ORDER_CHECKOUT.PICK_ON_MAP' | translate }}
+              </button>
+            </div>
+          }
           @if (selectedAddress(); as addr) {
             <p class="text-base font-medium text-on-surface m-0 mb-1">
               {{ addr.cityName || ('ORDER_CHECKOUT.CITY_EXAMPLE' | translate) }}
@@ -263,7 +292,7 @@
           color="primary"
           type="button"
           class="min-w-[200px]"
-          [disabled]="!canPurchase()"
+          [disabled]="placingOrder()"
           (click)="goToPayment()"
         >
           {{ 'ORDER_CHECKOUT.PURCHASE' | translate }}
