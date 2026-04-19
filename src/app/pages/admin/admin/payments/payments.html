@@ -208,7 +208,8 @@
 
   @if (payment(); as p) {
     <section
-      class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4 text-sm"
+      id="admin-payment-detail"
+      class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4 text-sm scroll-mt-28"
     >
       <div class="flex flex-wrap justify-between gap-2 items-start">
         <h2 class="font-semibold text-base m-0">{{ 'ADMIN.PAYMENTS_PAGE.CARD_TITLE' | translate }}</h2>

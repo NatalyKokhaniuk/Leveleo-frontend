@@ -1,6 +1,6 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe, isPlatformBrowser } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { afterNextRender, Component, Injector, OnInit, PLATFORM_ID, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -51,6 +51,8 @@ import { HorizontalDragScrollDirective } from '../../../../shared/directives/hor
 })
 export class AdminPaymentsComponent implements OnInit {
   private router = inject(Router);
+  private injector = inject(Injector);
+  private platformId = inject(PLATFORM_ID);
   private paymentsApi = inject(PaymentService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
@@ -207,12 +209,27 @@ export class AdminPaymentsComponent implements OnInit {
       next: (p) => {
         this.payment.set(p);
         this.detailLoading.set(false);
+        this.scrollPaymentDetailIntoView();
       },
       error: () => {
         this.detailLoading.set(false);
         this.snack.open(this.translate.instant('ADMIN.PAYMENTS_PAGE.LOAD_ERROR'), undefined, { duration: 4000 });
       },
     });
+  }
+
+  /** Після відкриття картки прокрутити сторінку до блоку деталей (під фіксовану шапку — scroll-mt на секції). */
+  private scrollPaymentDetailIntoView(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    afterNextRender(
+      () => {
+        document.getElementById('admin-payment-detail')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
+      },
+      { injector: this.injector },
+    );
   }
 
   goOrder(): void {

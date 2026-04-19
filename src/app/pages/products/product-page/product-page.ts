@@ -140,7 +140,6 @@ export class ProductPage implements OnInit {
   product = signal<ProductResponseDto | null>(null);
   favoriteBusy = signal(false);
 
-  recommendedLoading = signal(false);
   recommendedProducts = signal<ProductResponseDto[]>([]);
 
   private recResizeObserver: ResizeObserver | null = null;
@@ -302,7 +301,6 @@ export class ProductPage implements OnInit {
    * решта з того ж бренду (випадково).
    */
   private loadYouMayAlsoLike(p: ProductResponseDto): void {
-    this.recommendedLoading.set(true);
     this.recommendedProducts.set([]);
     this.categoriesApi
       .getAll()
@@ -361,7 +359,6 @@ export class ProductPage implements OnInit {
         }),
         catchError(() => of([] as ProductResponseDto[])),
         finalize(() => {
-          this.recommendedLoading.set(false);
           if (isPlatformBrowser(this.platformId)) {
             afterNextRender(
               () => {
