@@ -7,12 +7,18 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+  AdminConfirmDeleteDialogComponent,
+  AdminConfirmDeleteDialogData,
+} from '../../admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
+import { ORDER_STATUS_VALUES, OrderListItemDto } from '../../../../features/orders/order.types';
 import { OrderService } from '../../../../features/orders/order.service';
-import { OrderSummaryDto } from '../../../../features/orders/order.types';
 import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 
 @Component({
@@ -28,6 +34,7 @@ import { HorizontalDragScrollDirective } from '../../../../shared/directives/hor
     MatInputModule,
     MatIconModule,
     MatSelectModule,
+    MatSortModule,
     MatTableModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
@@ -39,37 +46,82 @@ export class AdminOrdersComponent {
   private ordersApi = inject(OrderService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
+  private dialog = inject(MatDialog);
+
+  readonly orderStatuses = ORDER_STATUS_VALUES;
 
   loading = signal(true);
-  items = signal<OrderSummaryDto[]>([]);
+  items = signal<OrderListItemDto[]>([]);
   totalCount = signal(0);
   totalPages = signal(1);
 
   page = signal(1);
   readonly pageSize = 20;
 
-  statusFilter = signal('');
-  orderNumberFilter = signal('');
+  /** Порожній рядок = усі статуси */
+  statusFilter = signal<string>('');
   startDate = signal('');
   endDate = signal('');
   sortBy = signal<'CreatedAt' | 'TotalPayable' | 'Status'>('CreatedAt');
   sortDirection = signal<'asc' | 'desc'>('desc');
 
-  displayedColumns: string[] = ['number', 'createdAt', 'status', 'total', 'userId', 'actions'];
+  /** Рядок у таблиці, для якого зараз викликається POST cancel */
+  cancellingOrderId = signal<string | null>(null);
+
+  displayedColumns: string[] = ['number', 'createdAt', 'status', 'total', 'addressSummary', 'actions'];
+
+  private readonly orderMatIdToSort: Record<string, 'CreatedAt' | 'TotalPayable' | 'Status'> = {
+    createdAt: 'CreatedAt',
+    total: 'TotalPayable',
+    status: 'Status',
+  };
+
+  private readonly orderSortToMatId: Record<'CreatedAt' | 'TotalPayable' | 'Status', string> = {
+    CreatedAt: 'createdAt',
+    TotalPayable: 'total',
+    Status: 'status',
+  };
+
+  /** Колонки з серверним сортуванням (узгоджено з GET admin/all) */
+  orderMatSortActive(): string {
+    return this.orderSortToMatId[this.sortBy()] ?? 'createdAt';
+  }
+
+  onOrderTableSort(sort: Sort): void {
+    if (!sort.direction) {
+      this.sortBy.set('CreatedAt');
+      this.sortDirection.set('desc');
+      this.page.set(1);
+      this.reload();
+      return;
+    }
+    const api = this.orderMatIdToSort[sort.active];
+    if (!api) return;
+    this.sortBy.set(api);
+    this.sortDirection.set(sort.direction === 'asc' ? 'asc' : 'desc');
+    this.page.set(1);
+    this.reload();
+  }
 
   constructor() {
     this.reload();
   }
 
-  orderLabel(o: OrderSummaryDto): string {
+  orderLabel(o: OrderListItemDto): string {
     const n = o.number ?? o.orderNumber;
     if (typeof n === 'string' && n.trim()) return n.trim();
     return o.id;
   }
 
-  orderTotal(o: OrderSummaryDto): number | null {
-    const t = o.totalPayable ?? o.totalAmount ?? o.total;
+  orderTotal(o: OrderListItemDto): number | null {
+    const t = o.totalPayable;
     return typeof t === 'number' && !Number.isNaN(t) ? t : null;
+  }
+
+  addressLine(o: OrderListItemDto): string {
+    const s = o.addressSummary?.trim();
+    if (s) return s;
+    return '—';
   }
 
   onFilterChange(): void {
@@ -84,7 +136,6 @@ export class AdminOrdersComponent {
         page: this.page(),
         pageSize: this.pageSize,
         status: this.statusFilter().trim() || undefined,
-        orderNumber: this.orderNumberFilter().trim() || undefined,
         startDate: this.startDate().trim() || undefined,
         endDate: this.endDate().trim() || undefined,
         sortBy: this.sortBy(),
@@ -120,5 +171,41 @@ export class AdminOrdersComponent {
     if (this.page() >= this.totalPages()) return;
     this.page.update((p) => p + 1);
     this.reload();
+  }
+
+  canCancelOrder(row: OrderListItemDto): boolean {
+    const s = row.status?.trim().toLowerCase();
+    return s !== 'cancelled';
+  }
+
+  confirmCancelOrder(row: OrderListItemDto): void {
+    if (!this.canCancelOrder(row)) return;
+    const ref = this.dialog.open<AdminConfirmDeleteDialogComponent, AdminConfirmDeleteDialogData, boolean>(
+      AdminConfirmDeleteDialogComponent,
+      {
+        width: 'min(440px, 100vw)',
+        data: {
+          titleKey: 'ADMIN.ORDERS_PAGE.CANCEL_ORDER_TITLE',
+          messageKey: 'ADMIN.ORDERS_PAGE.CANCEL_ORDER_MSG',
+          messageParams: { number: this.orderLabel(row) },
+        },
+      },
+    );
+    ref.afterClosed().subscribe((ok) => {
+      if (!ok) return;
+      this.cancellingOrderId.set(row.id);
+      this.ordersApi.cancel(row.id).subscribe({
+        next: () => {
+          this.cancellingOrderId.set(null);
+          this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.CANCELLED'), undefined, { duration: 3000 });
+          this.reload();
+        },
+        error: (err: HttpErrorResponse) => {
+          this.cancellingOrderId.set(null);
+          this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.CANCEL_ERROR'), undefined, { duration: 4000 });
+          if (err.error) console.error(err.error);
+        },
+      });
+    });
   }
 }

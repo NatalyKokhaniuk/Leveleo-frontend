@@ -9,18 +9,49 @@ export interface OrderListFilterDto {
   endDate?: string;
 }
 
+/** Query GET /api/Orders/admin/all (AdminOrderFilterDto) */
 export interface AdminOrderListFilterDto extends OrderListFilterDto {
   page?: number;
   pageSize?: number;
+  /** OrderStatus — рядок або число (JsonStringEnumConverter) */
   status?: string;
-  orderNumber?: string;
-  userId?: string;
-  /** CreatedAt | TotalPayable | Status */
-  sortBy?: string;
-  /** asc | desc */
-  sortDirection?: string;
+  sortBy?: 'CreatedAt' | 'TotalPayable' | 'Status' | string;
+  sortDirection?: 'asc' | 'desc' | string;
 }
 
+/** Елемент списку: GET my-orders, user/{id}, admin/all */
+export interface OrderListItemDto {
+  id: string;
+  number?: string | null;
+  orderNumber?: string | null;
+  status?: string | null;
+  totalPayable?: number | null;
+  /** Альтернативні поля суми з API (за потреби) */
+  totalAmount?: number | null;
+  total?: number | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  /** Короткий текст адреси (admin/all, my-orders тощо) */
+  addressSummary?: string | null;
+  userId?: string | null;
+}
+
+export const ORDER_STATUS_VALUES = [
+  'Pending',
+  'Processing',
+  'Shipped',
+  'Completed',
+  'Cancelled',
+  'PaymentFailed',
+] as const;
+
+export type OrderStatus = (typeof ORDER_STATUS_VALUES)[number];
+
+/**
+ * Відповідь POST /api/Orders (201).
+ * Успіх з оплатою LiqPay: разом `orderId`, пара для checkout — `data`/`payload` (той самий base64) і `signature`
+ * (GenerateSignature від того ж payload). Помилка / зміна кошика: `shoppingCart`, `message`, без валідного `orderId` або без пари data+signature.
+ */
 export interface CreateOrderResultDto {
   /**
    * При успішному створенні замовлення — реальний id.
@@ -29,14 +60,14 @@ export interface CreateOrderResultDto {
    */
   orderId?: string;
   /**
-   * Те саме, що поле **data** у формі LiqPay (base64 JSON параметрів платежу).
-   * У JSON API поле названо `payload` для сумісності; у `<input name="data">` підставляти це значення.
+   * Base64 рядок для `<input name="data">` на https://www.liqpay.ua/api/3/checkout.
+   * На бекенді дублює `data` (JsonPropertyName "data") для сумісності зі старими клієнтами.
    */
   payload?: string | Record<string, unknown> | null;
-  /** Альтернативна назва з бекенду для того ж значення, що й `payload` → `data` у формі. */
+  /** Те саме, що `payload` — значення поля **data** форми LiqPay. */
   data?: string | null;
   /**
-   * Підпис для форми LiqPay (SHA1 + base64, як у LiqPayService.GenerateSignature).
+   * Base64 підпису (SHA1(private_key + data + private_key), далі base64 — як GenerateSignature у LiqPayService).
    * Поле форми: `name="signature"`.
    */
   signature?: string | null;
@@ -45,16 +76,8 @@ export interface CreateOrderResultDto {
   failureDetail?: string | null;
 }
 
-export interface OrderSummaryDto {
-  id: string;
-  number?: string | null;
-  orderNumber?: string | null; // backward compatibility
-  createdAt?: string | null;
-  updatedAt?: string | null;
-  status?: string | null;
-  userId?: string | null;
+export interface OrderSummaryDto extends OrderListItemDto {
   totalAmount?: number | null;
-  totalPayable?: number | null;
   total?: number | null;
   totalOriginalPrice?: number | null;
   totalProductDiscount?: number | null;
@@ -76,6 +99,7 @@ export interface OrderAddressDto {
   house?: string | null;
   flat?: string | null;
   additionalInfo?: string | null;
+  isDefault?: boolean | null;
 }
 
 export interface OrderPaymentDto {
@@ -119,10 +143,14 @@ export interface OrderDetailDto extends OrderSummaryDto {
   orderItems?: OrderItemDto[] | null;
 }
 
-export interface OrderAdminUpdateDto {
+/** PUT /api/Orders/{orderId} — часткове оновлення (Optional на бекенді) */
+export interface OrderUpdateDto {
   status?: string;
-  userAddressId?: string;
+  addressId?: string;
 }
+
+/** @deprecated використовуйте OrderUpdateDto */
+export type OrderAdminUpdateDto = OrderUpdateDto;
 
 export interface PagedResultDto<T> {
   items: T[];

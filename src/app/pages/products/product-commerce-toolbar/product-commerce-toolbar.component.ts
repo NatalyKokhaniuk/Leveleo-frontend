@@ -1,9 +1,8 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule } from '@ngx-translate/core';
 import { finalize } from 'rxjs';
-import { AuthHandlerService } from '../../../core/auth/services/auth-handler.service';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { ComparisonStateService } from '../../../core/comparison/comparison-state.service';
 import { CartStateService } from '../../../core/shopping-cart/cart-state.service';
@@ -22,11 +21,23 @@ export class ProductCommerceToolbarComponent {
   hideCompare = input(false);
 
   private auth = inject(AuthService);
-  private authHandler = inject(AuthHandlerService);
   private cart = inject(CartStateService);
   private comparison = inject(ComparisonStateService);
 
   busy = false;
+
+  /**
+   * Інлайн-підказка для гостя (як на сторінці кошика), без модального вікна.
+   */
+  guestHint = signal<'none' | 'compare' | 'purchase'>('none');
+
+  constructor() {
+    effect(() => {
+      if (this.auth.isAuthenticated()) {
+        this.guestHint.set('none');
+      }
+    });
+  }
 
   /** Реактивно від оновлень кошика на сервері. */
   qty = computed(() => this.cart.quantities().get(this.productId()) ?? 0);
@@ -43,7 +54,7 @@ export class ProductCommerceToolbarComponent {
 
   onCompare(): void {
     if (!this.isAuthed()) {
-      this.authHandler.openAuthDialog('login');
+      this.guestHint.set('compare');
       return;
     }
     this.busy = true;
@@ -55,7 +66,7 @@ export class ProductCommerceToolbarComponent {
 
   onAddToCart(): void {
     if (!this.isAuthed()) {
-      this.authHandler.openAuthDialog('login');
+      this.guestHint.set('purchase');
       return;
     }
     if (!this.canIncrease()) {
@@ -70,7 +81,7 @@ export class ProductCommerceToolbarComponent {
 
   inc(): void {
     if (!this.isAuthed()) {
-      this.authHandler.openAuthDialog('login');
+      this.guestHint.set('purchase');
       return;
     }
     if (!this.canIncrease()) {

@@ -1,13 +1,13 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { filter, firstValueFrom, take } from 'rxjs';
-import { AuthHandlerService } from '../../core/auth/services/auth-handler.service';
+import { Subscription, filter, firstValueFrom, take } from 'rxjs';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { DeliveryType } from '../../features/addresses/address.types';
 import { OrderService } from '../../features/orders/order.service';
@@ -27,13 +27,15 @@ import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../features/or
   ],
   templateUrl: './order-detail.html',
 })
-export class OrderDetailPage implements OnInit {
+export class OrderDetailPage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private orders = inject(OrderService);
   private translate = inject(TranslateService);
   private auth = inject(AuthService);
-  private authHandler = inject(AuthHandlerService);
+
+  /** Очікування входу через шапку (без модального вікна). */
+  private authWaitSub: Subscription | null = null;
 
   loading = signal(true);
   loadError = signal(false);
@@ -76,28 +78,38 @@ export class OrderDetailPage implements OnInit {
 
     if (!this.auth.isAuthenticated()) {
       this.loading.set(false);
-      this.openLoginAndContinue();
+      this.waitForAuthThenLoadOrder();
       return;
     }
 
     this.fetchOrder(id);
   }
 
-  /** Повторне відкриття модалки (кнопка на сторінці). */
+  /** Показати знову підказку про вхід (як у кошику). */
   openLoginAgain(): void {
     this.loginCancelled.set(false);
     this.loadError.set(false);
-    this.openLoginAndContinue();
+    this.waitForAuthThenLoadOrder();
   }
 
-  private openLoginAndContinue(): void {
-    this.authHandler.openLoginDialog$().subscribe((result) => {
-      if (result === true) {
+  /** Закрити підказку без входу (залишається текст «пізніше»). */
+  dismissGuestOrderHint(): void {
+    this.authWaitSub?.unsubscribe();
+    this.authWaitSub = null;
+    this.loginCancelled.set(true);
+  }
+
+  ngOnDestroy(): void {
+    this.authWaitSub?.unsubscribe();
+  }
+
+  private waitForAuthThenLoadOrder(): void {
+    this.authWaitSub?.unsubscribe();
+    this.authWaitSub = toObservable(this.auth.isAuthenticated)
+      .pipe(filter((v) => v), take(1))
+      .subscribe(() => {
         this.fetchOrder(this.orderId);
-      } else {
-        this.loginCancelled.set(true);
-      }
-    });
+      });
   }
 
   private fetchOrder(id: string): void {
@@ -105,7 +117,7 @@ export class OrderDetailPage implements OnInit {
     this.loadError.set(false);
     this.loginCancelled.set(false);
 
-    this.orders.getById(id).subscribe({
+    this.orders.getDetail(id).subscribe({
       next: (o) => {
         if (!this.canViewOrder(o)) {
           this.loading.set(false);
@@ -119,7 +131,8 @@ export class OrderDetailPage implements OnInit {
         this.loading.set(false);
         if (err.status === 401) {
           if (!this.auth.isAuthenticated()) {
-            this.openLoginAndContinue();
+            this.order.set(null);
+            this.waitForAuthThenLoadOrder();
             return;
           }
           this.loadError.set(true);
@@ -134,8 +147,9 @@ export class OrderDetailPage implements OnInit {
     });
   }
 
-  /** Лише власник замовлення (userId збігається з поточним акаунтом). */
+  /** Власник замовлення або Admin/Moderator (як на API GET /api/Orders/...). */
   private canViewOrder(o: OrderDetailDto): boolean {
+    if (this.auth.isAdmin() || this.auth.isModerator()) return true;
     const me = this.auth.currentUser()?.id;
     const owner = o.userId;
     if (!me || !owner) return true;

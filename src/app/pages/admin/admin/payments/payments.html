@@ -1,4 +1,4 @@
-<main class="pt-32 px-4 md:px-10 max-w-3xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
+<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
   <div class="flex flex-col gap-2">
     <a
       routerLink="/admin"
@@ -11,25 +11,197 @@
     <p class="modal-desc text-left max-w-none">{{ 'ADMIN.PAYMENTS_PAGE.DESCRIPTION' | translate }}</p>
   </div>
 
-  <section class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4">
-    <form [formGroup]="lookupForm" (ngSubmit)="load()" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
-      <mat-form-field class="flex-1 min-w-0 w-full">
-        <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.PAYMENT_ID' | translate }}</mat-label>
-        <input matInput formControlName="paymentId" autocomplete="off" />
-        <mat-hint>{{ 'ADMIN.PAYMENTS_PAGE.PAYMENT_ID_HINT' | translate }}</mat-hint>
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+  >
+    <h2 class="text-base font-semibold m-0">{{ 'ADMIN.PAYMENTS_PAGE.LIST_SECTION' | translate }}</h2>
+    <div class="flex flex-col lg:flex-row flex-wrap gap-4 items-stretch lg:items-end">
+      <mat-form-field class="min-w-[10rem] flex-1">
+        <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.FILTER_STATUS' | translate }}</mat-label>
+        <mat-select [value]="statusFilter()" (valueChange)="statusFilter.set($event ?? ''); onFilterChange()">
+          <mat-option value="">{{ 'ADMIN.TASKS_PAGE.FILTER_ALL' | translate }}</mat-option>
+          @for (st of paymentStatuses; track st) {
+            <mat-option [value]="st">{{ st }}</mat-option>
+          }
+        </mat-select>
       </mat-form-field>
-      <button matButton="filled" color="primary" type="submit" [disabled]="lookupForm.invalid || loading()">
-        @if (loading()) {
-          <mat-spinner diameter="20"></mat-spinner>
-        } @else {
-          {{ 'ADMIN.PAYMENTS_PAGE.LOAD' | translate }}
+      <mat-form-field class="min-w-[8rem] flex-1">
+        <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.FILTER_START' | translate }}</mat-label>
+        <input
+          matInput
+          type="date"
+          [value]="startDate()"
+          (input)="startDate.set(($any($event.target).value ?? '').toString()); onFilterChange()"
+        />
+      </mat-form-field>
+      <mat-form-field class="min-w-[8rem] flex-1">
+        <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.FILTER_END' | translate }}</mat-label>
+        <input
+          matInput
+          type="date"
+          [value]="endDate()"
+          (input)="endDate.set(($any($event.target).value ?? '').toString()); onFilterChange()"
+        />
+      </mat-form-field>
+      <mat-form-field class="min-w-[10rem] flex-1">
+        <mat-label>{{ 'ADMIN.ORDERS_PAGE.SORT_BY' | translate }}</mat-label>
+        <mat-select [value]="sortBy()" (valueChange)="onPaymentSortBySelect($event)">
+          <mat-option value="CreatedAt">{{ 'ADMIN.ORDERS_PAGE.SORT_CREATED' | translate }}</mat-option>
+          <mat-option value="Amount">{{ 'ADMIN.PAYMENTS_PAGE.SORT_AMOUNT' | translate }}</mat-option>
+          <mat-option value="Status">{{ 'ADMIN.ORDERS_PAGE.SORT_STATUS' | translate }}</mat-option>
+          <mat-option value="ExpireAt">{{ 'ADMIN.PAYMENTS_PAGE.SORT_EXPIRE' | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="min-w-[8rem] flex-1">
+        <mat-label>{{ 'ADMIN.ORDERS_PAGE.SORT_DIR' | translate }}</mat-label>
+        <mat-select [value]="sortDirection()" (valueChange)="onPaymentSortDirSelect($event)">
+          <mat-option value="asc">{{ 'ADMIN.ORDERS_PAGE.DIR_ASC' | translate }}</mat-option>
+          <mat-option value="desc">{{ 'ADMIN.ORDERS_PAGE.DIR_DESC' | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    @if (listLoading()) {
+      <div class="flex justify-center py-12">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (listItems().length === 0) {
+      <p class="modal-desc text-center max-w-none py-6">{{ 'ADMIN.PAYMENTS_PAGE.LIST_EMPTY' | translate }}</p>
+    } @else {
+      <div class="flex flex-col gap-4 lg:hidden">
+        @for (row of listItems(); track row.id) {
+          <div
+            class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-2 min-w-0"
+          >
+            <span class="font-medium">{{ row.orderNumber }}</span>
+            <span class="text-sm">{{ row.status }} · {{ row.amount | number: '1.2-2' }} {{ row.currency }}</span>
+            <span class="text-xs opacity-80">{{ row.createdAt | date: 'short' }}</span>
+            <div class="flex flex-wrap gap-2 justify-start">
+              <button matButton="outlined" type="button" (click)="selectRow(row)">
+                {{ 'ADMIN.PAYMENTS_PAGE.OPEN_DETAIL' | translate }}
+              </button>
+              @if (canCancelPaymentRow(row)) {
+                <button
+                  matButton="outlined"
+                  color="warn"
+                  type="button"
+                  (click)="confirmCancelPaymentRow(row)"
+                  [disabled]="cancellingPaymentId() === row.id"
+                >
+                  @if (cancellingPaymentId() === row.id) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    {{ 'ADMIN.TABLE.CANCEL' | translate }}
+                  }
+                </button>
+              }
+            </div>
+          </div>
         }
-      </button>
-    </form>
+      </div>
+
+      <div appHorizontalDragScroll class="hidden lg:block overflow-x-auto rounded-2xl border border-outline-variant -mx-1">
+        <table
+          mat-table
+          matSort
+          [dataSource]="listItems()"
+          [matSortActive]="paymentMatSortActive()"
+          [matSortDirection]="sortDirection()"
+          (matSortChange)="onPaymentTableSort($event)"
+          class="w-full min-w-[720px]"
+        >
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.PAYMENTS_PAGE.COL_STATUS' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row">{{ row.status }}</td>
+          </ng-container>
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.PAYMENTS_PAGE.COL_AMOUNT' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="whitespace-nowrap">
+              {{ row.amount | number: '1.2-2' }} {{ row.currency }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="orderNumber">
+            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PAYMENTS_PAGE.COL_ORDER_NUMBER' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="font-medium whitespace-nowrap">{{ row.orderNumber }}</td>
+          </ng-container>
+          <ng-container matColumnDef="orderId">
+            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PAYMENTS_PAGE.COL_ORDER_ID' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="font-mono text-xs break-all max-w-[12rem]">{{ row.orderId }}</td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.PAYMENTS_PAGE.COL_CREATED' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">{{
+              row.createdAt ? (row.createdAt | date: 'short') : '—'
+            }}</td>
+          </ng-container>
+          <ng-container matColumnDef="expireAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.PAYMENTS_PAGE.COL_EXPIRE' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">{{
+              row.expireAt ? (row.expireAt | date: 'short') : '—'
+            }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-left">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="text-left align-middle">
+              <div class="flex flex-wrap gap-2 justify-start items-center">
+                <button matButton="outlined" type="button" (click)="selectRow(row)">
+                  {{ 'ADMIN.PAYMENTS_PAGE.OPEN_DETAIL' | translate }}
+                </button>
+                @if (canCancelPaymentRow(row)) {
+                  <button
+                    matButton="outlined"
+                    color="warn"
+                    type="button"
+                    (click)="confirmCancelPaymentRow(row)"
+                    [disabled]="cancellingPaymentId() === row.id"
+                  >
+                    @if (cancellingPaymentId() === row.id) {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.CANCEL' | translate }}
+                    }
+                  </button>
+                }
+              </div>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <div class="flex flex-col sm:flex-row flex-wrap justify-between items-center gap-3">
+        <span class="text-sm opacity-80"
+          >{{ 'ADMIN.TABLE.PAGE' | translate }} {{ page() }} / {{ totalPages() }} ·
+          {{ 'ADMIN.ORDERS_PAGE.TOTAL_COUNT' | translate }}: {{ totalCount() }}</span
+        >
+        <div class="flex gap-2">
+          <button matButton="outlined" type="button" (click)="prevPage()" [disabled]="page() <= 1 || listLoading()">
+            {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
+          </button>
+          <button
+            matButton="outlined"
+            type="button"
+            (click)="nextPage()"
+            [disabled]="page() >= totalPages() || listLoading()"
+          >
+            {{ 'ADMIN.TABLE.NEXT' | translate }}
+          </button>
+        </div>
+      </div>
+    }
   </section>
 
-  @if (loading() && !payment()) {
-    <div class="flex justify-center py-12">
+  @if (detailLoading() && !payment()) {
+    <div class="flex justify-center py-8">
       <mat-spinner diameter="40"></mat-spinner>
     </div>
   }
@@ -77,39 +249,41 @@
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-2 pt-2 border-t border-outline-variant">
-        <button
-          matButton="outlined"
-          color="warn"
-          type="button"
-          (click)="confirmCancel()"
-          [disabled]="actionLoading()"
-        >
-          {{ 'ADMIN.PAYMENTS_PAGE.ACTION_CANCEL' | translate }}
-        </button>
-      </div>
-
-      <div class="flex flex-col gap-3 pt-2 border-t border-outline-variant">
-        <h3 class="text-sm font-semibold m-0">{{ 'ADMIN.PAYMENTS_PAGE.REFUND_SECTION' | translate }}</h3>
-        <p class="text-xs opacity-80 m-0">{{ 'ADMIN.PAYMENTS_PAGE.REFUND_HINT' | translate }}</p>
-        <form [formGroup]="refundForm" (ngSubmit)="submitRefund()" class="flex flex-col gap-3">
-          <mat-form-field class="w-full">
-            <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.REFUND_AMOUNT' | translate }}</mat-label>
-            <input matInput formControlName="amount" type="text" inputmode="decimal" autocomplete="off" />
-          </mat-form-field>
-          <mat-form-field class="w-full">
-            <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.REFUND_REASON' | translate }}</mat-label>
-            <input matInput formControlName="reason" autocomplete="off" />
-          </mat-form-field>
-          <button matButton="filled" type="submit" [disabled]="actionLoading()">
-            @if (actionLoading()) {
-              <mat-spinner diameter="20"></mat-spinner>
-            } @else {
-              {{ 'ADMIN.PAYMENTS_PAGE.ACTION_REFUND' | translate }}
-            }
+      @if (p.status !== 'Failure') {
+        <div class="flex flex-wrap gap-2 pt-2 border-t border-outline-variant">
+          <button
+            matButton="outlined"
+            color="warn"
+            type="button"
+            (click)="confirmCancel()"
+            [disabled]="actionLoading()"
+          >
+            {{ 'ADMIN.PAYMENTS_PAGE.ACTION_CANCEL' | translate }}
           </button>
-        </form>
-      </div>
+        </div>
+
+        <div class="flex flex-col gap-3 pt-2 border-t border-outline-variant">
+          <h3 class="text-sm font-semibold m-0">{{ 'ADMIN.PAYMENTS_PAGE.REFUND_SECTION' | translate }}</h3>
+          <p class="text-xs opacity-80 m-0">{{ 'ADMIN.PAYMENTS_PAGE.REFUND_HINT' | translate }}</p>
+          <form [formGroup]="refundForm" (ngSubmit)="submitRefund()" class="flex flex-col gap-3">
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.REFUND_AMOUNT' | translate }}</mat-label>
+              <input matInput formControlName="amount" type="text" inputmode="decimal" autocomplete="off" />
+            </mat-form-field>
+            <mat-form-field class="w-full">
+              <mat-label>{{ 'ADMIN.PAYMENTS_PAGE.REFUND_REASON' | translate }}</mat-label>
+              <input matInput formControlName="reason" autocomplete="off" />
+            </mat-form-field>
+            <button matButton="filled" type="submit" [disabled]="actionLoading()">
+              @if (actionLoading()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                {{ 'ADMIN.PAYMENTS_PAGE.ACTION_REFUND' | translate }}
+              }
+            </button>
+          </form>
+        </div>
+      }
     </section>
   }
 </main>

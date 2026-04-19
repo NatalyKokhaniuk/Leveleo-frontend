@@ -1,7 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
-import { PaymentResponseDto } from './payment.types';
+import { PagedResultDto } from '../orders/order.types';
+import {
+  AdminPaymentFilterDto,
+  PaymentListItemDto,
+  PaymentMessageResponseDto,
+  PaymentResponseDto,
+} from './payment.types';
 
 function toQuery(params: Record<string, string | number | undefined | null>): string {
   const query = Object.entries(params)
@@ -10,23 +17,68 @@ function toQuery(params: Record<string, string | number | undefined | null>): st
   return query.length > 0 ? `?${query.join('&')}` : '';
 }
 
+function num(v: unknown, fallback: number): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function asPagedPaymentList(
+  data: unknown,
+  fallbackPage = 1,
+  fallbackPageSize = 20,
+): PagedResultDto<PaymentListItemDto> {
+  if (!data || typeof data !== 'object') {
+    return { items: [], page: fallbackPage, pageSize: fallbackPageSize, totalCount: 0, totalPages: 0 };
+  }
+  const o = data as Record<string, unknown>;
+  const rawItems = o['items'] ?? o['Items'] ?? [];
+  const items = Array.isArray(rawItems) ? (rawItems as PaymentListItemDto[]) : [];
+  const page = num(o['page'] ?? o['Page'], fallbackPage);
+  const pageSize = num(o['pageSize'] ?? o['PageSize'], fallbackPageSize);
+  const totalCount = num(o['totalCount'] ?? o['TotalCount'], items.length);
+  const totalPages = num(o['totalPages'] ?? o['TotalPages'], Math.ceil(totalCount / Math.max(1, pageSize)));
+  return { items, page, pageSize, totalCount, totalPages };
+}
+
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
   private api = inject(ApiService);
-  /** PaymentsController: /api/payments */
+  /**
+   * GET /api/payments — список (Admin/Moderator), GET /api/payments/{id} — картка,
+   * POST cancel/refund/callback — за документацією API.
+   */
   private readonly base = '/payments';
+
+  /**
+   * GET /api/payments?status=&startDate=&endDate=&sortBy=&sortDirection=&page=&pageSize=
+   * PagedResultDto&lt;PaymentListItemDto&gt;
+   */
+  getPaged(filters: AdminPaymentFilterDto = {}): Observable<PagedResultDto<PaymentListItemDto>> {
+    const suffix = toQuery({
+      status: filters.status,
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      sortBy: filters.sortBy,
+      sortDirection: filters.sortDirection,
+      page: filters.page,
+      pageSize: filters.pageSize,
+    });
+    return this.api
+      .get<unknown>(`${this.base}${suffix}`)
+      .pipe(map((raw) => asPagedPaymentList(raw, filters.page, filters.pageSize)));
+  }
 
   /** GET /api/payments/{paymentId} */
   getById(paymentId: string): Observable<PaymentResponseDto> {
     return this.api.get<PaymentResponseDto>(`${this.base}/${encodeURIComponent(paymentId)}`);
   }
 
-  /** POST /api/payments/{paymentId}/cancel — Admin, Moderator */
   cancel(paymentId: string): Observable<PaymentResponseDto> {
-    return this.api.post<PaymentResponseDto>(`${this.base}/${encodeURIComponent(paymentId)}/cancel`, {});
+    return this.api
+      .post<PaymentMessageResponseDto>(`${this.base}/${encodeURIComponent(paymentId)}/cancel`, {})
+      .pipe(switchMap(() => this.getById(paymentId)));
   }
 
-  /** POST /api/payments/{paymentId}/refund — Admin, Moderator; query: amount?, reason? */
   refund(
     paymentId: string,
     opts?: { amount?: number; reason?: string },
@@ -35,9 +87,11 @@ export class PaymentService {
       amount: opts?.amount,
       reason: opts?.reason?.trim() || undefined,
     });
-    return this.api.post<PaymentResponseDto>(
-      `${this.base}/${encodeURIComponent(paymentId)}/refund${suffix}`,
-      {},
-    );
+    return this.api
+      .post<PaymentMessageResponseDto>(
+        `${this.base}/${encodeURIComponent(paymentId)}/refund${suffix}`,
+        {},
+      )
+      .pipe(switchMap(() => this.getById(paymentId)));
   }
 }

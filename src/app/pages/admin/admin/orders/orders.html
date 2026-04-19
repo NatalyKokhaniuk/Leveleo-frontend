@@ -15,21 +15,17 @@
     <div
       class="flex flex-col xl:flex-row flex-wrap gap-4 items-stretch xl:items-end rounded-2xl border border-outline-variant bg-surface-container p-4"
     >
-      <mat-form-field class="min-w-[8rem] flex-1">
+      <mat-form-field class="min-w-[10rem] flex-1">
         <mat-label>{{ 'ADMIN.ORDERS_PAGE.FILTER_STATUS' | translate }}</mat-label>
-        <input
-          matInput
+        <mat-select
           [value]="statusFilter()"
-          (change)="statusFilter.set(($any($event.target).value ?? '').toString()); onFilterChange()"
-        />
-      </mat-form-field>
-      <mat-form-field class="min-w-[8rem] flex-1">
-        <mat-label>{{ 'ADMIN.ORDERS_PAGE.FILTER_ORDER_NUMBER' | translate }}</mat-label>
-        <input
-          matInput
-          [value]="orderNumberFilter()"
-          (change)="orderNumberFilter.set(($any($event.target).value ?? '').toString()); onFilterChange()"
-        />
+          (valueChange)="statusFilter.set($event ?? ''); onFilterChange()"
+        >
+          <mat-option value="">{{ 'ADMIN.TASKS_PAGE.FILTER_ALL' | translate }}</mat-option>
+          @for (st of orderStatuses; track st) {
+            <mat-option [value]="st">{{ st }}</mat-option>
+          }
+        </mat-select>
       </mat-form-field>
       <mat-form-field class="min-w-[8rem] flex-1">
         <mat-label>{{ 'ADMIN.ORDERS_PAGE.FILTER_START' | translate }}</mat-label>
@@ -75,36 +71,69 @@
             <span class="font-medium text-primary">{{ orderLabel(row) }}</span>
             <span class="text-xs opacity-80">{{ row.createdAt | date: 'short' }}</span>
             <span class="text-sm">{{ row.status || '—' }}</span>
+            <p class="text-xs text-on-surface/80 m-0 break-words">{{ addressLine(row) }}</p>
             @if (orderTotal(row); as tot) {
               <span class="text-sm"
                 >{{ tot | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}</span
               >
             }
-            <a matButton="outlined" class="w-full" [routerLink]="['/admin/orders', row.id]">{{
-              'ADMIN.ORDERS_PAGE.OPEN' | translate
-            }}</a>
+            <div class="flex flex-col gap-2">
+              <a matButton="outlined" class="w-full" [routerLink]="['/admin/orders', row.id]">{{
+                'ADMIN.ORDERS_PAGE.OPEN' | translate
+              }}</a>
+              @if (canCancelOrder(row)) {
+                <button
+                  matButton="outlined"
+                  color="warn"
+                  type="button"
+                  class="w-full"
+                  (click)="confirmCancelOrder(row)"
+                  [disabled]="cancellingOrderId() === row.id"
+                >
+                  @if (cancellingOrderId() === row.id) {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    {{ 'ADMIN.TABLE.CANCEL' | translate }}
+                  }
+                </button>
+              }
+            </div>
           </div>
         }
       </div>
 
       <div appHorizontalDragScroll class="hidden md:block overflow-x-auto rounded-2xl border border-outline-variant">
-        <table mat-table [dataSource]="items()" class="w-full">
+        <table
+          mat-table
+          matSort
+          [dataSource]="items()"
+          [matSortActive]="orderMatSortActive()"
+          [matSortDirection]="sortDirection()"
+          (matSortChange)="onOrderTableSort($event)"
+          class="w-full"
+        >
           <ng-container matColumnDef="number">
             <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.ORDERS_PAGE.COL_NUMBER' | translate }}</th>
             <td mat-cell *matCellDef="let row" class="whitespace-nowrap font-medium">{{ orderLabel(row) }}</td>
           </ng-container>
           <ng-container matColumnDef="createdAt">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.ORDERS_PAGE.COL_DATE' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.ORDERS_PAGE.COL_DATE' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">{{
               row.createdAt ? (row.createdAt | date: 'short') : '—'
             }}</td>
           </ng-container>
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.ORDERS_PAGE.COL_STATUS' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.ORDERS_PAGE.COL_STATUS' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row">{{ row.status || '—' }}</td>
           </ng-container>
           <ng-container matColumnDef="total">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.ORDERS_PAGE.COL_TOTAL' | translate }}</th>
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              {{ 'ADMIN.ORDERS_PAGE.COL_TOTAL' | translate }}
+            </th>
             <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">
               @if (orderTotal(row); as tot) {
                 {{ tot | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
@@ -113,16 +142,33 @@
               }
             </td>
           </ng-container>
-          <ng-container matColumnDef="userId">
-            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.ORDERS_PAGE.COL_USER' | translate }}</th>
-            <td mat-cell *matCellDef="let row" class="max-w-[12rem] break-all text-xs">{{ row.userId || '—' }}</td>
+          <ng-container matColumnDef="addressSummary">
+            <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.ORDERS_PAGE.COL_ADDRESS_SUMMARY' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="max-w-[18rem] text-sm break-words">{{ addressLine(row) }}</td>
           </ng-container>
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef class="text-center">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
-            <td mat-cell *matCellDef="let row" class="text-center">
-              <a matButton="outlined" [routerLink]="['/admin/orders', row.id]">{{
-                'ADMIN.ORDERS_PAGE.OPEN' | translate
-              }}</a>
+            <th mat-header-cell *matHeaderCellDef class="text-left">{{ 'ADMIN.ORDERS_PAGE.COL_ACTIONS' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="text-left align-middle">
+              <div class="flex flex-wrap gap-2 justify-start items-center">
+                <a matButton="outlined" [routerLink]="['/admin/orders', row.id]">{{
+                  'ADMIN.ORDERS_PAGE.OPEN' | translate
+                }}</a>
+                @if (canCancelOrder(row)) {
+                  <button
+                    matButton="outlined"
+                    color="warn"
+                    type="button"
+                    (click)="confirmCancelOrder(row)"
+                    [disabled]="cancellingOrderId() === row.id"
+                  >
+                    @if (cancellingOrderId() === row.id) {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.CANCEL' | translate }}
+                    }
+                  </button>
+                }
+              </div>
             </td>
           </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>

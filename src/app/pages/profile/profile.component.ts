@@ -25,7 +25,7 @@ import {
 import { AddressService } from '../../features/addresses/address.service';
 import { AddressResponseDto, reorderAddressListPreferredFirst } from '../../features/addresses/address.types';
 import { OrderService } from '../../features/orders/order.service';
-import { OrderSummaryDto } from '../../features/orders/order.types';
+import { OrderListItemDto } from '../../features/orders/order.types';
 import { UserService } from '../../features/users/user.service';
 
 @Component({
@@ -112,7 +112,7 @@ export class ProfileComponent {
     reorderAddressListPreferredFirst(this.addresses(), this.preferredAddressId()),
   );
 
-  orders = signal<OrderSummaryDto[]>([]);
+  orders = signal<OrderListItemDto[]>([]);
   ordersLoading = signal(false);
   ordersLoaded = signal(false);
   ordersError = signal<string | null>(null);
@@ -222,7 +222,10 @@ export class ProfileComponent {
     this.ordersError.set(null);
     this.orderService.getMyOrders().subscribe({
       next: (list) => {
-        this.orders.set(list);
+        const withoutCancelled = list.filter(
+          (o) => String(o.status ?? '').trim().toLowerCase() !== 'cancelled',
+        );
+        this.orders.set(withoutCancelled);
         this.ordersLoaded.set(true);
         this.ordersLoading.set(false);
       },
@@ -233,13 +236,13 @@ export class ProfileComponent {
     });
   }
 
-  orderPrimaryLabel(o: OrderSummaryDto): string {
+  orderPrimaryLabel(o: OrderListItemDto): string {
     const n = o.number ?? o.orderNumber;
     if (typeof n === 'string' && n.trim()) return n;
     return o.id;
   }
 
-  orderTotal(o: OrderSummaryDto): number | null {
+  orderTotal(o: OrderListItemDto): number | null {
     const t = o.totalPayable ?? o.totalAmount ?? o.total;
     return typeof t === 'number' && !Number.isNaN(t) ? t : null;
   }

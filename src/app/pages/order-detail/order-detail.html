@@ -12,14 +12,25 @@
       <mat-spinner diameter="48"></mat-spinner>
     </div>
   } @else if (!order() && !loadError() && !missingId()) {
-    <div class="rounded-2xl border border-solid border-outline-variant bg-surface-container p-6 md:p-8 space-y-4">
+    <div
+      class="order-guest-hint pt-4 px-0 min-h-[40vh] flex flex-col items-center justify-start max-w-2xl mx-auto text-center gap-6"
+    >
       @if (loginCancelled()) {
-        <p class="text-on-surface m-0">{{ 'ORDER_VIEW.LOGIN_CANCELLED' | translate }}</p>
-        <button matButton="filled" color="primary" type="button" (click)="openLoginAgain()">
-          {{ 'ORDER_VIEW.LOGIN_AGAIN' | translate }}
-        </button>
+        <p class="text-lg md:text-xl text-on-surface/90 leading-relaxed m-0">
+          {{ 'ORDER_VIEW.LOGIN_CANCELLED' | translate }}
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3 items-center justify-center">
+          <button matButton="filled" color="primary" type="button" (click)="openLoginAgain()">
+            {{ 'ORDER_VIEW.LOGIN_AGAIN' | translate }}
+          </button>
+        </div>
       } @else {
-        <p class="text-on-surface m-0">{{ 'ORDER_VIEW.AWAIT_LOGIN' | translate }}</p>
+        <p class="text-lg md:text-xl text-on-surface/90 leading-relaxed m-0">
+          {{ 'CART.GUEST_ONLY' | translate }}
+        </p>
+        <button matButton="outlined" type="button" (click)="dismissGuestOrderHint()">
+          {{ 'ORDER_VIEW.GUEST_DISMISS' | translate }}
+        </button>
       }
     </div>
   } @else if (loadError()) {

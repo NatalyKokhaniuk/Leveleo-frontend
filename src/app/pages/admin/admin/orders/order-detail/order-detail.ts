@@ -1,12 +1,12 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
@@ -17,8 +17,17 @@ import {
   AdminConfirmDeleteDialogComponent,
   AdminConfirmDeleteDialogData,
 } from '../../../admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
+import { UserResponse } from '../../../../../core/auth/models/auth.types';
+import { UserService } from '../../../../../features/users/user.service';
 import { OrderService } from '../../../../../features/orders/order.service';
-import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../../../../features/orders/order.types';
+import {
+  ORDER_STATUS_VALUES,
+  OrderStatus,
+  OrderAddressDto,
+  OrderDetailDto,
+  OrderItemDto,
+  OrderUpdateDto,
+} from '../../../../../features/orders/order.types';
 
 @Component({
   selector: 'app-admin-order-detail',
@@ -31,7 +40,7 @@ import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../../../../fe
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
-    MatInputModule,
+    MatSelectModule,
     MatIconModule,
     MatTableModule,
     MatProgressSpinnerModule,
@@ -42,10 +51,13 @@ import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../../../../fe
 export class AdminOrderDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private ordersApi = inject(OrderService);
+  private usersApi = inject(UserService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
   private dialog = inject(MatDialog);
   private fb = inject(FormBuilder);
+
+  readonly orderStatuses = ORDER_STATUS_VALUES;
 
   loading = signal(true);
   notFound = signal(false);
@@ -54,8 +66,11 @@ export class AdminOrderDetailComponent implements OnInit {
   saving = signal(false);
   cancelling = signal(false);
 
+  /** GET /api/users/{userId} після завантаження замовлення (Admin/Moderator). */
+  customerProfile = signal<UserResponse | null>(null);
+
   statusForm = this.fb.group({
-    status: [''],
+    status: ['', Validators.required],
   });
 
   ngOnInit(): void {
@@ -65,10 +80,13 @@ export class AdminOrderDetailComponent implements OnInit {
       this.loading.set(false);
       return;
     }
-    this.ordersApi.getById(id).subscribe({
+    this.ordersApi.getDetail(id).subscribe({
       next: (o) => {
         this.order.set(o);
-        this.statusForm.patchValue({ status: o.status ?? '' });
+        this.statusForm.patchValue({
+          status: o.status ?? '',
+        });
+        this.loadCustomerProfile(o.userId);
         this.loading.set(false);
       },
       error: () => {
@@ -91,6 +109,30 @@ export class AdminOrderDetailComponent implements OnInit {
 
   recipientFullName(a: OrderAddressDto): string {
     return [a.lastName, a.firstName, a.middleName].filter((x) => x?.trim()).join(' ');
+  }
+
+  /** ПІБ з профілю (GET /users/{id}); якщо профіль недоступний — з адреси доставки; інакше userId. */
+  customerDisplayName(o: OrderDetailDto): string {
+    const p = this.customerProfile();
+    if (p) {
+      const parts = [p.lastName, p.firstName].map((x) => x?.trim()).filter(Boolean);
+      if (parts.length) return parts.join(' ');
+    }
+    if (o.address) {
+      const fromAddr = this.recipientFullName(o.address).trim();
+      if (fromAddr) return fromAddr;
+    }
+    return o.userId?.trim() || '—';
+  }
+
+  private loadCustomerProfile(userId: string | null | undefined): void {
+    this.customerProfile.set(null);
+    const id = userId?.trim();
+    if (!id) return;
+    this.usersApi.getUserById(id).subscribe({
+      next: (u) => this.customerProfile.set(u),
+      error: () => this.customerProfile.set(null),
+    });
   }
 
   deliveryTypeLabel(dt: string | number | undefined | null): string {
@@ -129,17 +171,20 @@ export class AdminOrderDetailComponent implements OnInit {
 
   saveStatus(): void {
     const o = this.order();
-    if (!o) return;
+    if (!o || this.statusForm.invalid) return;
     const status = this.statusForm.value.status?.trim();
     if (!status) {
       this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.STATUS_EMPTY'), undefined, { duration: 3000 });
       return;
     }
+    const dto: OrderUpdateDto = { status };
     this.saving.set(true);
-    this.ordersApi.update(o.id, { status }).subscribe({
+    this.ordersApi.update(o.id, dto).subscribe({
       next: (updated) => {
         this.order.set(updated);
-        this.statusForm.patchValue({ status: updated.status ?? '' });
+        this.statusForm.patchValue({
+          status: updated.status ?? '',
+        });
         this.saving.set(false);
         this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.SAVED'), undefined, { duration: 2500 });
       },
@@ -149,6 +194,11 @@ export class AdminOrderDetailComponent implements OnInit {
         if (err.error) console.error(err.error);
       },
     });
+  }
+
+  statusInList(status: string | null | undefined): boolean {
+    if (!status) return false;
+    return ORDER_STATUS_VALUES.includes(status as OrderStatus);
   }
 
   confirmCancelOrder(): void {
@@ -171,7 +221,9 @@ export class AdminOrderDetailComponent implements OnInit {
       this.ordersApi.cancel(o.id).subscribe({
         next: (updated) => {
           this.order.set(updated);
-          this.statusForm.patchValue({ status: updated.status ?? '' });
+          this.statusForm.patchValue({
+            status: updated.status ?? '',
+          });
           this.cancelling.set(false);
           this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.CANCELLED'), undefined, { duration: 3000 });
         },

@@ -29,8 +29,13 @@
             {{ o.createdAt ? (o.createdAt | date: 'medium') : '—' }}
           </div>
           <div>
-            <span class="opacity-70 block text-xs">{{ 'ADMIN.ORDERS_PAGE.COL_USER' | translate }}</span>
-            <span class="break-all">{{ o.userId || '—' }}</span>
+            <span class="opacity-70 block text-xs">{{ 'ADMIN.ORDERS_PAGE.COL_CUSTOMER' | translate }}</span>
+            <span class="font-medium">{{ customerDisplayName(o) }}</span>
+            @if (customerProfile(); as cu) {
+              @if (cu.email) {
+                <span class="block text-xs opacity-80 break-all mt-0.5">{{ cu.email }}</span>
+              }
+            }
           </div>
           @if (orderTotal(o); as tot) {
             <div>
@@ -40,12 +45,23 @@
           }
         </div>
 
-        <form [formGroup]="statusForm" (ngSubmit)="saveStatus()" class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-end">
-          <mat-form-field class="flex-1 min-w-0">
+        <form
+          [formGroup]="statusForm"
+          (ngSubmit)="saveStatus()"
+          class="flex flex-col gap-3 sm:flex-row sm:flex-wrap items-stretch sm:items-end"
+        >
+          <mat-form-field class="flex-1 min-w-[12rem]">
             <mat-label>{{ 'ADMIN.ORDERS_PAGE.STATUS_EDIT' | translate }}</mat-label>
-            <input matInput formControlName="status" autocomplete="off" />
+            <mat-select formControlName="status">
+              @if (o.status && !statusInList(o.status)) {
+                <mat-option [value]="o.status">{{ o.status }}</mat-option>
+              }
+              @for (st of orderStatuses; track st) {
+                <mat-option [value]="st">{{ st }}</mat-option>
+              }
+            </mat-select>
           </mat-form-field>
-          <button matButton="filled" color="primary" type="submit" [disabled]="saving()">
+          <button matButton="filled" color="primary" type="submit" [disabled]="saving() || statusForm.invalid">
             @if (saving()) {
               <mat-spinner diameter="20"></mat-spinner>
             } @else {

@@ -1,15 +1,15 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import {
   AdminOrderListFilterDto,
   CreateOrderResultDto,
-  OrderAdminUpdateDto,
   OrderCreateDto,
   OrderDetailDto,
   OrderListFilterDto,
-  OrderSummaryDto,
+  OrderListItemDto,
+  OrderUpdateDto,
   PagedResultDto,
 } from './order.types';
 
@@ -20,11 +20,17 @@ function toQuery(params: Record<string, string | number | undefined | null>): st
   return query.length > 0 ? `?${query.join('&')}` : '';
 }
 
-function asOrderList(data: unknown): OrderSummaryDto[] {
-  if (Array.isArray(data)) return data as OrderSummaryDto[];
+/** Рядок схожий на Guid замовлення (не номер на кшталт ORD-20260419-0001). */
+function looksLikeOrderGuid(s: string): boolean {
+  const t = s.trim();
+  return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(t);
+}
+
+function asOrderList(data: unknown): OrderListItemDto[] {
+  if (Array.isArray(data)) return data as OrderListItemDto[];
   if (data && typeof data === 'object' && 'items' in data) {
     const items = (data as { items?: unknown }).items;
-    if (Array.isArray(items)) return items as OrderSummaryDto[];
+    if (Array.isArray(items)) return items as OrderListItemDto[];
   }
   return [];
 }
@@ -39,8 +45,8 @@ export class OrderService {
     return this.api.post<CreateOrderResultDto>(this.base, dto);
   }
 
-  /** GET /api/Orders/my-orders?startDate=&endDate= */
-  getMyOrders(filters: OrderListFilterDto = {}): Observable<OrderSummaryDto[]> {
+  /** GET /api/Orders/my-orders?startDate=&endDate= → OrderListItemDto[] */
+  getMyOrders(filters: OrderListFilterDto = {}): Observable<OrderListItemDto[]> {
     const suffix = toQuery({ startDate: filters.startDate, endDate: filters.endDate });
     return this.api.get<unknown>(`${this.base}/my-orders${suffix}`).pipe(map(asOrderList));
   }
@@ -55,22 +61,32 @@ export class OrderService {
     return this.api.get<OrderDetailDto>(`${this.base}/number/${encodeURIComponent(orderNumber)}`);
   }
 
+  /**
+   * Деталі замовлення: Guid → GET /api/Orders/{id}, інакше → GET /api/Orders/number/{orderNumber}
+   * (наприклад ORD-20260419-0001).
+   */
+  getDetail(orderRef: string): Observable<OrderDetailDto> {
+    const ref = orderRef.trim();
+    if (!ref) {
+      return throwError(() => new Error('Empty order reference'));
+    }
+    return looksLikeOrderGuid(ref) ? this.getById(ref) : this.getByOrderNumber(ref);
+  }
+
   /** GET /api/Orders/user/{userId}?startDate=&endDate= */
-  getUserOrders(userId: string, filters: OrderListFilterDto = {}): Observable<OrderSummaryDto[]> {
+  getUserOrders(userId: string, filters: OrderListFilterDto = {}): Observable<OrderListItemDto[]> {
     const suffix = toQuery({ startDate: filters.startDate, endDate: filters.endDate });
     return this.api
       .get<unknown>(`${this.base}/user/${encodeURIComponent(userId)}${suffix}`)
       .pipe(map(asOrderList));
   }
 
-  /** GET /api/Orders/admin/all?... */
-  getAdminAll(filters: AdminOrderListFilterDto = {}): Observable<PagedResultDto<OrderSummaryDto>> {
+  /** GET /api/Orders/admin/all?... → PagedResultDto<OrderListItemDto> */
+  getAdminAll(filters: AdminOrderListFilterDto = {}): Observable<PagedResultDto<OrderListItemDto>> {
     const suffix = toQuery({
       page: filters.page,
       pageSize: filters.pageSize,
       status: filters.status,
-      orderNumber: filters.orderNumber,
-      userId: filters.userId,
       startDate: filters.startDate,
       endDate: filters.endDate,
       sortBy: filters.sortBy,
@@ -82,7 +98,7 @@ export class OrderService {
   }
 
   /** PUT /api/Orders/{orderId} */
-  update(orderId: string, dto: OrderAdminUpdateDto): Observable<OrderDetailDto> {
+  update(orderId: string, dto: OrderUpdateDto): Observable<OrderDetailDto> {
     return this.api.put<OrderDetailDto>(`${this.base}/${encodeURIComponent(orderId)}`, dto);
   }
 
@@ -96,7 +112,7 @@ function asPagedOrderList(
   data: unknown,
   fallbackPage = 1,
   fallbackPageSize = 20,
-): PagedResultDto<OrderSummaryDto> {
+): PagedResultDto<OrderListItemDto> {
   if (!data || typeof data !== 'object') {
     return { items: [], page: fallbackPage, pageSize: fallbackPageSize, totalCount: 0, totalPages: 0 };
   }
