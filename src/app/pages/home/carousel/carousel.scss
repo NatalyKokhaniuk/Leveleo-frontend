@@ -1,3 +1,55 @@
+/** Висота як при ширині в’юпорту 1330px (21:9), далі не росте. */
+$carousel-cap-width: 1330px;
+$carousel-21-9-height: calc(#{$carousel-cap-width} * 9 / 21);
+
+.carousel-frame {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  /* Якщо зображення не підвантажились або aspect-ratio не застосувався — блок не зникає по висоті */
+  min-height: clamp(10rem, 30vw, #{$carousel-21-9-height});
+}
+
+@media (min-width: 1330px) {
+  .carousel-frame {
+    aspect-ratio: auto;
+    height: $carousel-21-9-height;
+    max-height: $carousel-21-9-height;
+  }
+}
+
+.carousel-slide {
+  text-decoration: none;
+  color: inherit;
+}
+
+.carousel-slide__img {
+  z-index: 0;
+}
+
+.carousel-slide__overlay {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.carousel-slide__title {
+  display: block;
+  max-width: min(92%, 40rem);
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  color: #fff;
+  font-size: clamp(2.125rem, 7vw, 4rem);
+  /* Читабельність на фото: м’які тіні замість text-stroke */
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.95),
+    0 2px 6px rgb(0 0 0 / 0.65),
+    0 4px 20px rgb(0 0 0 / 0.45);
+}
+
 .carousel-nav-btn {
   width: 2.75rem;
   height: 2.75rem;

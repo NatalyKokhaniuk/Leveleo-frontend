@@ -1,62 +1,87 @@
 <div class="relative w-full">
-  <div
-    class="relative w-full overflow-hidden rounded-2xl"
-    (mouseenter)="pause()"
-    (mouseleave)="resume()"
-  >
-
-    <!-- TRACK -->
-    <div
-      class="flex transition-transform duration-500 ease-in-out"
-      [style.transform]="'translateX(-' + currentIndex() * 100 + '%)'"
+  @if (loading()) {
+    <div class="carousel-frame flex w-full justify-center items-center rounded-2xl bg-surface-container-high/40">
+      <mat-spinner diameter="44"></mat-spinner>
+    </div>
+  } @else if (loadError()) {
+    <p
+      class="carousel-frame flex w-full items-center justify-center text-center text-on-surface/80 px-4 rounded-2xl border border-outline-variant/30 bg-surface-container/40"
     >
+      {{ 'HOME.CAROUSEL_ERROR' | translate }}
+    </p>
+  } @else if (slides().length === 0) {
+    <p
+      class="carousel-frame flex w-full items-center justify-center text-center text-on-surface/70 px-4 rounded-2xl border border-outline-variant/30 bg-surface-container/40"
+    >
+      {{ 'HOME.CAROUSEL_EMPTY' | translate }}
+    </p>
+  } @else {
+    <div
+      class="relative w-full overflow-hidden rounded-2xl"
+      (mouseenter)="pause()"
+      (mouseleave)="resume()"
+    >
+      <div
+        class="flex transition-transform duration-500 ease-in-out"
+        [style.transform]="'translateX(-' + currentIndex() * 100 + '%)'"
+      >
+        @for (slide of slides(); track slideTrackId(slide); let first = $first) {
+          <a
+            [routerLink]="slideLink(slide)"
+            class="carousel-slide carousel-frame min-w-full w-full shrink-0 relative block overflow-hidden rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <img
+              [src]="slide.imageUrl"
+              [alt]="label(slide)"
+              class="carousel-slide__img absolute inset-0 h-full w-full object-cover"
+              [attr.loading]="first ? 'eager' : 'lazy'"
+              (error)="onSlideImgError(slide)"
+            />
+            <div
+              class="carousel-slide__overlay absolute inset-0 flex items-center justify-center px-4 sm:px-8 md:px-10"
+              aria-hidden="true"
+            >
+              <span class="carousel-slide__title">{{ label(slide) }}</span>
+            </div>
+          </a>
+        }
+      </div>
 
-      @for (brand of brands; track $index) {
-        <a
-          [routerLink]="brand.link"
-          class="min-w-full h-[320px] sm:h-[380px] md:h-[440px] rounded-2xl flex items-center justify-center text-white font-bold text-2xl sm:text-3xl transition hover:scale-105"
-          [ngClass]="brand.color"
+      @if (slides().length > 1) {
+        <button
+          type="button"
+          (click)="prev()"
+          class="carousel-nav-btn absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+          [attr.aria-label]="'CAROUSEL.PREV_SLIDE' | translate"
         >
-          {{ brand.name }}
-        </a>
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <button
+          type="button"
+          (click)="next()"
+          class="carousel-nav-btn absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
+          [attr.aria-label]="'CAROUSEL.NEXT_SLIDE' | translate"
+        >
+          <mat-icon>chevron_right</mat-icon>
+        </button>
       }
-
     </div>
 
-    <!-- LEFT -->
-    <button
-      type="button"
-      (click)="prev()"
-      class="carousel-nav-btn absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
-      [attr.aria-label]="'CAROUSEL.PREV_SLIDE' | translate"
-    >
-      <mat-icon>chevron_left</mat-icon>
-    </button>
-
-    <!-- RIGHT -->
-    <button
-      type="button"
-      (click)="next()"
-      class="carousel-nav-btn absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 text-white border-0 cursor-pointer shadow-md hover:bg-black/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/80"
-      [attr.aria-label]="'CAROUSEL.NEXT_SLIDE' | translate"
-    >
-      <mat-icon>chevron_right</mat-icon>
-    </button>
-
-  </div>
-
-  <!-- DOTS (поза overflow-hidden, щоб не перекривались наступним блоком) -->
-  <div class="flex justify-center gap-2 mt-5 md:mt-6 pb-3 md:pb-5">
-    @for (brand of brands; track $index; let i = $index) {
-      <button
-        type="button"
-        (click)="goTo(i)"
-        class="w-2 h-2 rounded-full transition-all"
-        [ngClass]="{
-          'bg-primary scale-125': currentIndex() === i,
-          'bg-gray-400': currentIndex() !== i
-        }"
-      ></button>
+    @if (slides().length > 1) {
+      <div class="flex justify-center gap-2 mt-5 md:mt-6 pb-3 md:pb-5">
+        @for (slide of slides(); track slideTrackId(slide); let i = $index) {
+          <button
+            type="button"
+            (click)="goTo(i)"
+            class="w-2 h-2 rounded-full transition-all shrink-0"
+            [ngClass]="{
+              'bg-primary scale-125': currentIndex() === i,
+              'bg-gray-400': currentIndex() !== i,
+            }"
+            [attr.aria-label]="'CAROUSEL.GO_SLIDE' | translate: { index: i + 1 }"
+          ></button>
+        }
+      </div>
     }
-  </div>
+  }
 </div>

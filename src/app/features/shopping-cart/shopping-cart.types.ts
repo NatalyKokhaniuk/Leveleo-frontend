@@ -1,6 +1,15 @@
 import { ProductResponseDto } from '../products/product.types';
 import type { PromotionTranslationDto } from '../promotions/promotion.types';
 
+/**
+ * Результат останньої спроби застосувати купон (`ShoppingCartDto.couponApplyResult`).
+ * На бекенді додано зокрема `UsageLimitExceeded = 5`.
+ */
+export enum ApplyCouponResult {
+  Success = 0,
+  UsageLimitExceeded = 5,
+}
+
 /** Відповідає ShoppingCartDto / ShoppingCartItemDto на бекенді. */
 export interface ShoppingCartItemDto {
   /** Старий/спрощений формат. */
@@ -29,6 +38,8 @@ export interface AppliedCartPromotionDto {
   name?: string | null;
   discountType?: number;
   discountValue?: number;
+  maxUsages?: number | null;
+  usedCount?: number | null;
   translations?: PromotionTranslationDto[] | null;
 }
 
@@ -36,6 +47,10 @@ export interface ShoppingCartDto {
   id?: string;
   userId?: string;
   couponCode?: string | null;
+  /** Код останньої спроби застосування купона (enum на бекенді). */
+  couponApplyResult?: ApplyCouponResult | number | null;
+  /** Текст від бекенда (помилка / пояснення). */
+  couponApplyMessage?: string | null;
   items?: ShoppingCartItemDto[] | null;
   removedItems?: ShoppingCartItemDto[] | null;
   cartAdjusted?: boolean;

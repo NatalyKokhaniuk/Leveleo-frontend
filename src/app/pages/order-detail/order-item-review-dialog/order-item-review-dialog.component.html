@@ -28,7 +28,7 @@
   } @else if (loadError()) {
     <p class="text-sm text-on-surface/80 py-6">{{ 'ORDER_VIEW.REVIEW_MODAL_LOAD_ERROR' | translate }}</p>
   } @else if (product(); as p) {
-    @if (p.slug?.trim(); as slug) {
+    @if (p.slug.trim(); as slug) {
       <a
         [routerLink]="['/products', slug]"
         class="text-sm font-medium text-primary hover:underline mb-3 inline-block break-words [overflow-wrap:anywhere] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"

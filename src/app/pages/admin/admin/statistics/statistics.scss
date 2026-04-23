@@ -8,6 +8,11 @@
   border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent);
 }
 
+.stats-card--muted {
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 55%, transparent);
+  color: var(--mat-sys-on-surface);
+}
+
 .stats-card h3 {
   font-size: 0.85rem;
   opacity: 0.9;
@@ -20,20 +25,48 @@
   font-weight: 700;
 }
 
-.chart-track {
-  height: 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--mat-sys-surface-variant) 80%, transparent);
-  overflow: hidden;
+.stats-card__sub {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  opacity: 0.88;
+  font-weight: 500;
 }
 
-.chart-bar {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    var(--mat-sys-primary) 0%,
-    var(--mat-sys-tertiary) 55%,
-    var(--mat-sys-secondary) 100%
-  );
+.admin-stats__chart-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  height: 260px;
+}
+
+.admin-stats__chart-wrap--tall {
+  height: 300px;
+}
+
+.admin-stats__chart-wrap--top {
+  height: min(420px, 55vh);
+}
+
+.admin-stats__chart-wrap--donut {
+  height: 260px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.admin-stats__chart-wrap--promo {
+  height: min(360px, 50vh);
+}
+
+.admin-stats__inline-field {
+  width: 8rem;
+}
+
+.admin-stats__date-field {
+  width: min(100%, 11rem);
+}
+
+.admin-stats__top-field {
+  width: 5.5rem;
 }

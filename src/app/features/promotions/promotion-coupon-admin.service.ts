@@ -1,6 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import type {
   CreateCouponAssignmentDto,
@@ -76,27 +77,51 @@ function boolOpt(v: unknown): boolean | undefined {
 @Injectable({ providedIn: 'root' })
 export class PromotionCouponAdminService {
   private api = inject(ApiService);
-  private base = (promotionId: string) => `/admin/promotions/${encodeURIComponent(promotionId)}/coupon`;
+
+  /**
+   * Шляхи до купона акції (без префікса `/api` — його додає `ApiService`).
+   * Спочатку `PromotionsController`-стиль; при 404 — legacy `Admin.../promotions/.../coupon`.
+   */
+  private couponBases(promotionId: string): string[] {
+    const id = encodeURIComponent(promotionId);
+    return [`/promotions/${id}/coupon`, `/admin/promotions/${id}/coupon`];
+  }
+
+  /** Спробувати перший шлях; якщо 404 — другий (різні реєстрації маршруту на бекенді). */
+  private tryCouponPaths<T>(promotionId: string, run: (couponPath: string) => Observable<T>): Observable<T> {
+    const bases = this.couponBases(promotionId);
+    return run(bases[0]).pipe(
+      catchError((err: unknown) => {
+        if (
+          err instanceof HttpErrorResponse &&
+          err.status === 404 &&
+          bases.length > 1
+        ) {
+          return run(bases[1]);
+        }
+        return throwError(() => err);
+      }),
+    );
+  }
 
   getCoupon(promotionId: string): Observable<PromotionCouponAdminDto> {
-    return this.api
-      .get<unknown>(this.base(promotionId))
-      .pipe(map((raw) => normalizePromotionCouponAdminDto(raw)));
+    return this.tryCouponPaths(promotionId, (path) =>
+      this.api.get<unknown>(path).pipe(map((raw) => normalizePromotionCouponAdminDto(raw))),
+    );
   }
 
   updateCoupon(promotionId: string, dto: UpdatePromotionCouponAdminDto): Observable<PromotionCouponAdminDto> {
-    return this.api
-      .put<unknown>(this.base(promotionId), dto)
-      .pipe(map((raw) => normalizePromotionCouponAdminDto(raw)));
+    return this.tryCouponPaths(promotionId, (path) =>
+      this.api.put<unknown>(path, dto).pipe(map((raw) => normalizePromotionCouponAdminDto(raw))),
+    );
   }
 
   addAssignment(
     promotionId: string,
     dto: CreateCouponAssignmentDto,
   ): Observable<PromotionCouponAssignmentDto | void> {
-    return this.api.post<PromotionCouponAssignmentDto | void>(
-      `${this.base(promotionId)}/assignments`,
-      dto,
+    return this.tryCouponPaths(promotionId, (path) =>
+      this.api.post<PromotionCouponAssignmentDto | void>(`${path}/assignments`, dto),
     );
   }
 
@@ -105,15 +130,14 @@ export class PromotionCouponAdminService {
     assignmentId: string,
     dto: UpdateCouponAssignmentDto,
   ): Observable<unknown> {
-    return this.api.put(
-      `${this.base(promotionId)}/assignments/${encodeURIComponent(assignmentId)}`,
-      dto,
+    return this.tryCouponPaths(promotionId, (path) =>
+      this.api.put(`${path}/assignments/${encodeURIComponent(assignmentId)}`, dto),
     );
   }
 
   deleteAssignment(promotionId: string, assignmentId: string): Observable<void> {
-    return this.api.delete<void>(
-      `${this.base(promotionId)}/assignments/${encodeURIComponent(assignmentId)}`,
+    return this.tryCouponPaths(promotionId, (path) =>
+      this.api.delete<void>(`${path}/assignments/${encodeURIComponent(assignmentId)}`),
     );
   }
 }

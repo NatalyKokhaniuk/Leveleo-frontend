@@ -46,6 +46,8 @@ export interface PromotionResponseDto {
   isPersonal: boolean;
   couponCode?: string | null;
   maxUsages?: number | null;
+  /** Глобальний лічник застосувань купона (лише Admin/Moderator у повних DTO). */
+  usedCount?: number | null;
   productConditions?: ProductLevelConditionDto | null;
   cartConditions?: CartLevelConditionDto | null;
   translations: PromotionTranslationDto[];

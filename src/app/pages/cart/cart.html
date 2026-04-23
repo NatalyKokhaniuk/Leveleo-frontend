@@ -62,6 +62,9 @@
                 <span class="text-2xl md:text-3xl font-bold tabular-nums text-primary">−{{ pct }}</span>
               }
             </div>
+            @if (cartPromotionUsageHint(); as usageHint) {
+              <p class="text-sm text-on-surface/75 mt-1">{{ usageHint }}</p>
+            }
           </div>
         </section>
       }

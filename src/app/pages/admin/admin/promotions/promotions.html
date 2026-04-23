@@ -81,6 +81,7 @@
           <ng-container matColumnDef="isPersonal"><th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PROMOTION.IS_PERSONAL' | translate }}</th><td mat-cell *matCellDef="let r">{{ (r.isPersonal ? 'ADMIN.CATEGORY.YES' : 'ADMIN.CATEGORY.NO') | translate }}</td></ng-container>
           <ng-container matColumnDef="couponCode"><th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PROMOTION.COUPON_CODE' | translate }}</th><td mat-cell *matCellDef="let r">{{ r.couponCode ?? '—' }}</td></ng-container>
           <ng-container matColumnDef="maxUsages"><th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PROMOTION.MAX_USAGES' | translate }}</th><td mat-cell *matCellDef="let r">{{ r.maxUsages ?? '—' }}</td></ng-container>
+          <ng-container matColumnDef="usedCount"><th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.PROMOTION.COL_USED_COUNT' | translate }}</th><td mat-cell *matCellDef="let r">{{ r.usedCount ?? 0 }}</td></ng-container>
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
             <td mat-cell *matCellDef="let r">

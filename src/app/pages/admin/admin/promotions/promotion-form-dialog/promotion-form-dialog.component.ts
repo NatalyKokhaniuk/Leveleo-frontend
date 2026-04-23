@@ -124,7 +124,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
 
-  /** Лише адмін керує персональною акцією та призначеннями через `/admin/.../coupon`. */
+  /** Лише адмін керує персональною акцією та призначеннями через купон-ендпоінт (див. `PromotionCouponAdminService`). */
   readonly isAdmin = this.auth.isAdmin;
 
   saving = signal(false);
@@ -132,7 +132,7 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   /** Останній знімок з getById (переклади для upsert). */
   private promotionSnapshot: PromotionResponseDto | null = null;
-  /** GET `/admin/promotions/{id}/coupon` — для відображення лічильника та узгодження полів купона (лише адмін). */
+  /** GET купона — лічильник і поля (шлях на бекенді: promotions або admin/promotions). */
   couponAdminSnapshot = signal<PromotionCouponAdminDto | null>(null);
   isUploadingImage = signal(false);
   imagePreviewUrl = signal<string | null>(null);

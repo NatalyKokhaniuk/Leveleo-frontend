@@ -30,7 +30,12 @@ import {
   buildCartLineView,
   computePricingFromCartItems,
 } from '../../features/shopping-cart/cart-pricing.util';
-import { CartLineView, ShoppingCartDto, ShoppingCartItemDto } from '../../features/shopping-cart/shopping-cart.types';
+import {
+  ApplyCouponResult,
+  CartLineView,
+  ShoppingCartDto,
+  ShoppingCartItemDto,
+} from '../../features/shopping-cart/shopping-cart.types';
 import type { PromotionTranslationDto } from '../../features/promotions/promotion.types';
 import { ProductService } from '../../features/products/product.service';
 import { ProductResponseDto } from '../../features/products/product.types';
@@ -84,6 +89,8 @@ export class CartPage implements OnInit {
     promoTranslations: PromotionTranslationDto[] | null;
     promoDiscountType: number | null;
     promoDiscountValue: number | null;
+    promoMaxUsages: number | null;
+    promoUsedCount: number | null;
   } | null>(null);
 
   /** Рендеримо рядки напряму з API, щоб кошик не "порожнів" через затримку локального state. */
@@ -220,6 +227,10 @@ export class CartPage implements OnInit {
       promoTranslations: acp?.translations ?? null,
       promoDiscountType: acp?.discountType ?? null,
       promoDiscountValue: acp?.discountValue ?? null,
+      promoMaxUsages:
+        acp?.maxUsages != null && Number.isFinite(Number(acp.maxUsages)) ? Number(acp.maxUsages) : null,
+      promoUsedCount:
+        acp?.usedCount != null && Number.isFinite(Number(acp.usedCount)) ? Number(acp.usedCount) : null,
     });
     this.couponCode.set(String(cart.couponCode ?? ''));
     const raw = cart.items ?? [];
@@ -346,6 +357,23 @@ export class CartPage implements OnInit {
     return s || null;
   }
 
+  /** Підказка про глобальний ліміт активацій купона (якщо бекенд передав maxUsages). */
+  cartPromotionUsageHint(): string | null {
+    const t = this.cartTotals();
+    if (!t) return null;
+    const max = t.promoMaxUsages;
+    if (max == null || !Number.isFinite(max) || max <= 0) return null;
+    const usedRaw = t.promoUsedCount ?? 0;
+    const used = Number.isFinite(Number(usedRaw)) ? Math.max(0, Math.floor(Number(usedRaw))) : 0;
+    const maxInt = Math.floor(max);
+    const remaining = Math.max(0, maxInt - used);
+    return this.translate.instant('CART.PROMO_USAGES_HINT', {
+      remaining,
+      max: maxInt,
+      used,
+    });
+  }
+
   promoLabel(): string {
     const t = this.cartTotals();
     if (!t) {
@@ -373,13 +401,32 @@ export class CartPage implements OnInit {
     this.couponBusy.set(true);
     this.cartApi.applyCoupon(code).subscribe({
       next: (cart) => {
-        this.load();
-        const applied = !!cart.appliedCartPromotion;
-        const hasCartDiscount =
-          cart.totalCartDiscount != null && Number(cart.totalCartDiscount) > 0;
-        if (!applied && !hasCartDiscount) {
-          this.snack.open(this.translate.instant('CART.COUPON_NOT_ACTIVE'), 'OK', { duration: 3000 });
+        const resultRaw = cart.couponApplyResult;
+        const parsed = resultRaw == null ? 0 : Number(resultRaw);
+        const resultNum = Number.isFinite(parsed) ? parsed : 0;
+        const applyOk = resultNum === ApplyCouponResult.Success;
+        const serverMsg = cart.couponApplyMessage?.trim();
+
+        if (!applyOk) {
+          const fallback =
+            resultNum === ApplyCouponResult.UsageLimitExceeded
+              ? this.translate.instant('CART.COUPON_USAGE_LIMIT_EXCEEDED')
+              : this.translate.instant('CART.COUPON_APPLY_FAILED_CODE', { code: resultNum });
+          this.snack.open(serverMsg || fallback, 'OK', { duration: 5000 });
+        } else {
+          const applied = !!cart.appliedCartPromotion;
+          const hasCartDiscount =
+            cart.totalCartDiscount != null && Number(cart.totalCartDiscount) > 0;
+          if (!applied && !hasCartDiscount) {
+            this.snack.open(
+              serverMsg || this.translate.instant('CART.COUPON_NOT_ACTIVE'),
+              'OK',
+              { duration: 4000 },
+            );
+          }
         }
+
+        this.load();
         this.couponBusy.set(false);
       },
       error: (err) => {

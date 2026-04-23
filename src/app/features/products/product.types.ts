@@ -70,6 +70,9 @@ export interface AppliedPromotionDto {
   imageKey?: string | null;
   discountType?: number;
   discountValue?: number;
+  /** Підказки про ліміт (кошик / вітрина з бекенду). */
+  maxUsages?: number | null;
+  usedCount?: number | null;
   /** Переклади назви/опису — узгоджено з `AppliedPromotionDto` на API. */
   translations?: PromotionTranslationDto[] | null;
 }

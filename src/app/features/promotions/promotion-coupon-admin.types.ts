@@ -1,4 +1,4 @@
-/** GET/PUT `/api/admin/promotions/{id}/coupon` */
+/** GET/PUT купона: `/api/promotions/{id}/coupon` або fallback `/api/admin/promotions/{id}/coupon` (як зареєстровано на API). */
 export interface PromotionCouponAdminDto {
   couponCode?: string | null;
   maxUsages?: number | null;

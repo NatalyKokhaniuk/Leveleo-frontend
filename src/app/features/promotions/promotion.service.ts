@@ -42,8 +42,13 @@ export class PromotionService {
     return this.api.get<PromotionResponseDto>(`${this.base}/slug/${encodeURIComponent(slug)}`);
   }
 
-  getActive(): Observable<PromotionResponseDto[]> {
-    return this.api.get<PromotionResponseDto[]>(`${this.base}/active`);
+  /**
+   * Активні акції за датами.
+   * `guestEligibleOnly: true` — лише без купона та не персональні (для вітрини / гостей).
+   */
+  getActive(opts?: { guestEligibleOnly?: boolean }): Observable<PromotionResponseDto[]> {
+    const qs = opts?.guestEligibleOnly === true ? '?guestEligibleOnly=true' : '';
+    return this.api.get<PromotionResponseDto[]>(`${this.base}/active${qs}`);
   }
 
   addTranslation(

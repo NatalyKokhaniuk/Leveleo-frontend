@@ -1,23 +1,32 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslateModule } from '@ngx-translate/core';
+import { of } from 'rxjs';
+import { MediaUrlCacheService } from '../../../core/services/media-url-cache.service';
+import { CategoryService } from '../../../features/categories/category.service';
+import { PromotionService } from '../../../features/promotions/promotion.service';
+import { CarouselComponent } from './carousel';
 
-import { Carousel } from './carousel';
-
-describe('Carousel', () => {
-  let component: Carousel;
-  let fixture: ComponentFixture<Carousel>;
+describe('CarouselComponent', () => {
+  let fixture: ComponentFixture<CarouselComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Carousel]
-    })
-    .compileComponents();
+      imports: [CarouselComponent, TranslateModule.forRoot()],
+      providers: [
+        { provide: CategoryService, useValue: { getAll: () => of([]) } },
+        { provide: PromotionService, useValue: { getActive: () => of([]) } },
+        {
+          provide: MediaUrlCacheService,
+          useValue: { getUrl: () => of(null), refreshUrl: () => of(null) },
+        },
+      ],
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(Carousel);
-    component = fixture.componentInstance;
+    fixture = TestBed.createComponent(CarouselComponent);
     fixture.detectChanges();
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+    expect(fixture.componentInstance).toBeTruthy();
   });
 });
