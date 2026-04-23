@@ -1,0 +1,50 @@
+@use '../../../../../styles/auth-modal-shared' as *;
+
+.admin-reviews__comment--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.admin-reviews__comment-toggle {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  color: var(--color-on-surface-variant, rgba(0, 0, 0, 0.6));
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-on-surface-variant, rgba(0, 0, 0, 0.6));
+    text-decoration: none;
+  }
+}
+
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}

@@ -1,6 +1,7 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   Component,
+  computed,
   inject,
   Input,
   OnChanges,
@@ -8,8 +9,10 @@ import {
   signal,
   SimpleChanges,
 } from '@angular/core';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -33,6 +36,7 @@ import {
 } from '../../../features/products/product-display-i18n';
 import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
 import { ProductResponseDto } from '../../../features/products/product.types';
+import { OrderItemReviewFormComponent } from '../../../shared/components/order-item-review-form/order-item-review-form.component';
 
 /** Фото зліва, таби справа: деталі / відгуки. */
 @Component({
@@ -40,12 +44,15 @@ import { ProductResponseDto } from '../../../features/products/product.types';
   standalone: true,
   imports: [
     MatTabsModule,
+    MatFormFieldModule,
+    MatSelectModule,
     MatIconModule,
     MatProgressSpinnerModule,
     TranslateModule,
     DecimalPipe,
     DatePipe,
     RouterLink,
+    OrderItemReviewFormComponent,
   ],
   templateUrl: './product-detail-tabs.component.html',
   styleUrl: './product-detail-tabs.component.scss',
@@ -74,8 +81,15 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   @Input() hideAttributes = false;
   /** Для окремої сторінки товару: медіа-блок квадратний (висота не менша за ширину). */
   @Input() forceSquareMedia = false;
+  /** Рядок замовлення: показати форму залишення відгуку у вкладці «Відгуки». */
+  @Input() orderItemId: string | null = null;
+  /** Відкрити вкладку відгуків (наприклад, у модалці з замовлення). */
+  @Input() openOnReviewsTab = false;
 
   private lang = signal(this.translate.currentLang || 'uk');
+
+  /** Індекс вкладки: 0 — деталі, 1 — відгуки. */
+  selectedTabIndex = signal(0);
 
   imageUrl = signal<string | null>(null);
   imageLoading = signal(false);
@@ -83,6 +97,16 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   private readonly maxImageErrorRetries = 2;
   reviewsLoading = signal(false);
   reviews = signal<ProductReviewPublicDto[]>([]);
+  /** Фільтр списку відгуків за округленою оцінкою (зірками). */
+  publicReviewStarsFilter = signal<'' | '1' | '2' | '3' | '4' | '5'>('');
+
+  filteredPublicReviews = computed(() => {
+    const stars = this.publicReviewStarsFilter();
+    const list = this.reviews();
+    if (!stars) return list;
+    const n = Number(stars);
+    return list.filter((r) => this.roundedReviewRating(r) === n);
+  });
   attributeRows = signal<{ id: string; label: string; value: string }[]>([]);
   breadcrumbs = signal<{ label: string; slug: string }[]>([]);
   brandLabel = signal<string | null>(null);
@@ -97,15 +121,39 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
       this.loadAttributes();
     });
     this.bootstrap();
+    this.syncReviewsTab();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['product']) {
       this.imageErrorRetries = 0;
       if (!changes['product'].firstChange && this.product) {
+        this.publicReviewStarsFilter.set('');
         this.bootstrap();
       }
+      if (!this.openOnReviewsTab) {
+        this.selectedTabIndex.set(0);
+      } else {
+        this.syncReviewsTab();
+      }
     }
+    if (changes['openOnReviewsTab'] || changes['orderItemId']) {
+      this.syncReviewsTab();
+    }
+  }
+
+  private syncReviewsTab(): void {
+    if (this.openOnReviewsTab && this.orderItemId) {
+      this.selectedTabIndex.set(1);
+    }
+  }
+
+  onTabIndexChange(index: number): void {
+    this.selectedTabIndex.set(index);
+  }
+
+  onOrderReviewSaved(): void {
+    this.loadReviews();
   }
 
   private bootstrap(): void {
@@ -331,6 +379,16 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
 
   reviewStars(rating: number, index: number): boolean {
     return index < Math.round(Math.min(5, Math.max(0, rating)));
+  }
+
+  onPublicReviewStarsFilter(ev: MatSelectChange): void {
+    const v = ev.value;
+    const s = v === null || v === undefined || v === '' ? '' : String(v);
+    this.publicReviewStarsFilter.set(s as '' | '1' | '2' | '3' | '4' | '5');
+  }
+
+  roundedReviewRating(r: ProductReviewPublicDto): number {
+    return Math.round(Math.min(5, Math.max(0, Number(r.rating) || 0)));
   }
 
   reviewHasText(r: ProductReviewPublicDto): boolean {

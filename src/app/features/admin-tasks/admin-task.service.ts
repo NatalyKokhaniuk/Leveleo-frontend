@@ -1,6 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
+import { map, switchMap } from 'rxjs/operators';
 import {
   AdminTaskFilterDto,
   AdminTaskResponseDto,
@@ -46,5 +47,18 @@ export class AdminTaskService {
 
   cancel(taskId: string): Observable<AdminTaskResponseDto> {
     return this.http.post<AdminTaskResponseDto>(`${this.base}/${taskId}/cancel`, {}, this.opts);
+  }
+
+  /** Пошук активного ShipOrder таска для конкретного замовлення. */
+  findOpenShipOrderTask(orderId: string): Observable<AdminTaskResponseDto | null> {
+    const target = orderId.trim().toLowerCase();
+    if (!target) return of(null);
+    const findIn = (status: 'Pending' | 'InProgress') =>
+      this.getTasks({ type: 'ShipOrder', status, page: 1, pageSize: 100 }).pipe(
+        map((res) =>
+          (res.items ?? []).find((t) => (t.relatedEntityId ?? '').trim().toLowerCase() === target) ?? null,
+        ),
+      );
+    return findIn('InProgress').pipe(switchMap((task) => (task ? of(task) : findIn('Pending'))));
   }
 }

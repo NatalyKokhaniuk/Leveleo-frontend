@@ -29,6 +29,12 @@ export const routes: Routes = [
     data: docPage('ADMIN.USER.TITLE'),
   },
   {
+    path: 'admin/reviews',
+    loadComponent: () => import('./pages/admin/admin/reviews/reviews').then((m) => m.AdminReviewsComponent),
+    canActivate: [adminOrModeratorGuard],
+    data: docPage('ADMIN.REVIEWS_PAGE.TITLE'),
+  },
+  {
     path: 'admin/subscriptions',
     loadComponent: () =>
       import('./pages/admin/admin/subscriptions/subscriptions').then((m) => m.AdminSubscriptionsComponent),

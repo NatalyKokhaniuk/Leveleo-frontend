@@ -1,0 +1,8 @@
+/* Іконки в «Залишити / Показати відгук» — без обрізання гліфа (особливо visibility). */
+:host ::ng-deep .order-detail__review-link-icon.mat-icon {
+  overflow: visible;
+}
+
+:host ::ng-deep .order-detail__review-link-icon.mat-icon svg {
+  overflow: visible;
+}

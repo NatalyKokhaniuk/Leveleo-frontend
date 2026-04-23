@@ -294,7 +294,7 @@
                             —
                           }
                         </td>
-                        <td class="py-2 pr-3 align-top">{{ o.status || '—' }}</td>
+                        <td class="py-2 pr-3 align-top">{{ o.status | orderStatusLabel }}</td>
                         <td class="py-2 align-top">
                           @if (orderTotal(o); as tot) {
                             {{ tot | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}

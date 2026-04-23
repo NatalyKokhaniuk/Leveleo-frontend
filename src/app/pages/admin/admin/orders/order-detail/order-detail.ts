@@ -6,12 +6,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { catchError, of, switchMap } from 'rxjs';
 import { DeliveryType } from '../../../../../features/addresses/address.types';
 import {
   AdminConfirmDeleteDialogComponent,
@@ -19,6 +21,8 @@ import {
 } from '../../../admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
 import { UserResponse } from '../../../../../core/auth/models/auth.types';
 import { UserService } from '../../../../../features/users/user.service';
+import { AdminTaskService } from '../../../../../features/admin-tasks/admin-task.service';
+import { DeliveryService } from '../../../../../features/orders/delivery.service';
 import { OrderService } from '../../../../../features/orders/order.service';
 import {
   ORDER_STATUS_VALUES,
@@ -28,6 +32,8 @@ import {
   OrderItemDto,
   OrderUpdateDto,
 } from '../../../../../features/orders/order.types';
+import { OrderStatusLabelPipe } from '../../../../../shared/pipes/order-status-label.pipe';
+import { PaymentStatusLabelPipe } from '../../../../../shared/pipes/payment-status-label.pipe';
 
 @Component({
   selector: 'app-admin-order-detail',
@@ -40,11 +46,14 @@ import {
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
+    MatInputModule,
     MatSelectModule,
     MatIconModule,
     MatTableModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    OrderStatusLabelPipe,
+    PaymentStatusLabelPipe,
   ],
   templateUrl: './order-detail.html',
 })
@@ -52,6 +61,8 @@ export class AdminOrderDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private ordersApi = inject(OrderService);
   private usersApi = inject(UserService);
+  private adminTasksApi = inject(AdminTaskService);
+  private deliveryApi = inject(DeliveryService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
   private dialog = inject(MatDialog);
@@ -65,12 +76,16 @@ export class AdminOrderDetailComponent implements OnInit {
 
   saving = signal(false);
   cancelling = signal(false);
+  shipping = signal(false);
 
   /** GET /api/users/{userId} після завантаження замовлення (Admin/Moderator). */
   customerProfile = signal<UserResponse | null>(null);
 
   statusForm = this.fb.group({
     status: ['', Validators.required],
+  });
+  shipmentForm = this.fb.group({
+    trackingNumber: [''],
   });
 
   ngOnInit(): void {
@@ -233,5 +248,52 @@ export class AdminOrderDetailComponent implements OnInit {
         },
       });
     });
+  }
+
+  sendOrder(): void {
+    const o = this.order();
+    if (!o) return;
+    const trackingNumber = this.shipmentForm.value.trackingNumber?.trim();
+    if (!trackingNumber) {
+      this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.SHIP_TRACKING_REQUIRED'), undefined, { duration: 3500 });
+      return;
+    }
+    this.shipping.set(true);
+    this.deliveryApi
+      .createManualForOrder(o.id, trackingNumber)
+      .pipe(
+        switchMap(() =>
+          this.adminTasksApi.findOpenShipOrderTask(o.id).pipe(
+            switchMap((task) => {
+              if (!task) return of(null);
+              const shippedNote = `${this.translate.instant('ADMIN.TASKS_PAGE.SHIPPED_NOTE_PREFIX')}${trackingNumber}`;
+              if (task.status === 'Pending') {
+                return this.adminTasksApi.assignToMe(task.id).pipe(
+                  switchMap((assigned) => this.adminTasksApi.complete(assigned.id, { completionNote: shippedNote })),
+                  catchError(() => of(null)),
+                );
+              }
+              if (task.status === 'InProgress') {
+                return this.adminTasksApi.complete(task.id, { completionNote: shippedNote }).pipe(catchError(() => of(null)));
+              }
+              return of(null);
+            }),
+          ),
+        ),
+        switchMap(() => this.ordersApi.getDetail(o.id)),
+      )
+      .subscribe({
+        next: (updatedOrder) => {
+          this.order.set(updatedOrder);
+          this.statusForm.patchValue({ status: updatedOrder.status ?? '' });
+          this.shipmentForm.patchValue({ trackingNumber: '' });
+          this.shipping.set(false);
+          this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.SHIP_OK'), undefined, { duration: 3500 });
+        },
+        error: () => {
+          this.shipping.set(false);
+          this.snack.open(this.translate.instant('ADMIN.ORDERS_PAGE.SHIP_ERROR'), undefined, { duration: 4500 });
+        },
+      });
   }
 }

@@ -3,15 +3,31 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { Subscription, filter, firstValueFrom, take } from 'rxjs';
+import { Subscription, catchError, filter, firstValueFrom, forkJoin, map, of, take } from 'rxjs';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { DeliveryType } from '../../features/addresses/address.types';
 import { OrderService } from '../../features/orders/order.service';
 import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../features/orders/order.types';
+import { ReviewService } from '../../features/reviews/review.service';
+import { ReviewDto } from '../../features/reviews/review.types';
+import { OrderStatusLabelPipe } from '../../shared/pipes/order-status-label.pipe';
+import { PaymentStatusLabelPipe } from '../../shared/pipes/payment-status-label.pipe';
+import {
+  OrderItemReviewDialogComponent,
+  OrderItemReviewDialogData,
+} from './order-item-review-dialog/order-item-review-dialog.component';
+
+export type OrderItemReviewUi =
+  | { kind: 'loading' }
+  | { kind: 'none' }
+  | { kind: 'has'; review: ReviewDto }
+  | { kind: 'unavailable' };
 
 @Component({
   selector: 'app-order-detail',
@@ -23,20 +39,29 @@ import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../features/or
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     TranslateModule,
+    OrderStatusLabelPipe,
+    PaymentStatusLabelPipe,
   ],
   templateUrl: './order-detail.html',
+  styleUrl: './order-detail.scss',
 })
 export class OrderDetailPage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private orders = inject(OrderService);
   private translate = inject(TranslateService);
-  private auth = inject(AuthService);
+  readonly auth = inject(AuthService);
+  private dialog = inject(MatDialog);
+  private reviews = inject(ReviewService);
+
+  /** Стан відгуку по orderItemId для кнопок «Залишити / Показати відгук». */
+  itemReviewUi = signal<Record<string, OrderItemReviewUi>>({});
 
   /** Очікування входу через шапку (без модального вікна). */
   private authWaitSub: Subscription | null = null;
-
+  private isAuthenticated$ = toObservable(this.auth.isAuthenticated);
   loading = signal(true);
   loadError = signal(false);
   missingId = signal(false);
@@ -105,11 +130,11 @@ export class OrderDetailPage implements OnInit, OnDestroy {
 
   private waitForAuthThenLoadOrder(): void {
     this.authWaitSub?.unsubscribe();
-    this.authWaitSub = toObservable(this.auth.isAuthenticated)
-      .pipe(filter((v) => v), take(1))
-      .subscribe(() => {
-        this.fetchOrder(this.orderId);
-      });
+  this.authWaitSub = this.isAuthenticated$  // ✅ використовуємо готовий Observable
+    .pipe(filter((v) => v), take(1))
+    .subscribe(() => {
+      this.fetchOrder(this.orderId);
+    });
   }
 
   private fetchOrder(id: string): void {
@@ -126,6 +151,7 @@ export class OrderDetailPage implements OnInit, OnDestroy {
         }
         this.order.set(o);
         this.loading.set(false);
+        this.loadOrderItemReviewStates(o);
       },
       error: (err: HttpErrorResponse) => {
         this.loading.set(false);
@@ -210,5 +236,97 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     const d = item.totalDiscountedPrice;
     if (typeof d === 'number' && !Number.isNaN(d)) return d;
     return item.quantity * this.lineUnitPrice(item);
+  }
+
+  trackingUrl(trackingNumber: string): string {
+    return `https://novaposhta.ua/tracking/${encodeURIComponent(trackingNumber.trim())}`;
+  }
+
+  /** Відгук по рядку замовлення — після відправлення або завершення. */
+  orderEligibleForItemReview(o: OrderDetailDto): boolean {
+    const s = (o.status ?? '').trim().toLowerCase();
+    return s === 'shipped' || s === 'completed';
+  }
+
+  reviewButtonState(orderItemId: string): 'loading' | 'leave' | 'show' | 'unavailable' {
+    const ui = this.itemReviewUi()[orderItemId];
+    if (!ui || ui.kind === 'loading') return 'loading';
+    if (ui.kind === 'none') return 'leave';
+    if (ui.kind === 'has') return 'show';
+    return 'unavailable';
+  }
+
+  openOrderItemReview(productId: string, orderItemId: string): void {
+    const ref = this.dialog.open<OrderItemReviewDialogComponent, OrderItemReviewDialogData>(
+      OrderItemReviewDialogComponent,
+      {
+        panelClass: ['auth-dialog', 'product-quick-view-panel'],
+        width: 'min(96vw - 24px, 1040px)',
+        maxWidth: 'calc(100vw - 24px)',
+        height: 'min(88vh, 820px)',
+        maxHeight: 'min(88vh, calc(100vh - 24px))',
+        data: { productId, orderItemId },
+      },
+    );
+    ref.afterClosed().subscribe((result: { saved?: boolean } | undefined) => {
+      if (result?.saved) {
+        this.refreshOrderItemReview(orderItemId);
+      }
+    });
+  }
+
+  private loadOrderItemReviewStates(o: OrderDetailDto): void {
+    if (!this.auth.isAuthenticated() || !this.orderEligibleForItemReview(o)) {
+      this.itemReviewUi.set({});
+      return;
+    }
+    const items = o.orderItems ?? [];
+    if (!items.length) {
+      this.itemReviewUi.set({});
+      return;
+    }
+    const loading: Record<string, OrderItemReviewUi> = {};
+    for (const it of items) {
+      loading[it.id] = { kind: 'loading' };
+    }
+    this.itemReviewUi.set(loading);
+
+    forkJoin(
+      items.map((item) =>
+        this.reviews.getByOrderItem(item.id).pipe(
+          map((rev): { id: string; ui: OrderItemReviewUi } => ({
+            id: item.id,
+            ui: rev ? { kind: 'has', review: rev } : { kind: 'none' },
+          })),
+          catchError((err: HttpErrorResponse) =>
+            of({
+              id: item.id,
+              ui: { kind: err.status === 403 ? 'unavailable' : 'none' } satisfies OrderItemReviewUi,
+            }),
+          ),
+        ),
+      ),
+    ).subscribe((rows) => {
+      const next: Record<string, OrderItemReviewUi> = {};
+      for (const r of rows) next[r.id] = r.ui;
+      this.itemReviewUi.set(next);
+    });
+  }
+
+  private refreshOrderItemReview(orderItemId: string): void {
+    this.reviews.getByOrderItem(orderItemId).subscribe({
+      next: (rev) => {
+        this.itemReviewUi.update((cur) => ({
+          ...cur,
+          [orderItemId]: rev ? { kind: 'has', review: rev } : { kind: 'none' },
+        }));
+      },
+      error: (err: HttpErrorResponse) => {
+        this.itemReviewUi.update((cur) => ({
+          ...cur,
+          [orderItemId]: { kind: err.status === 403 ? 'unavailable' : 'none' },
+        }));
+      },
+    });
   }
 }

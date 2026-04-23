@@ -1,0 +1,133 @@
+@if (loading()) {
+  <div class="flex justify-center py-4">
+    <mat-spinner diameter="32"></mat-spinner>
+  </div>
+} @else if (existing(); as ex) {
+  @if (ex.isApproved) {
+    <div class="auth-modal-container items-stretch text-left w-full !p-0 !gap-4">
+      <h4 class="text-sm font-semibold text-on-surface m-0 pb-1">
+        {{ 'ORDER_VIEW.REVIEW_VIEW_TITLE' | translate }}
+      </h4>
+      <p class="text-xs text-on-surface/70 m-0">{{ 'ORDER_VIEW.REVIEW_APPROVED_LOCKED' | translate }}</p>
+
+      <div>
+        <span class="text-xs font-medium text-on-surface/70 block mb-2">{{ 'ORDER_VIEW.REVIEW_RATING' | translate }}</span>
+        <div class="flex flex-wrap gap-1 pointer-events-none" aria-readonly="true">
+          @for (star of [1, 2, 3, 4, 5]; track star) {
+            <mat-icon
+              class="!w-7 !h-7 text-[1.75rem] shrink-0"
+              [class.text-amber-500]="star <= ex.rating"
+              [class.text-on-surface/25]="star > ex.rating"
+            >
+              {{ star <= ex.rating ? 'star' : 'star_border' }}
+            </mat-icon>
+          }
+        </div>
+      </div>
+
+      @if (ex.comment && ex.comment.trim()) {
+        <p
+          class="text-sm text-on-surface/90 whitespace-pre-wrap break-words [overflow-wrap:anywhere] m-0 pt-2 border-t border-outline-variant/30"
+        >
+          {{ ex.comment }}
+        </p>
+      }
+    </div>
+  } @else {
+    <div class="auth-modal-container items-stretch text-left w-full !p-0 !gap-4">
+      <form class="w-full max-w-full min-w-0 space-y-1 contacts-form" [formGroup]="form" (ngSubmit)="submit()">
+        <h4 class="text-sm font-semibold text-on-surface m-0 pb-1">
+          {{ 'ORDER_VIEW.REVIEW_EDIT_TITLE' | translate }}
+        </h4>
+
+        <div>
+          <span class="text-xs font-medium text-on-surface/70 block mb-2">{{ 'ORDER_VIEW.REVIEW_RATING' | translate }}</span>
+          <div class="flex flex-wrap gap-1">
+            @for (star of [1, 2, 3, 4, 5]; track star) {
+              <button
+                type="button"
+                class="p-1 rounded-md border-0 bg-transparent cursor-pointer disabled:opacity-40"
+                [disabled]="!canEdit() || saving()"
+                (click)="setRating(star)"
+                [attr.aria-label]="star + ' / 5'"
+              >
+                <mat-icon
+                  class="!w-7 !h-7 text-[1.75rem]"
+                  [class.text-amber-500]="star <= rating()"
+                  [class.text-on-surface/25]="star > rating()"
+                >
+                  {{ star <= rating() ? 'star' : 'star_border' }}
+                </mat-icon>
+              </button>
+            }
+          </div>
+        </div>
+
+        <mat-form-field class="w-full">
+          <mat-label>{{ 'ORDER_VIEW.REVIEW_COMMENT' | translate }}</mat-label>
+          <textarea matInput rows="4" formControlName="comment" [disabled]="!canEdit() || saving()"></textarea>
+        </mat-form-field>
+
+        @if (canEdit()) {
+          <div class="modal-actions pt-2">
+            <button matButton="filled" color="primary" class="w-full" type="submit" [disabled]="saving()">
+              @if (saving()) {
+                <mat-spinner diameter="20"></mat-spinner>
+              } @else {
+                {{ 'ORDER_VIEW.REVIEW_UPDATE' | translate }}
+              }
+            </button>
+          </div>
+        }
+      </form>
+    </div>
+  }
+} @else {
+  <div class="auth-modal-container items-stretch text-left w-full !p-0 !gap-4">
+    <form class="w-full max-w-full min-w-0 space-y-1 contacts-form" [formGroup]="form" (ngSubmit)="submit()">
+      <h4 class="text-sm font-semibold text-on-surface m-0 pb-1">
+        {{ 'ORDER_VIEW.REVIEW_NEW_TITLE' | translate }}
+      </h4>
+
+      <div>
+        <span class="text-xs font-medium text-on-surface/70 block mb-2">{{ 'ORDER_VIEW.REVIEW_RATING' | translate }}</span>
+        <div class="flex flex-wrap gap-1">
+          @for (star of [1, 2, 3, 4, 5]; track star) {
+            <button
+              type="button"
+              class="p-1 rounded-md border-0 bg-transparent cursor-pointer disabled:opacity-40"
+              [disabled]="!canEdit() || saving()"
+              (click)="setRating(star)"
+              [attr.aria-label]="star + ' / 5'"
+            >
+              <mat-icon
+                class="!w-7 !h-7 text-[1.75rem]"
+                [class.text-amber-500]="star <= rating()"
+                [class.text-on-surface/25]="star > rating()"
+              >
+                {{ star <= rating() ? 'star' : 'star_border' }}
+              </mat-icon>
+            </button>
+          }
+        </div>
+      </div>
+
+      <mat-form-field class="w-full">
+        <mat-label>{{ 'ORDER_VIEW.REVIEW_COMMENT' | translate }}</mat-label>
+        <textarea matInput rows="4" formControlName="comment" [disabled]="!canEdit() || saving()"></textarea>
+      </mat-form-field>
+
+      @if (canEdit()) {
+        <div class="modal-actions pt-2">
+          <button matButton="filled" color="primary" class="w-full" type="submit" [disabled]="saving()">
+            @if (saving()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ORDER_VIEW.REVIEW_SUBMIT' | translate }}
+            }
+          </button>
+        </div>
+      }
+    </form>
+  </div>
+}

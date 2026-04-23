@@ -13,11 +13,32 @@ import { ProductReviewPublicDto } from './product-review.types';
 export class ProductReviewService {
   private api = inject(ApiService);
 
+  /**
+   * Публічні відгуки: GET /api/Reviews/product/{productId} (схвалені).
+   * Резерв: GET /api/products/{id}/reviews — якщо основний ендпоінт недоступний.
+   */
   getPublicByProductId(productId: string): Observable<ProductReviewPublicDto[]> {
-    return this.api.get<unknown>(`/products/${encodeURIComponent(productId)}/reviews`).pipe(
-      map((body) => this.normalizeList(body)),
-      catchError(() => of([])),
-    );
+    return this.api
+      .get<unknown>(`/Reviews/product/${encodeURIComponent(productId)}?page=1&pageSize=100`)
+      .pipe(
+        map((body) => this.mapReviewsProductResponse(body)),
+        catchError(() =>
+          this.api.get<unknown>(`/products/${encodeURIComponent(productId)}/reviews`).pipe(
+            map((body) => this.normalizeList(body)),
+            catchError(() => of([])),
+          ),
+        ),
+      );
+  }
+
+  private mapReviewsProductResponse(body: unknown): ProductReviewPublicDto[] {
+    if (!body || typeof body !== 'object') return [];
+    const o = body as Record<string, unknown>;
+    const raw = o['reviews'] ?? o['Reviews'];
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((x, i) => this.normalizeOne(x, i))
+      .filter((x): x is ProductReviewPublicDto => x != null);
   }
 
   private normalizeList(body: unknown): ProductReviewPublicDto[] {

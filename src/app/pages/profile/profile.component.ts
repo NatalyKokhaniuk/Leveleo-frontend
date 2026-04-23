@@ -26,6 +26,7 @@ import { AddressService } from '../../features/addresses/address.service';
 import { AddressResponseDto, reorderAddressListPreferredFirst } from '../../features/addresses/address.types';
 import { OrderService } from '../../features/orders/order.service';
 import { OrderListItemDto } from '../../features/orders/order.types';
+import { OrderStatusLabelPipe } from '../../shared/pipes/order-status-label.pipe';
 import { UserService } from '../../features/users/user.service';
 
 @Component({
@@ -45,6 +46,7 @@ import { UserService } from '../../features/users/user.service';
     TranslateModule,
     MatTooltipModule,
     RouterLink,
+    OrderStatusLabelPipe,
   ],
   templateUrl: './profile.component.html',
 })

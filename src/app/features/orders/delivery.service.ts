@@ -43,6 +43,15 @@ export class DeliveryService {
     return this.api.post<DeliveryDto>(`${this.base}/create/${encodeURIComponent(orderId)}`, {});
   }
 
+  /** POST /api/Delivery/create-manual/{orderId}?trackingNumber=... */
+  createManualForOrder(orderId: string, trackingNumber: string): Observable<DeliveryDto> {
+    const tracking = trackingNumber.trim();
+    return this.api.post<DeliveryDto>(
+      `${this.base}/create-manual/${encodeURIComponent(orderId)}?trackingNumber=${encodeURIComponent(tracking)}`,
+      {},
+    );
+  }
+
   /** PATCH emulation: POST /api/Delivery/{deliveryId}/status */
   updateStatus(deliveryId: string, body: Record<string, unknown>): Observable<DeliveryDto> {
     return this.api.post<DeliveryDto>(`${this.base}/${encodeURIComponent(deliveryId)}/status`, body);

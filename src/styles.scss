@@ -312,6 +312,22 @@ a.app-promo-badge:hover {
   animation: address-default-pulse 0.88s ease-out;
 }
 
+/* Випадаюча панель фільтра оцінок у вкладці «Відгуки» (product-detail-tabs): удвічі вужча */
+.mat-mdc-select-panel.product-detail-tabs__reviews-filter-panel {
+  min-width: 2.5rem !important;
+  max-width: 2.75rem !important;
+  box-sizing: border-box;
+
+  .mat-mdc-option {
+    min-height: 36px;
+    font-size: 0.75rem;
+    padding-left: 6px;
+    padding-right: 6px;
+    white-space: normal;
+    line-height: 1.2;
+  }
+}
+
 @layer utilities {
   .bg-primary-container {
     background-color: var(--mat-sys-primary-container);

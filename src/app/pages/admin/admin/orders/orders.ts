@@ -20,6 +20,7 @@ import {
 import { ORDER_STATUS_VALUES, OrderListItemDto } from '../../../../features/orders/order.types';
 import { OrderService } from '../../../../features/orders/order.service';
 import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
+import { OrderStatusLabelPipe } from '../../../../shared/pipes/order-status-label.pipe';
 
 @Component({
   selector: 'app-admin-orders',
@@ -39,6 +40,7 @@ import { HorizontalDragScrollDirective } from '../../../../shared/directives/hor
     MatProgressSpinnerModule,
     MatSnackBarModule,
     HorizontalDragScrollDirective,
+    OrderStatusLabelPipe,
   ],
   templateUrl: './orders.html',
 })

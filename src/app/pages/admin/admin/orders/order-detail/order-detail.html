@@ -54,10 +54,10 @@
             <mat-label>{{ 'ADMIN.ORDERS_PAGE.STATUS_EDIT' | translate }}</mat-label>
             <mat-select formControlName="status">
               @if (o.status && !statusInList(o.status)) {
-                <mat-option [value]="o.status">{{ o.status }}</mat-option>
+                <mat-option [value]="o.status">{{ o.status | orderStatusLabel }}</mat-option>
               }
               @for (st of orderStatuses; track st) {
-                <mat-option [value]="st">{{ st }}</mat-option>
+                <mat-option [value]="st">{{ st | orderStatusLabel }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -69,6 +69,32 @@
             }
           </button>
         </form>
+
+        <form [formGroup]="shipmentForm" class="flex flex-col gap-3 sm:flex-row sm:flex-wrap items-stretch sm:items-end">
+          <mat-form-field class="flex-1 min-w-[14rem]">
+            <mat-label>{{ 'ADMIN.ORDERS_PAGE.TRACKING_NUMBER' | translate }}</mat-label>
+            <input matInput formControlName="trackingNumber" />
+          </mat-form-field>
+          <button
+            matButton="filled"
+            color="primary"
+            type="button"
+            [disabled]="shipping()"
+            (click)="sendOrder()"
+          >
+            @if (shipping()) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              {{ 'ADMIN.ORDERS_PAGE.SEND_ORDER_BTN' | translate }}
+            }
+          </button>
+        </form>
+
+        @if (o.delivery?.trackingNumber; as trackingNumber) {
+          <p class="m-0 text-sm opacity-80">
+            <span class="opacity-70">{{ 'ADMIN.ORDERS_PAGE.TRACKING_NUMBER' | translate }}:</span> {{ trackingNumber }}
+          </p>
+        }
 
         <div class="flex flex-wrap gap-2">
           <button matButton="outlined" color="warn" type="button" (click)="confirmCancelOrder()" [disabled]="cancelling()">
@@ -92,7 +118,7 @@
         >
           <h2 class="font-semibold text-base m-0">{{ 'ADMIN.ORDERS_PAGE.SECTION_PAYMENT' | translate }}</h2>
           <p class="m-0">
-            <span class="opacity-70">{{ 'ORDER_VIEW.PAYMENT_STATUS' | translate }}:</span> {{ pay.status }}
+            <span class="opacity-70">{{ 'ORDER_VIEW.PAYMENT_STATUS' | translate }}:</span> {{ pay.status | paymentStatusLabel }}
           </p>
           <p class="m-0">
             {{ pay.amount | number: '1.2-2' }} {{ pay.currency }}

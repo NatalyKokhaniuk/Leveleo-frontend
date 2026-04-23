@@ -50,6 +50,8 @@
       class="product-detail-tabs__group"
       [class.product-detail-tabs__group--dialog]="dialogLayout"
       preserveContent="false"
+      [selectedIndex]="selectedTabIndex()"
+      (selectedIndexChange)="onTabIndexChange($event)"
     >
       <mat-tab [label]="'PRODUCTS.TAB_DETAILS' | translate">
         <div class="product-detail-tabs__panel">
@@ -144,22 +146,32 @@
             </section>
           }
 
-          <div class="mt-2 pt-3 border-t border-outline-variant/20 flex flex-col gap-2">
+          <div class="mt-2 pt-3 border-t border-outline-variant/20 flex flex-col gap-3">
             <a
               routerLink="/returns"
-              class="inline-flex items-start gap-2 text-sm text-on-surface/85 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+              class="product-detail-tabs__policy-link inline-flex items-start gap-3 text-sm text-on-surface/85 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded min-w-0"
             >
-              <mat-icon class="!w-5 !h-5 text-[1.1rem] mt-[1px] shrink-0">verified_user</mat-icon>
-              <span>{{ 'PRODUCTS.GUARANTEE_LINK_TEXT' | translate }}</span>
+              <span
+                class="product-detail-tabs__policy-icon-wrap flex shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface/80"
+                aria-hidden="true"
+              >
+                <mat-icon class="product-detail-tabs__policy-icon">verified_user</mat-icon>
+              </span>
+              <span class="min-w-0 flex-1 leading-snug [overflow-wrap:anywhere]">{{ 'PRODUCTS.GUARANTEE_LINK_TEXT' | translate }}</span>
             </a>
             <a
               routerLink="/contacts"
               fragment="contact-form"
               [queryParams]="{ category: 'product' }"
-              class="inline-flex items-start gap-2 text-sm text-on-surface/85 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"
+              class="product-detail-tabs__policy-link inline-flex items-start gap-3 text-sm text-on-surface/85 hover:text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded min-w-0"
             >
-              <mat-icon class="!w-5 !h-5 text-[1.1rem] mt-[1px] shrink-0">report_problem</mat-icon>
-              <span>{{ 'PRODUCTS.COMPLAIN_LINK_TEXT' | translate }}</span>
+              <span
+                class="product-detail-tabs__policy-icon-wrap flex shrink-0 items-center justify-center rounded-full bg-surface-container-high text-on-surface/80"
+                aria-hidden="true"
+              >
+                <mat-icon class="product-detail-tabs__policy-icon">report_problem</mat-icon>
+              </span>
+              <span class="min-w-0 flex-1 leading-snug [overflow-wrap:anywhere]">{{ 'PRODUCTS.COMPLAIN_LINK_TEXT' | translate }}</span>
             </a>
           </div>
         </div>
@@ -167,6 +179,9 @@
 
       <mat-tab [label]="'PRODUCTS.TAB_REVIEWS' | translate">
         <div class="product-detail-tabs__panel product-detail-tabs__panel--reviews">
+          @if (orderItemId; as oid) {
+            <app-order-item-review-form [orderItemId]="oid" (saved)="onOrderReviewSaved()" />
+          }
           @if (reviewsLoading()) {
             <div class="flex justify-center py-6">
               <mat-spinner diameter="36"></mat-spinner>
@@ -174,44 +189,66 @@
           } @else if (reviews().length === 0) {
             <p class="text-sm text-on-surface/70">{{ 'PRODUCTS.REVIEWS_EMPTY' | translate }}</p>
           } @else {
-            <ul class="flex flex-col gap-4 list-none p-0 m-0 min-w-0">
-              @for (r of reviews(); track r.id) {
-                <li
-                  class="rounded-xl border border-outline-variant/30 bg-surface-container/30 p-3 min-w-0"
+            <div class="w-full max-w-full min-w-0 space-y-1 contacts-form product-detail-tabs__reviews-filter-form">
+              <mat-form-field class="w-full" subscriptSizing="dynamic">
+                <mat-label>{{ 'PRODUCTS.REVIEWS_FILTER_STARS' | translate }}</mat-label>
+                <mat-select
+                  [value]="publicReviewStarsFilter()"
+                  (selectionChange)="onPublicReviewStarsFilter($event)"
                 >
-                  <div class="flex flex-wrap items-center gap-2 mb-1">
-                    @for (s of [0, 1, 2, 3, 4]; track s) {
-                      <mat-icon
-                        class="!w-4 !h-4 text-[1rem] shrink-0"
-                        [class.text-amber-500]="reviewStars(r.rating, s)"
-                        [class.text-on-surface/25]="!reviewStars(r.rating, s)"
-                      >
-                        {{ reviewStars(r.rating, s) ? 'star' : 'star_border' }}
-                      </mat-icon>
-                    }
-                    @if (r.userDisplayName) {
-                      <span class="text-sm font-medium text-on-surface break-all">{{
-                        r.userDisplayName
-                      }}</span>
-                    }
-                    @if (r.createdAt) {
-                      <span class="text-xs text-on-surface/50">{{ r.createdAt | date: 'short' }}</span>
-                    }
-                  </div>
-                  @if (reviewHasText(r)) {
-                    <p
-                      class="text-sm text-on-surface/90 whitespace-pre-wrap break-words [overflow-wrap:anywhere] m-0"
-                    >
-                      {{ r.comment }}
-                    </p>
-                  } @else {
-                    <p class="text-xs text-on-surface/55 m-0 italic">
-                      {{ 'PRODUCTS.REVIEW_NO_COMMENT' | translate }}
-                    </p>
+                  <mat-option value="">{{ 'PRODUCTS.REVIEWS_FILTER_STARS_ALL' | translate }}</mat-option>
+                  @for (n of [5, 4, 3, 2, 1]; track n) {
+                    <mat-option [value]="'' + n">{{ n }}★</mat-option>
                   }
-                </li>
-              }
-            </ul>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            @if (filteredPublicReviews().length === 0) {
+              <p class="text-sm text-on-surface/70 m-0">{{ 'PRODUCTS.REVIEWS_EMPTY_FOR_FILTER' | translate }}</p>
+            } @else {
+              <div class="product-detail-tabs__reviews-list-scroll min-w-0">
+                <ul class="flex flex-col gap-4 list-none p-0 m-0 min-w-0">
+                  @for (r of filteredPublicReviews(); track r.id) {
+                    <li
+                      class="rounded-xl border border-outline-variant/30 bg-surface-container/30 p-3 min-w-0 overflow-visible"
+                    >
+                    <div class="product-detail-tabs__review-card-header">
+                      <div class="product-detail-tabs__review-stars-row">
+                        @for (s of [0, 1, 2, 3, 4]; track s) {
+                          <mat-icon
+                            class="product-detail-tabs__review-star-icon shrink-0"
+                            [class.text-amber-500]="reviewStars(r.rating, s)"
+                            [class.text-on-surface/25]="!reviewStars(r.rating, s)"
+                          >
+                            {{ reviewStars(r.rating, s) ? 'star' : 'star_border' }}
+                          </mat-icon>
+                        }
+                      </div>
+                      @if (r.createdAt) {
+                        <time class="product-detail-tabs__review-datetime" [attr.datetime]="r.createdAt">{{
+                          r.createdAt | date: 'short'
+                        }}</time>
+                      }
+                    </div>
+                    @if (r.userDisplayName) {
+                      <div class="text-sm font-medium text-on-surface break-all mb-1">{{ r.userDisplayName }}</div>
+                    }
+                    @if (reviewHasText(r)) {
+                      <p
+                        class="text-sm text-on-surface/90 whitespace-pre-wrap break-words [overflow-wrap:anywhere] m-0"
+                      >
+                        {{ r.comment }}
+                      </p>
+                    } @else {
+                      <p class="text-xs text-on-surface/55 m-0 italic">
+                        {{ 'PRODUCTS.REVIEW_NO_COMMENT' | translate }}
+                      </p>
+                    }
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
           }
         </div>
       </mat-tab>

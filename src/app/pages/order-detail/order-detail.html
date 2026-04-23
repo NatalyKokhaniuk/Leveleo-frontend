@@ -52,7 +52,9 @@
           <h2 class="text-lg font-semibold text-on-surface m-0 mb-1">
             {{ 'ORDER_VIEW.SUCCESS_TITLE' | translate }}
           </h2>
-          <p class="text-sm text-on-surface/80 m-0">{{ 'ORDER_VIEW.SUCCESS_SUBTITLE' | translate }}</p>
+          <p class="text-sm text-on-surface/80 m-0">
+            {{ 'ORDER_VIEW.SUCCESS_SUBTITLE' | translate }}
+          </p>
         </div>
       </div>
     }
@@ -81,14 +83,18 @@
       <div class="grid gap-1 text-sm">
         @if (o.status) {
           <p class="m-0">
-            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.ORDER_STATUS' | translate }}:</span>
-            {{ o.status }}
+            <span class="font-medium text-on-surface"
+              >{{ 'ORDER_VIEW.ORDER_STATUS' | translate }}:</span
+            >
+            {{ o.status | orderStatusLabel }}
           </p>
         }
         @if (o.payment; as pay) {
           <p class="m-0">
-            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.PAYMENT_STATUS' | translate }}:</span>
-            {{ pay.status }}
+            <span class="font-medium text-on-surface"
+              >{{ 'ORDER_VIEW.PAYMENT_STATUS' | translate }}:</span
+            >
+            {{ pay.status | paymentStatusLabel }}
             @if (pay.amount != null && pay.currency) {
               <span class="text-on-surface/80">
                 ({{ pay.amount | number: '1.2-2' }} {{ pay.currency }})
@@ -106,15 +112,28 @@
 
       @if (o.orderItems?.length) {
         <div>
-          <h2 class="text-lg font-semibold text-on-surface m-0 mb-3">{{ 'ORDER_VIEW.ITEMS' | translate }}</h2>
+          <h2 class="text-lg font-semibold text-on-surface m-0 mb-3">
+            {{ 'ORDER_VIEW.ITEMS' | translate }}
+          </h2>
           <div class="overflow-x-auto -mx-1">
             <table class="w-full text-sm border-collapse min-w-[280px]">
               <thead>
                 <tr class="text-on-surface/70 text-left">
                   <th class="pb-2 pr-3 font-medium">{{ 'ORDER_VIEW.COL_PRODUCT' | translate }}</th>
-                  <th class="pb-2 pr-3 font-medium whitespace-nowrap">{{ 'ORDER_VIEW.COL_QTY' | translate }}</th>
-                  <th class="pb-2 pr-3 font-medium whitespace-nowrap">{{ 'ORDER_VIEW.COL_UNIT' | translate }}</th>
-                  <th class="pb-2 font-medium whitespace-nowrap">{{ 'ORDER_VIEW.COL_LINE' | translate }}</th>
+                  <th class="pb-2 pr-3 font-medium whitespace-nowrap">
+                    {{ 'ORDER_VIEW.COL_QTY' | translate }}
+                  </th>
+                  <th class="pb-2 pr-3 font-medium whitespace-nowrap">
+                    {{ 'ORDER_VIEW.COL_UNIT' | translate }}
+                  </th>
+                  <th class="pb-2 font-medium whitespace-nowrap">
+                    {{ 'ORDER_VIEW.COL_LINE' | translate }}
+                  </th>
+                  @if (auth.isAuthenticated() && orderEligibleForItemReview(o)) {
+                    <th class="pb-2 pl-3 font-medium whitespace-nowrap text-right">
+                      {{ 'ORDER_VIEW.COL_ACTIONS' | translate }}
+                    </th>
+                  }
                 </tr>
               </thead>
               <tbody>
@@ -123,11 +142,59 @@
                     <td class="py-2 pr-3 align-top">{{ item.productName }}</td>
                     <td class="py-2 pr-3 align-top whitespace-nowrap">{{ item.quantity }}</td>
                     <td class="py-2 pr-3 align-top whitespace-nowrap">
-                      {{ lineUnitPrice(item) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                      {{ lineUnitPrice(item) | number: '1.2-2' }}
+                      {{ 'PRODUCTS.CURRENCY' | translate }}
                     </td>
                     <td class="py-2 align-top whitespace-nowrap">
                       {{ lineTotal(item) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
                     </td>
+                    @if (auth.isAuthenticated() && orderEligibleForItemReview(o)) {
+                      <td class="py-2 pl-3 align-top text-right whitespace-nowrap">
+                        @switch (reviewButtonState(item.id)) {
+                          @case ('loading') {
+                            <button matButton="outlined" type="button" disabled class="min-w-[8.5rem]">
+                              <mat-spinner diameter="20" class="inline-block align-middle"></mat-spinner>
+                            </button>
+                          }
+                          @case ('leave') {
+                            <button
+                              type="button"
+                              class="order-detail__review-link inline-flex w-full items-center justify-end gap-2 text-sm font-medium text-primary hover:underline bg-transparent border-0 p-0 m-0 cursor-pointer text-right overflow-visible focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:rounded-sm"
+                              (click)="openOrderItemReview(item.productId, item.id)"
+                            >
+                              <mat-icon
+                                class="order-detail__review-link-icon shrink-0 !w-5 !h-5 !text-[1.25rem] leading-none overflow-visible inline-flex items-center justify-center"
+                                aria-hidden="true"
+                              >rate_review</mat-icon>
+                              <span>{{ 'ORDER_VIEW.LEAVE_REVIEW' | translate }}</span>
+                            </button>
+                          }
+                          @case ('show') {
+                            <button
+                              type="button"
+                              class="order-detail__review-link inline-flex w-full items-center justify-end gap-2 text-sm font-medium text-primary hover:underline bg-transparent border-0 p-0 m-0 cursor-pointer text-right overflow-visible focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary focus-visible:rounded-sm"
+                              (click)="openOrderItemReview(item.productId, item.id)"
+                            >
+                              <mat-icon
+                                class="order-detail__review-link-icon shrink-0 !w-5 !h-5 !text-[1.25rem] leading-none overflow-visible inline-flex items-center justify-center"
+                                aria-hidden="true"
+                              >visibility</mat-icon>
+                              <span>{{ 'ORDER_VIEW.SHOW_REVIEW' | translate }}</span>
+                            </button>
+                          }
+                          @default {
+                            <button
+                              matButton="outlined"
+                              type="button"
+                              disabled
+                              [matTooltip]="'ORDER_VIEW.REVIEW_UNAVAILABLE_TOOLTIP' | translate"
+                            >
+                              {{ 'ORDER_VIEW.SHOW_REVIEW' | translate }}
+                            </button>
+                          }
+                        }
+                      </td>
+                    }
                   </tr>
                 }
               </tbody>
@@ -138,9 +205,13 @@
 
       @if (o.address; as addr) {
         <div class="space-y-3 text-sm">
-          <h2 class="text-lg font-semibold text-on-surface m-0">{{ 'ORDER_VIEW.DELIVERY_BLOCK' | translate }}</h2>
+          <h2 class="text-lg font-semibold text-on-surface m-0">
+            {{ 'ORDER_VIEW.DELIVERY_BLOCK' | translate }}
+          </h2>
           <p class="m-0">
-            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.DELIVERY_TYPE' | translate }}:</span>
+            <span class="font-medium text-on-surface"
+              >{{ 'ORDER_VIEW.DELIVERY_TYPE' | translate }}:</span
+            >
             {{ deliveryTypeLabel(addr.deliveryType) }}
           </p>
           <p class="m-0">
@@ -148,13 +219,34 @@
             {{ addr.formattedAddress }}
           </p>
           <p class="m-0">
-            <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.RECIPIENT' | translate }}:</span>
+            <span class="font-medium text-on-surface"
+              >{{ 'ORDER_VIEW.RECIPIENT' | translate }}:</span
+            >
             {{ recipientFullName(addr) }}
           </p>
           <p class="m-0">
             <span class="font-medium text-on-surface">{{ 'ORDER_VIEW.PHONE' | translate }}:</span>
             {{ addr.phoneNumber }}
           </p>
+          @if (o.delivery?.trackingNumber; as tn) {
+            <p class="m-0 mt-3 flex flex-row items-center justify-start">
+              <span class="font-medium text-on-surface inline-flex items-center gap-2">
+                <img
+                  src="https://www.get-checkout.com/np-logomark-red_1753871236873.png"
+                  alt="Nova Poshta"
+                  class="h-10 w-10 object-contain"
+                />
+                {{ 'ORDER_VIEW.TRACKING_NUMBER' | translate }}:
+              </span>
+              <a
+                class="text-primary hover:underline break-all"
+                [href]="trackingUrl(tn)"
+                target="_blank"
+                rel="noopener noreferrer"
+                >&nbsp;{{ tn }}</a
+              >
+            </p>
+          }
         </div>
       }
     </section>

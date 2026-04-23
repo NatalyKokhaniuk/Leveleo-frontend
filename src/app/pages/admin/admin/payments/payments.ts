@@ -26,6 +26,7 @@ import {
 } from '../../../../features/payments/payment.types';
 import { PaymentService } from '../../../../features/payments/payment.service';
 import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
+import { PaymentStatusLabelPipe } from '../../../../shared/pipes/payment-status-label.pipe';
 
 @Component({
   selector: 'app-admin-payments',
@@ -46,6 +47,7 @@ import { HorizontalDragScrollDirective } from '../../../../shared/directives/hor
     MatProgressSpinnerModule,
     MatSnackBarModule,
     HorizontalDragScrollDirective,
+    PaymentStatusLabelPipe,
   ],
   templateUrl: './payments.html',
 })

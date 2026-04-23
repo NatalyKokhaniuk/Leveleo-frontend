@@ -1,0 +1,333 @@
+<main class="pt-32 px-4 md:px-10 max-w-6xl mx-auto flex flex-col gap-8 min-w-0 pb-16">
+  <div class="flex flex-col gap-2">
+    <a
+      routerLink="/admin"
+      class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+    >
+      <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+      {{ 'ADMIN.BACK' | translate }}
+    </a>
+    <h1 class="modal-title text-2xl md:text-3xl text-left">{{ 'ADMIN.REVIEWS_PAGE.TITLE' | translate }}</h1>
+    <p class="modal-desc text-left max-w-none">{{ 'ADMIN.REVIEWS_PAGE.DESCRIPTION' | translate }}</p>
+  </div>
+
+  <section
+    class="rounded-2xl border border-outline-variant bg-surface-container p-4 sm:p-6 flex flex-col gap-4"
+  >
+    <h2 class="text-base font-semibold m-0">{{ 'ADMIN.REVIEWS_PAGE.LIST_SECTION' | translate }}</h2>
+
+    <form
+      [formGroup]="filterForm"
+      class="w-full flex flex-col lg:flex-row flex-wrap gap-4 items-stretch lg:items-end space-y-1 lg:space-y-0 contacts-form"
+    >
+      <mat-form-field class="min-w-[12rem] flex-1 w-full lg:w-auto">
+        <mat-label>{{ 'ADMIN.REVIEWS_PAGE.FILTER_PRODUCT' | translate }}</mat-label>
+        <input matInput formControlName="productSearch" type="search" autocomplete="off" />
+      </mat-form-field>
+      <mat-form-field class="min-w-[10rem] flex-1 w-full lg:w-auto">
+        <mat-label>{{ 'ADMIN.REVIEWS_PAGE.FILTER_RATING' | translate }}</mat-label>
+        <mat-select formControlName="rating">
+          <mat-option value="">{{ 'ADMIN.TASKS_PAGE.FILTER_ALL' | translate }}</mat-option>
+          @for (n of [5, 4, 3, 2, 1]; track n) {
+            <mat-option [value]="'' + n">{{ n }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field class="min-w-[12rem] flex-1 w-full lg:w-auto">
+        <mat-label>{{ 'ADMIN.REVIEWS_PAGE.FILTER_MODERATION' | translate }}</mat-label>
+        <mat-select formControlName="moderation">
+          <mat-option value="all">{{ 'ADMIN.REVIEWS_PAGE.FILTER_MODERATION_ALL' | translate }}</mat-option>
+          <mat-option value="pending">{{ 'ADMIN.REVIEWS_PAGE.FILTER_MODERATION_PENDING' | translate }}</mat-option>
+          <mat-option value="allowed">{{ 'ADMIN.REVIEWS_PAGE.FILTER_MODERATION_ALLOWED' | translate }}</mat-option>
+          <mat-option value="rejected">{{ 'ADMIN.REVIEWS_PAGE.FILTER_MODERATION_REJECTED' | translate }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+    <p class="text-xs opacity-75 m-0 -mt-2">{{ 'ADMIN.REVIEWS_PAGE.FILTER_HINT' | translate }}</p>
+
+    <div class="flex flex-col sm:flex-row flex-wrap gap-3 sm:items-center">
+      <button matButton="filled" type="button" class="w-full sm:w-auto" (click)="approveAll()" [disabled]="bulkBusy() || loading()">
+        @if (bulkBusy()) {
+          <mat-spinner diameter="22"></mat-spinner>
+        } @else {
+          {{ 'ADMIN.REVIEWS_PAGE.APPROVE_ALL' | translate }}
+        }
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="flex justify-center py-12">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    } @else if (displayRows().length === 0) {
+      <p class="modal-desc text-center max-w-none py-6">{{ 'ADMIN.REVIEWS_PAGE.EMPTY' | translate }}</p>
+    } @else {
+      <div class="flex flex-col gap-4 lg:hidden">
+        @for (r of displayRows(); track r.id) {
+          <div
+            class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-2 min-w-0"
+          >
+            <div class="flex flex-wrap items-center gap-2">
+              <a
+                class="font-medium break-words text-primary hover:underline"
+                [href]="productHref(r)"
+                target="_blank"
+                rel="noopener noreferrer"
+                >{{ r.productName }}</a
+              >
+              @if (r.isApproved) {
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary">{{
+                  'ADMIN.REVIEWS_PAGE.BADGE_PUBLISHED' | translate
+                }}</span>
+              }
+              @if (isRejectedReview(r)) {
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-on-surface/10 text-on-surface/70">{{
+                  'ADMIN.REVIEWS_PAGE.BADGE_REJECTED' | translate
+                }}</span>
+              }
+            </div>
+            <span class="text-sm">⭐ {{ r.rating }}</span>
+            @if (commentBody(r) === '') {
+              <p class="text-sm m-0 text-on-surface/70">—</p>
+            } @else {
+              <div class="admin-reviews__comment-wrap flex flex-wrap items-baseline gap-x-1.5 gap-y-0 min-w-0">
+                <span
+                  appAdminReviewCommentOverflow
+                  [clamped]="commentBody(r) !== '' && !isCommentExpanded(r.id)"
+                  (overflow)="onCommentOverflow(r.id, $event)"
+                  class="text-sm text-on-surface/90 min-w-0 flex-1 break-words [overflow-wrap:anywhere]"
+                  [class.admin-reviews__comment--clamped]="commentBody(r) !== '' && !isCommentExpanded(r.id)"
+                  [class.whitespace-pre-wrap]="isCommentExpanded(r.id)"
+                  >{{ commentBody(r) }}</span>
+                @if (commentNeedsToggle(r)) {
+                  <button
+                    type="button"
+                    class="admin-reviews__comment-toggle shrink-0"
+                    (click)="toggleCommentExpand(r.id, $event)"
+                  >
+                    @if (!isCommentExpanded(r.id)) {
+                      {{ 'ADMIN.REVIEWS_PAGE.COMMENT_MORE' | translate }}
+                    } @else {
+                      {{ 'ADMIN.REVIEWS_PAGE.COMMENT_LESS' | translate }}
+                    }
+                  </button>
+                }
+              </div>
+            }
+            <span class="text-xs opacity-80">{{ r.createdAt | date: 'short' }}</span>
+            <div class="flex flex-wrap gap-2 pt-1">
+              @if (isPendingModeration(r)) {
+                @if (canApprove(r)) {
+                  <button
+                    matButton="filled"
+                    type="button"
+                    (click)="approve(r)"
+                    [disabled]="!!pendingAction()"
+                  >
+                    @if (pendingAction()?.id === r.id && pendingAction()?.kind === 'approve') {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.REVIEWS_PAGE.ACTION_ALLOW' | translate }}
+                    }
+                  </button>
+                }
+                @if (canReject(r)) {
+                  <button
+                    matButton="outlined"
+                    color="warn"
+                    type="button"
+                    (click)="reject(r)"
+                    [disabled]="!!pendingAction()"
+                  >
+                    @if (pendingAction()?.id === r.id && pendingAction()?.kind === 'reject') {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.REVIEWS_PAGE.ACTION_REJECT' | translate }}
+                    }
+                  </button>
+                }
+              }
+              @if (isModeratedFinal(r) && canDelete(r)) {
+                <button
+                  matButton="outlined"
+                  color="warn"
+                  type="button"
+                  (click)="confirmDeleteReview(r)"
+                  [disabled]="!!pendingAction()"
+                >
+                  @if (pendingAction()?.id === r.id && pendingAction()?.kind === 'delete') {
+                    <mat-spinner diameter="20"></mat-spinner>
+                  } @else {
+                    {{ 'ADMIN.TABLE.DELETE' | translate }}
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div appHorizontalDragScroll class="hidden lg:block overflow-x-auto rounded-2xl border border-outline-variant -mx-1">
+        <table
+          mat-table
+          matSort
+          [dataSource]="displayRows()"
+          [matSortActive]="sortState().active"
+          [matSortDirection]="sortState().direction"
+          (matSortChange)="onSortChange($event)"
+          class="w-full min-w-[600px]"
+        >
+          <ng-container matColumnDef="productName">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="productName" disableClear>
+              {{ 'ADMIN.REVIEWS_PAGE.COL_PRODUCT' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="font-medium break-words max-w-[16rem]">
+              <div class="flex flex-wrap items-center gap-2">
+                <a
+                  class="text-primary hover:underline"
+                  [href]="productHref(row)"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >{{ row.productName }}</a
+                >
+                @if (row.isApproved) {
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary shrink-0">{{
+                    'ADMIN.REVIEWS_PAGE.BADGE_PUBLISHED' | translate
+                  }}</span>
+                }
+                @if (isRejectedReview(row)) {
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-on-surface/10 text-on-surface/70 shrink-0">{{
+                    'ADMIN.REVIEWS_PAGE.BADGE_REJECTED' | translate
+                  }}</span>
+                }
+              </div>
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="rating">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="rating" disableClear>
+              {{ 'ADMIN.REVIEWS_PAGE.COL_RATING' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="whitespace-nowrap">⭐ {{ row.rating }}</td>
+          </ng-container>
+          <ng-container matColumnDef="comment">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="comment" disableClear>
+              {{ 'ADMIN.REVIEWS_PAGE.COL_COMMENT' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="text-sm max-w-[20rem] align-top min-w-0">
+              @if (commentBody(row) === '') {
+                <span class="text-on-surface/70">—</span>
+              } @else {
+                <div class="admin-reviews__comment-wrap flex flex-wrap items-baseline gap-x-1.5 gap-y-0 min-w-0">
+                  <span
+                    appAdminReviewCommentOverflow
+                    [clamped]="commentBody(row) !== '' && !isCommentExpanded(row.id)"
+                    (overflow)="onCommentOverflow(row.id, $event)"
+                    class="text-on-surface/90 min-w-0 flex-1 break-words [overflow-wrap:anywhere]"
+                    [class.admin-reviews__comment--clamped]="commentBody(row) !== '' && !isCommentExpanded(row.id)"
+                    [class.whitespace-pre-wrap]="isCommentExpanded(row.id)"
+                    >{{ commentBody(row) }}</span>
+                  @if (commentNeedsToggle(row)) {
+                    <button
+                      type="button"
+                      class="admin-reviews__comment-toggle shrink-0"
+                      (click)="toggleCommentExpand(row.id, $event)"
+                    >
+                      @if (!isCommentExpanded(row.id)) {
+                        {{ 'ADMIN.REVIEWS_PAGE.COMMENT_MORE' | translate }}
+                      } @else {
+                        {{ 'ADMIN.REVIEWS_PAGE.COMMENT_LESS' | translate }}
+                      }
+                    </button>
+                  }
+                </div>
+              }
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="createdAt" disableClear>
+              {{ 'ADMIN.REVIEWS_PAGE.COL_CREATED' | translate }}
+            </th>
+            <td mat-cell *matCellDef="let row" class="whitespace-nowrap text-sm">{{
+              row.createdAt ? (row.createdAt | date: 'short') : '—'
+            }}</td>
+          </ng-container>
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-left">{{ 'ADMIN.TABLE.ACTIONS' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="text-left align-middle">
+              <div class="flex flex-wrap gap-2 justify-start items-center">
+                @if (isPendingModeration(row)) {
+                  @if (canApprove(row)) {
+                    <button
+                      matButton="filled"
+                      type="button"
+                      (click)="approve(row)"
+                      [disabled]="!!pendingAction()"
+                    >
+                      @if (pendingAction()?.id === row.id && pendingAction()?.kind === 'approve') {
+                        <mat-spinner diameter="20"></mat-spinner>
+                      } @else {
+                        {{ 'ADMIN.REVIEWS_PAGE.ACTION_ALLOW' | translate }}
+                      }
+                    </button>
+                  }
+                  @if (canReject(row)) {
+                    <button
+                      matButton="outlined"
+                      color="warn"
+                      type="button"
+                      (click)="reject(row)"
+                      [disabled]="!!pendingAction()"
+                    >
+                      @if (pendingAction()?.id === row.id && pendingAction()?.kind === 'reject') {
+                        <mat-spinner diameter="20"></mat-spinner>
+                      } @else {
+                        {{ 'ADMIN.REVIEWS_PAGE.ACTION_REJECT' | translate }}
+                      }
+                    </button>
+                  }
+                }
+                @if (isModeratedFinal(row) && canDelete(row)) {
+                  <button
+                    matButton="outlined"
+                    color="warn"
+                    type="button"
+                    (click)="confirmDeleteReview(row)"
+                    [disabled]="!!pendingAction()"
+                  >
+                    @if (pendingAction()?.id === row.id && pendingAction()?.kind === 'delete') {
+                      <mat-spinner diameter="20"></mat-spinner>
+                    } @else {
+                      {{ 'ADMIN.TABLE.DELETE' | translate }}
+                    }
+                  </button>
+                }
+              </div>
+            </td>
+          </ng-container>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      </div>
+
+      <div class="flex flex-col sm:flex-row flex-wrap justify-between items-center gap-3">
+        <span class="text-sm opacity-80">
+          {{ 'ADMIN.TABLE.PAGE' | translate }} {{ page() }} / {{ totalPages() }} ·
+          {{ 'ADMIN.ORDERS_PAGE.TOTAL_COUNT' | translate }}: {{ totalCount() }}
+        </span>
+        <div class="flex gap-2">
+          <button matButton="outlined" type="button" (click)="prevPage()" [disabled]="page() <= 1 || loading()">
+            {{ 'ADMIN.TABLE.PREVIOUS' | translate }}
+          </button>
+          <button
+            matButton="outlined"
+            type="button"
+            (click)="nextPage()"
+            [disabled]="page() >= totalPages() || loading()"
+          >
+            {{ 'ADMIN.TABLE.NEXT' | translate }}
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+</main>

@@ -28,6 +28,10 @@
 
 .product-card__main-btn {
   border-radius: 1rem;
+  border: 0;
+  background: transparent;
+  margin: 0;
+  appearance: none;
 }
 
 .product-card__star {
@@ -53,6 +57,39 @@
 
 .product-card__fav-icon--on {
   color: var(--mat-sys-error);
+}
+
+.product-card__cart {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.product-card__cart:hover:not(:disabled) {
+  transform: scale(1.08);
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-highest) 92%, transparent);
+}
+
+.product-card__cart:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.product-card__cart-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.125rem;
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  text-align: center;
+  pointer-events: none;
 }
 
 /* Квадратна зона зображення; трохи вище за старий 4:3 за рахунок квадрата в сітці */

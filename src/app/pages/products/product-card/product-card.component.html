@@ -2,8 +2,9 @@
   class="product-card product-card--interactive flex flex-col bg-transparent rounded-2xl border border-outline-variant/25 overflow-hidden overflow-x-hidden max-w-full min-w-0"
 >
   <div class="relative min-w-0 max-w-full">
-    <button
-      type="button"
+    <div
+      role="button"
+      tabindex="0"
       class="product-card__main-btn block w-full max-w-full min-w-0 text-left cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary rounded-2xl overflow-x-hidden"
       (click)="onCardClick()"
       (keydown)="onCardKeydown($event)"
@@ -58,7 +59,7 @@
         }
       </div>
 
-      <div class="flex flex-col gap-2 p-4 min-w-0 max-w-full overflow-x-hidden">
+      <div class="flex flex-col gap-2 px-4 pt-4 pb-14 min-w-0 max-w-full overflow-x-hidden">
         <h2
           class="text-base font-medium text-on-surface line-clamp-2 min-h-[2.75rem] break-words hyphens-auto"
         >
@@ -124,6 +125,19 @@
           }
         </div>
       </div>
+    </div>
+
+    <button
+      type="button"
+      class="product-card__cart absolute bottom-3 right-3 z-[3] inline-flex h-10 w-10 items-center justify-center rounded-full bg-surface/90 text-primary shadow-md backdrop-blur-sm border border-outline-variant/40"
+      (click)="onCartClick($event)"
+      [disabled]="cartButtonDisabled()"
+      [attr.aria-label]="'PRODUCTS.ADD_TO_CART' | translate"
+    >
+      <mat-icon class="!text-[22px] w-[22px] h-[22px]">add_shopping_cart</mat-icon>
+      @if (qty() > 0) {
+        <span class="product-card__cart-badge">{{ qty() }}</span>
+      }
     </button>
 
     <button
@@ -141,5 +155,6 @@
         >{{ isFavorite ? 'favorite' : 'favorite_border' }}</mat-icon
       >
     </button>
+
   </div>
 </article>

@@ -2,6 +2,12 @@
 
 <mat-dialog-content class="flex flex-col gap-3 min-w-0">
   <p class="text-sm opacity-80 break-words">{{ data.title }}</p>
+  @if (isShipOrderTask()) {
+    <mat-form-field class="w-full">
+      <mat-label>{{ 'ADMIN.TASKS_PAGE.TRACKING_NUMBER' | translate }}</mat-label>
+      <input matInput [formControl]="form.controls.trackingNumber" />
+    </mat-form-field>
+  }
   <mat-form-field class="w-full">
     <mat-label>{{ 'ADMIN.TASKS_PAGE.COMPLETION_NOTE' | translate }}</mat-label>
     <textarea matInput rows="3" [formControl]="form.controls.completionNote"></textarea>
@@ -12,7 +18,13 @@
   <button matButton type="button" (click)="ref.close(false)" [disabled]="saving()">
     {{ 'ADMIN.TASKS_PAGE.CANCEL' | translate }}
   </button>
-  <button matButton="filled" color="primary" type="button" (click)="submit()" [disabled]="saving()">
+  <button
+    matButton="filled"
+    color="primary"
+    type="button"
+    (click)="submit()"
+    [disabled]="saving() || (isShipOrderTask() && !form.controls.trackingNumber.value.trim())"
+  >
     @if (saving()) {
       <mat-spinner diameter="20"></mat-spinner>
     } @else {

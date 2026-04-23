@@ -130,7 +130,12 @@ export class AdminTaskDetailComponent implements OnInit {
       panelClass: 'auth-dialog',
       width: '100%',
       maxWidth: '480px',
-      data: { taskId: t.id, title: t.title } satisfies CompleteTaskDialogData,
+      data: {
+        taskId: t.id,
+        title: t.title,
+        taskType: t.type,
+        relatedEntityId: t.relatedEntityId,
+      } satisfies CompleteTaskDialogData,
     });
     ref.afterClosed().subscribe((ok) => {
       if (ok) {
