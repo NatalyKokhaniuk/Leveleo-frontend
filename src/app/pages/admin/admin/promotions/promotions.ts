@@ -92,7 +92,6 @@ export class AdminPromotionsComponent {
     'isActive',
     'isCoupon',
     'isPersonal',
-    'couponCode',
     'maxUsages',
     'usedCount',
     'actions',
