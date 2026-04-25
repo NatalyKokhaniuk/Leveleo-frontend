@@ -109,7 +109,8 @@
     "PRICE": "Price",
     "BRAND": "Brand",
     "COMPARE_CATEGORY": "Compare",
-    "SHOW_ALL": "Show all categories"
+    "SHOW_ALL": "Show all categories",
+    "ATTR_GROUP_OTHER": "Other attributes"
   },
   "PROMOTIONS_PAGE": {
     "TITLE": "Promotions",

@@ -227,7 +227,14 @@
               <tbody>
                 @for (row of attributeValues(); track row.id) {
                   <tr class="border-b border-outline-variant/60">
-                    <td class="py-2 pr-2">{{ attrLabel(row.productAttributeId) }}</td>
+                    <td class="py-2 pr-2">
+                      <span
+                        [matTooltip]="attrDescription(row.productAttributeId)"
+                        [matTooltipDisabled]="!attrDescription(row.productAttributeId)"
+                      >
+                        {{ attrLabel(row.productAttributeId) }}
+                      </span>
+                    </td>
                     <td class="py-2 pr-2">{{ displayValue(row) }}</td>
                     <td class="py-2 text-center align-middle">
                       <div class="inline-flex flex-wrap items-center justify-center gap-0">

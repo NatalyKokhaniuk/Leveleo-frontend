@@ -2,3 +2,24 @@
   display: block;
   width: 100%;
 }
+
+/** Чергування фону рядків атрибутів за групою (таблиця порівняння). */
+.comparison-attr-stripe-a > td {
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-high) 38%, transparent);
+}
+
+.comparison-attr-stripe-b > td {
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container) 52%, transparent);
+}
+
+.comparison-attr-group-header.comparison-attr-stripe-a > td,
+.comparison-attr-group-header.comparison-attr-stripe-b > td {
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-highest) 55%, transparent);
+}
+
+.comparison-bool-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1.25rem;
+}

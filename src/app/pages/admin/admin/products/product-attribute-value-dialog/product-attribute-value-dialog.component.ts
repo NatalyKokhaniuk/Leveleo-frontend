@@ -31,6 +31,7 @@ import {
   normalizeAttributeType,
   ProductAttributeResponseDto,
 } from '../../../../../features/product-attributes/product-attribute.types';
+import { normalizeUiLang } from '../../../../../features/products/product-display-i18n';
 
 export interface ProductAttributeValueDialogData {
   mode: 'create' | 'edit';
@@ -114,8 +115,10 @@ export class ProductAttributeValueDialogComponent {
       this.form.controls.productAttributeId.valueChanges
         .pipe(takeUntilDestroyed())
         .subscribe(() => {
+          const selected = this.selectedAttr();
           this.resetValueFields();
-          this.applyValidatorsForAttr(this.selectedAttr());
+          this.applyValidatorsForAttr(selected);
+          this.applyDefaultUnitLabels(selected);
         });
     }
   }
@@ -123,6 +126,31 @@ export class ProductAttributeValueDialogComponent {
   selectedAttr(): ProductAttributeResponseDto | undefined {
     const id = this.form.getRawValue().productAttributeId;
     return this.data.attributes.find((a) => a.id === id);
+  }
+
+  sortedAttributes(): ProductAttributeResponseDto[] {
+    return [...this.data.attributes].sort((a, b) => {
+      const typeCmp = normalizeAttributeType(b.type) - normalizeAttributeType(a.type);
+      if (typeCmp !== 0) {
+        return typeCmp;
+      }
+      return this.attributeDisplayName(a).localeCompare(this.attributeDisplayName(b), undefined, {
+        sensitivity: 'base',
+      });
+    });
+  }
+
+  attributeDisplayName(attr: ProductAttributeResponseDto): string {
+    const currentLang = this.translate.currentLang ?? this.translate.getDefaultLang() ?? undefined;
+    const lang = normalizeUiLang(currentLang);
+    const translationName = attr.translations?.find((t) =>
+      t.languageCode?.toLowerCase().startsWith(lang),
+    )?.name;
+    const localized = translationName?.trim();
+    if (localized) {
+      return localized;
+    }
+    return attr.name?.trim() || attr.slug;
   }
 
   isStringType(at: ProductAttributeResponseDto): boolean {
@@ -188,6 +216,23 @@ export class ProductAttributeValueDialogComponent {
     for (const ctrl of [...valueControls, c.boolValue]) {
       ctrl.updateValueAndValidity({ emitEvent: false });
     }
+  }
+
+  private applyDefaultUnitLabels(attr: ProductAttributeResponseDto | undefined): void {
+    if (!attr || normalizeAttributeType(attr.type) !== AttributeType.String) {
+      return;
+    }
+    const unit = attr.unit?.trim();
+    if (!unit) {
+      return;
+    }
+    this.form.patchValue(
+      {
+        valueUk: unit,
+        valueEn: unit,
+      },
+      { emitEvent: false },
+    );
   }
 
   submit(): void {

@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, Subject } from 'rxjs';
 import { map, takeUntil } from 'rxjs/operators';
@@ -53,6 +54,7 @@ import { ProductDeleteDialogComponent } from '../product-delete-dialog/product-d
     MatCheckboxModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    MatTooltipModule,
     MediaImageThumbComponent,
     HorizontalDragScrollDirective,
   ],
@@ -220,6 +222,18 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
 
   attrLabel(id: string): string {
     return this.allAttributes().find((a) => a.id === id)?.name ?? id;
+  }
+
+  attrDescription(id: string): string {
+    const attr = this.allAttributes().find((a) => a.id === id);
+    if (!attr) {
+      return '';
+    }
+    const lang = (this.translate.currentLang || 'uk').toLowerCase().split('-')[0];
+    const localized = attr.translations?.find(
+      (t) => t.languageCode.toLowerCase().split('-')[0] === lang,
+    )?.description;
+    return localized?.trim() || attr.description?.trim() || '';
   }
 
   displayValue(row: ProductAttributeValueResponseDto): string {

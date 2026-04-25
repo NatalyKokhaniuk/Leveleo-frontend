@@ -76,7 +76,7 @@ export class ProductAttributeFormDialogComponent {
     type: [AttributeType.String, Validators.required],
     unit: [''],
     isFilterable: [false],
-    isComparable: [false],
+    isComparable: [true],
   });
 
   constructor() {

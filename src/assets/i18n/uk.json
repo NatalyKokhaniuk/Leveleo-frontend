@@ -109,7 +109,8 @@
     "PRICE": "Ціна",
     "BRAND": "Бренд",
     "COMPARE_CATEGORY": "Порівняти",
-    "SHOW_ALL": "Показати всі категорії"
+    "SHOW_ALL": "Показати всі категорії",
+    "ATTR_GROUP_OTHER": "Інші атрибути"
   },
   "PROMOTIONS_PAGE": {
     "TITLE": "Акції",

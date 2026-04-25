@@ -30,8 +30,7 @@ export type ProductAttributeSortKey =
   | 'slug'
   | 'type'
   | 'unit'
-  | 'isFilterable'
-  | 'isComparable';
+  | 'isFilterable';
 
 @Component({
   selector: 'app-product-attributes',
@@ -75,7 +74,6 @@ export class ProductAttributesComponent {
     'type',
     'unit',
     'filterable',
-    'comparable',
     'actions',
   ];
 
@@ -122,7 +120,7 @@ export class ProductAttributesComponent {
     if (key) {
       list = [...list].sort((a, b) => {
         let cmp = 0;
-        if (key === 'isFilterable' || key === 'isComparable') {
+        if (key === 'isFilterable') {
           cmp = Number(a[key]) - Number(b[key]);
         } else if (key === 'type') {
           cmp = normalizeAttributeType(a.type) - normalizeAttributeType(b.type);
