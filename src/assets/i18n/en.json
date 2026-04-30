@@ -88,7 +88,11 @@
     "IN_STOCK": "In stock",
     "GUARANTEE_LINK_TEXT": "Warranty. Exchange/return within 10 days.",
     "COMPLAIN_LINK_TEXT": "Report a product issue",
-    "YOU_MAY_ALSO_LIKE": "You may also like"
+    "YOU_MAY_ALSO_LIKE": "You may also like",
+    "MEDIA_FULLSCREEN": "Expand media",
+    "MEDIA_LIGHTBOX_CLOSE": "Close preview",
+    "MEDIA_LIGHTBOX_PREV": "Previous media",
+    "MEDIA_LIGHTBOX_NEXT": "Next media"
   },
   "FAVORITES": {
     "TITLE": "Favourites",
@@ -653,6 +657,7 @@
       "ADD_GALLERY_IMAGE": "Add image",
       "SECTION_VIDEOS": "Videos",
       "ADD_VIDEO": "Add video",
+      "REMOVE_VIDEO": "Remove this video",
       "SECTION_ATTRIBUTES": "Attribute values",
       "ATTR_VALUE_ADD": "Add value",
       "ATTR_COL_NAME": "Attribute",

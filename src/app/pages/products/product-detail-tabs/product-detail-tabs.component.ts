@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import {
   Component,
   computed,
+  HostListener,
   inject,
   Input,
   OnChanges,
@@ -35,8 +36,16 @@ import {
   productLocalizedName,
 } from '../../../features/products/product-display-i18n';
 import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
-import { ProductResponseDto } from '../../../features/products/product.types';
+import { ProductMediaService } from '../../../features/products/product-media.service';
+import { ProductResponseDto, ProductVideoDto } from '../../../features/products/product.types';
 import { OrderItemReviewFormComponent } from '../../../shared/components/order-item-review-form/order-item-review-form.component';
+
+type ProductMediaItem = {
+  kind: 'image' | 'video';
+  url: string;
+  thumbUrl: string;
+  key: string;
+};
 
 /** Фото зліва, таби справа: деталі / відгуки. */
 @Component({
@@ -59,6 +68,7 @@ import { OrderItemReviewFormComponent } from '../../../shared/components/order-i
 })
 export class ProductDetailTabsComponent implements OnInit, OnChanges {
   private mediaUrlCache = inject(MediaUrlCacheService);
+  private productMedia = inject(ProductMediaService);
   private reviewsApi = inject(ProductReviewService);
   private attributesApi = inject(ProductAttributeService);
   private attributeValuesApi = inject(ProductAttributeValueService);
@@ -92,6 +102,9 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   selectedTabIndex = signal(0);
 
   imageUrl = signal<string | null>(null);
+  mediaItems = signal<ProductMediaItem[]>([]);
+  activeMediaIndex = signal(0);
+  lightboxOpen = signal(false);
   imageLoading = signal(false);
   private imageErrorRetries = 0;
   private readonly maxImageErrorRetries = 2;
@@ -127,6 +140,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['product']) {
       this.imageErrorRetries = 0;
+      this.closeLightbox();
       if (!changes['product'].firstChange && this.product) {
         this.publicReviewStarsFilter.set('');
         this.bootstrap();
@@ -161,6 +175,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
       return;
     }
     this.loadImage();
+    this.loadMediaGallery();
     this.loadReviews();
     this.loadCategoryBreadcrumbs();
     this.loadBrand();
@@ -191,6 +206,148 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
         this.imageLoading.set(false);
       },
     });
+  }
+
+  private loadMediaGallery(): void {
+    if (!this.product?.id) {
+      this.mediaItems.set([]);
+      this.activeMediaIndex.set(0);
+      return;
+    }
+
+    forkJoin({
+      images: this.productMedia.getImages(this.product.id).pipe(catchError(() => of([]))),
+      videos: this.productMedia.getVideos(this.product.id).pipe(catchError(() => of([] as ProductVideoDto[]))),
+    }).subscribe(({ images, videos }) => {
+      const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+      const sortedVideos = [...videos].sort((a, b) => a.sortOrder - b.sortOrder);
+
+      const imageReqs = sortedImages.map((img) =>
+        this.mediaUrlCache.getUrl(img.imageKey).pipe(catchError(() => of(null))),
+      );
+      const videoReqs = sortedVideos.map((v) =>
+        this.mediaUrlCache.getUrl(v.videoKey).pipe(catchError(() => of(null))),
+      );
+
+      forkJoin([...imageReqs, ...videoReqs]).subscribe((resolved) => {
+        const items: ProductMediaItem[] = [];
+
+        const mainImage = this.imageUrl();
+        if (mainImage) {
+          items.push({
+            kind: 'image',
+            url: mainImage,
+            thumbUrl: mainImage,
+            key: `main-${this.product.id}`,
+          });
+        }
+
+        let idx = 0;
+        for (const img of sortedImages) {
+          const url = resolved[idx++] as string | null;
+          if (!url) continue;
+          if (mainImage && url === mainImage) continue;
+          items.push({ kind: 'image', url, thumbUrl: url, key: `img-${img.id}` });
+        }
+        for (const v of sortedVideos) {
+          const url = resolved[idx++] as string | null;
+          if (!url) continue;
+          items.push({ kind: 'video', url, thumbUrl: url, key: `vid-${v.id}` });
+        }
+
+        this.mediaItems.set(items);
+        const currentIndex = items.findIndex((m) => m.url === this.imageUrl());
+        const nextIndex = currentIndex >= 0 ? currentIndex : 0;
+        this.activeMediaIndex.set(nextIndex);
+        this.applyActiveMedia();
+      });
+    });
+  }
+
+  selectMedia(index: number): void {
+    if (index < 0 || index >= this.mediaItems().length) return;
+    this.activeMediaIndex.set(index);
+    this.applyActiveMedia();
+    this.imageLoading.set(false);
+  }
+
+  prevMedia(): void {
+    const total = this.mediaItems().length;
+    if (total <= 1) return;
+    const next = (this.activeMediaIndex() - 1 + total) % total;
+    this.selectMedia(next);
+  }
+
+  nextMedia(): void {
+    const total = this.mediaItems().length;
+    if (total <= 1) return;
+    const next = (this.activeMediaIndex() + 1) % total;
+    this.selectMedia(next);
+  }
+
+  isActiveMedia(index: number): boolean {
+    return this.activeMediaIndex() === index;
+  }
+
+  currentMedia(): ProductMediaItem | null {
+    const list = this.mediaItems();
+    if (list.length === 0) return null;
+    return list[this.activeMediaIndex()] ?? null;
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onWindowKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.lightboxOpen()) {
+      event.preventDefault();
+      this.closeLightbox();
+      return;
+    }
+
+    const isArrowLeft = event.key === 'ArrowLeft';
+    const isArrowRight = event.key === 'ArrowRight';
+    if (!isArrowLeft && !isArrowRight) {
+      return;
+    }
+
+    if (this.mediaItems().length <= 1) {
+      return;
+    }
+
+    const target = event.target as HTMLElement | null;
+    const tag = target?.tagName?.toLowerCase();
+    const inEditable =
+      tag === 'input' || tag === 'textarea' || tag === 'select' || target?.isContentEditable;
+    if (inEditable) {
+      return;
+    }
+
+    if (!this.lightboxOpen() && tag === 'video') {
+      return;
+    }
+
+    event.preventDefault();
+    if (isArrowLeft) {
+      this.prevMedia();
+    } else {
+      this.nextMedia();
+    }
+  }
+
+  openLightbox(): void {
+    const media = this.currentMedia();
+    if (!media) {
+      return;
+    }
+    this.lightboxOpen.set(true);
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen.set(false);
+  }
+
+  private applyActiveMedia(): void {
+    const media = this.currentMedia();
+    this.imageUrl.set(media?.url ?? null);
   }
 
   onImageError(): void {

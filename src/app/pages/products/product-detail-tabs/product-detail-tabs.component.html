@@ -10,20 +10,71 @@
         <div class="product-detail-tabs__media-inner flex items-center justify-center min-h-[160px]">
           <mat-spinner diameter="40"></mat-spinner>
         </div>
-      } @else if (imageUrl()) {
-        <img
-          [src]="imageUrl()!"
-          [alt]="displayName()"
-          class="product-detail-tabs__img"
-          loading="lazy"
-          (error)="onImageError()"
-        />
+      } @else if (currentMedia(); as media) {
+        @if (media.kind === 'video') {
+          <div class="product-detail-tabs__video-wrap">
+            <video class="product-detail-tabs__video" [src]="media.url" controls preload="metadata"></video>
+            <button
+              type="button"
+              class="product-detail-tabs__enlarge-media-btn"
+              (click)="openLightbox()"
+              [attr.aria-label]="'PRODUCTS.MEDIA_FULLSCREEN' | translate"
+            >
+              <mat-icon>open_in_full</mat-icon>
+            </button>
+          </div>
+        } @else {
+          <button type="button" class="product-detail-tabs__img-open-btn" (click)="openLightbox()">
+            <img
+              [src]="media.url"
+              [alt]="displayName()"
+              class="product-detail-tabs__img"
+              loading="lazy"
+              (error)="onImageError()"
+            />
+          </button>
+        }
       } @else {
         <div class="product-detail-tabs__media-inner flex items-center justify-center min-h-[160px]">
           <mat-icon class="!w-16 !h-16 text-on-surface/25">image_not_supported</mat-icon>
         </div>
       }
     </div>
+    @if (mediaItems().length > 1) {
+      <button
+        type="button"
+        class="product-detail-tabs__nav-btn product-detail-tabs__nav-btn--prev"
+        (click)="prevMedia()"
+        aria-label="Previous media"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button
+        type="button"
+        class="product-detail-tabs__nav-btn product-detail-tabs__nav-btn--next"
+        (click)="nextMedia()"
+        aria-label="Next media"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+      <div class="product-detail-tabs__gallery-thumbs mt-2 flex flex-wrap gap-2">
+        @for (m of mediaItems(); track m.key; let i = $index) {
+          <button
+            type="button"
+            class="product-detail-tabs__thumb-btn"
+            [class.product-detail-tabs__thumb-btn--active]="isActiveMedia(i)"
+            (click)="selectMedia(i)"
+          >
+            @if (m.kind === 'video') {
+              <video class="product-detail-tabs__thumb-img" [src]="m.thumbUrl" muted preload="metadata"></video>
+              <span class="product-detail-tabs__thumb-video-badge"><mat-icon>play_arrow</mat-icon></span>
+            } @else {
+              <img [src]="m.thumbUrl" [alt]="displayName()" class="product-detail-tabs__thumb-img" loading="lazy" />
+            }
+          </button>
+        }
+      </div>
+    }
     @if (promotionLabel(); as promoName) {
       @if (promotionSlug(); as slug) {
         <a
@@ -255,3 +306,47 @@
     </mat-tab-group>
   </div>
 </div>
+
+@if (lightboxOpen() && currentMedia(); as lb) {
+  <div
+    class="product-detail-tabs__lightbox"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="displayName()"
+    (click)="closeLightbox()"
+  >
+    <button
+      type="button"
+      class="product-detail-tabs__lightbox-close"
+      (click)="$event.stopPropagation(); closeLightbox()"
+      [attr.aria-label]="'PRODUCTS.MEDIA_LIGHTBOX_CLOSE' | translate"
+    >
+      <mat-icon>close</mat-icon>
+    </button>
+    @if (mediaItems().length > 1) {
+      <button
+        type="button"
+        class="product-detail-tabs__lightbox-nav product-detail-tabs__lightbox-nav--prev"
+        (click)="$event.stopPropagation(); prevMedia()"
+        [attr.aria-label]="'PRODUCTS.MEDIA_LIGHTBOX_PREV' | translate"
+      >
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <button
+        type="button"
+        class="product-detail-tabs__lightbox-nav product-detail-tabs__lightbox-nav--next"
+        (click)="$event.stopPropagation(); nextMedia()"
+        [attr.aria-label]="'PRODUCTS.MEDIA_LIGHTBOX_NEXT' | translate"
+      >
+        <mat-icon>chevron_right</mat-icon>
+      </button>
+    }
+    <div class="product-detail-tabs__lightbox-inner" (click)="$event.stopPropagation()">
+      @if (lb.kind === 'video') {
+        <video class="product-detail-tabs__lightbox-video" [src]="lb.url" controls preload="metadata"></video>
+      } @else {
+        <img [src]="lb.url" [alt]="displayName()" class="product-detail-tabs__lightbox-img" />
+      }
+    </div>
+  </div>
+}

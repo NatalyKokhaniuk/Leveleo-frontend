@@ -88,7 +88,11 @@
     "IN_STOCK": "В наявності",
     "GUARANTEE_LINK_TEXT": "Гарантія. Обмін/повернення товару впродовж 10 днів.",
     "COMPLAIN_LINK_TEXT": "Поскаржитися на товар",
-    "YOU_MAY_ALSO_LIKE": "Вам також може сподобатись"
+    "YOU_MAY_ALSO_LIKE": "Вам також може сподобатись",
+    "MEDIA_FULLSCREEN": "Розгорнути медіа",
+    "MEDIA_LIGHTBOX_CLOSE": "Закрити перегляд",
+    "MEDIA_LIGHTBOX_PREV": "Попереднє медіа",
+    "MEDIA_LIGHTBOX_NEXT": "Наступне медіа"
   },
   "FAVORITES": {
     "TITLE": "Обране",
@@ -1039,6 +1043,7 @@
       "ADD_GALLERY_IMAGE": "Додати зображення",
       "SECTION_VIDEOS": "Відео",
       "ADD_VIDEO": "Додати відео",
+      "REMOVE_VIDEO": "Видалити це відео",
       "SECTION_ATTRIBUTES": "Значення атрибутів",
       "ATTR_VALUE_ADD": "Додати значення",
       "ATTR_COL_NAME": "Атрибут",

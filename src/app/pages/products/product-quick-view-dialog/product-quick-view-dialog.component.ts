@@ -6,8 +6,9 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
 import { ProductResponseDto } from '../../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../product-commerce-toolbar/product-commerce-toolbar.component';
@@ -24,6 +25,7 @@ export interface ProductQuickViewDialogData {
     MatDialogModule,
     MatButtonModule,
     MatIconModule,
+    RouterLink,
     TranslateModule,
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
@@ -36,8 +38,13 @@ export class ProductQuickViewDialogComponent implements OnInit {
   private dialogRef = inject(MatDialogRef<ProductQuickViewDialogComponent>);
   private translate = inject(TranslateService);
   private router = inject(Router);
+  private auth = inject(AuthService);
 
   private lang = signal(this.translate.currentLang || 'uk');
+
+  canManageProduct(): boolean {
+    return this.auth.hasAnyRole(['Admin', 'Moderator']);
+  }
 
   ngOnInit(): void {
     this.translate.onLangChange.subscribe(() => {

@@ -24,6 +24,7 @@ import { catchError, finalize, of } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
 import { DocumentTitleService } from '../../../core/services/document-title.service';
 import { FavoritesStateService } from '../../../core/favorites/favorites-state.service';
+import { AuthService } from '../../../core/auth/services/auth.service';
 import { CategoryService } from '../../../features/categories/category.service';
 import { ProductService } from '../../../features/products/product.service';
 import { defaultProductFilter } from '../../../features/products/product-filter.encode';
@@ -66,6 +67,7 @@ export class ProductPage implements OnInit {
   private products = inject(ProductService);
   private categoriesApi = inject(CategoryService);
   private favorites = inject(FavoritesStateService);
+  private auth = inject(AuthService);
   private dialog = inject(MatDialog);
   private destroyRef = inject(DestroyRef);
   private translate = inject(TranslateService);
@@ -139,6 +141,7 @@ export class ProductPage implements OnInit {
   loadError = signal(false);
   product = signal<ProductResponseDto | null>(null);
   favoriteBusy = signal(false);
+  canManageProduct = computed(() => this.auth.hasAnyRole(['Admin', 'Moderator']));
 
   recommendedProducts = signal<ProductResponseDto[]>([]);
 

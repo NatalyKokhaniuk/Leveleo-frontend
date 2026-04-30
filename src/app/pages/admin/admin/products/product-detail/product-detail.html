@@ -194,7 +194,14 @@
             @for (v of videos(); track v.id) {
               <li class="flex flex-wrap items-center gap-2">
                 <span>{{ v.videoKey }}</span>
-                <button mat-icon-button type="button" color="warn" (click)="removeVideo(v)">
+                <button
+                  mat-icon-button
+                  type="button"
+                  color="warn"
+                  (click)="removeVideo(v)"
+                  [matTooltip]="'ADMIN.PRODUCT.REMOVE_VIDEO' | translate"
+                  [attr.aria-label]="'ADMIN.PRODUCT.REMOVE_VIDEO' | translate"
+                >
                   <mat-icon>delete</mat-icon>
                 </button>
               </li>

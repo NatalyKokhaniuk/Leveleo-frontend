@@ -22,11 +22,23 @@
         <div
           class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 min-w-0"
         >
-          <h1
-            class="modal-title text-xl sm:text-2xl md:text-3xl font-fixel font-semibold text-on-surface m-0 break-words [overflow-wrap:anywhere] flex-1 min-w-0"
-          >
-            {{ productTitle(p) }}
-          </h1>
+          <div class="flex-1 min-w-0 flex items-start gap-2">
+            <h1
+              class="modal-title text-xl sm:text-2xl md:text-3xl font-fixel font-semibold text-on-surface m-0 break-words [overflow-wrap:anywhere] flex-1 min-w-0"
+            >
+              {{ productTitle(p) }}
+            </h1>
+            @if (canManageProduct()) {
+              <a
+                matIconButton
+                [routerLink]="['/admin/products', p.id]"
+                class="shrink-0 mt-0.5"
+                [attr.aria-label]="'ADMIN.TABLE.EDIT' | translate"
+              >
+                <mat-icon>edit</mat-icon>
+              </a>
+            }
+          </div>
           <button
             matButton="outlined"
             type="button"
