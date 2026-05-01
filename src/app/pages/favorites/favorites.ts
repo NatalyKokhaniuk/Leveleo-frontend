@@ -11,6 +11,13 @@ import {
 } from '../../core/favorites/favorites-storage';
 import { FavoritesStateService } from '../../core/favorites/favorites-state.service';
 import { productLocalizedName } from '../../features/products/product-display-i18n';
+import { sortProductsByFavoriteAddedAtDesc } from '../../features/products/product-relation-sort.util';
+import {
+  isArchivedFromSaleState,
+  isCatalogPurchaseBlocked,
+  isMissingFromDatabaseState,
+  resolveProductCatalogDisplayState,
+} from '../../features/products/product-catalog-display';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
@@ -69,7 +76,7 @@ export class FavoritesPage implements OnInit, OnDestroy {
         }),
       )
       .subscribe((list) => {
-        this.items.set(list);
+        this.items.set(sortProductsByFavoriteAddedAtDesc(list));
         this.loading.set(false);
       });
   }
@@ -82,5 +89,16 @@ export class FavoritesPage implements OnInit, OnDestroy {
 
   productName(p: ProductResponseDto): string {
     return productLocalizedName(p, this.translate.currentLang || 'uk');
+  }
+
+  productPublicLinkSegments(p: ProductResponseDto): string[] | null {
+    const st = resolveProductCatalogDisplayState(p);
+    if (isMissingFromDatabaseState(st) || isArchivedFromSaleState(st)) return null;
+    const slug = p.slug?.trim();
+    return slug ? ['/products', slug] : null;
+  }
+
+  productPurchaseBlocked(p: ProductResponseDto): boolean {
+    return isCatalogPurchaseBlocked(p);
   }
 }

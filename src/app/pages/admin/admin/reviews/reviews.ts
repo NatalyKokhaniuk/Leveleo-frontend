@@ -20,9 +20,16 @@ import { ReviewService } from '../../../../features/reviews/review.service';
 import { ReviewDto } from '../../../../features/reviews/review.types';
 import { HorizontalDragScrollDirective } from '../../../../shared/directives/horizontal-drag-scroll.directive';
 import {
+  catalogStateBadgeKey,
+  resolveOrderLineCatalogState,
+  isArchivedFromSaleState,
+  isMissingFromDatabaseState,
+} from '../../../../features/products/product-catalog-display';
+import {
   AdminConfirmDeleteDialogComponent,
   AdminConfirmDeleteDialogData,
 } from '../../admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
+import { MediaImageThumbComponent } from '../shared/media-image-thumb/media-image-thumb.component';
 import { AdminReviewCommentOverflowDirective } from './admin-review-comment-overflow.directive';
 
 type RatingFilter = '' | '1' | '2' | '3' | '4' | '5';
@@ -47,6 +54,7 @@ type SortColumn = 'productName' | 'rating' | 'comment' | 'createdAt';
     MatProgressSpinnerModule,
     HorizontalDragScrollDirective,
     AdminReviewCommentOverflowDirective,
+    MediaImageThumbComponent,
   ],
   templateUrl: './reviews.html',
   styleUrl: './reviews.scss',
@@ -162,12 +170,31 @@ export class AdminReviewsComponent {
     this.sortState.set({ active, direction });
   }
 
-  productHref(r: ReviewDto): string {
+  /** Стан з `ReviewResponseDto`; без нових полів API — відкат у {@link resolveOrderLineCatalogState}. */
+  private reviewCatalogState(r: ReviewDto) {
+    return resolveOrderLineCatalogState({
+      existsInCatalog: r.productExistsInCatalog,
+      isActive: r.productIsActive ?? undefined,
+      catalogDisplayState: r.productCatalogDisplayState,
+    });
+  }
+
+  reviewProductHref(r: ReviewDto): string | null {
+    const st = this.reviewCatalogState(r);
+    if (isMissingFromDatabaseState(st)) return null;
+    if (isArchivedFromSaleState(st)) {
+      return this.router.serializeUrl(this.router.createUrlTree(['/admin/products', r.productId]));
+    }
     const slug = r.productSlug?.trim();
-    const tree = slug
-      ? this.router.createUrlTree(['/products', slug])
-      : this.router.createUrlTree(['/admin/products', r.productId]);
-    return this.router.serializeUrl(tree);
+    if (slug) {
+      return this.router.serializeUrl(this.router.createUrlTree(['/products', slug]));
+    }
+    return this.router.serializeUrl(this.router.createUrlTree(['/admin/products', r.productId]));
+  }
+
+  reviewProductBadgeKey(r: ReviewDto): string | null {
+    const st = this.reviewCatalogState(r);
+    return st === 'activeInCatalog' ? null : catalogStateBadgeKey(st);
   }
 
   isRejectedReview(r: ReviewDto): boolean {

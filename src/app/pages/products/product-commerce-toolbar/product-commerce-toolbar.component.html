@@ -15,8 +15,17 @@
       </button>
     }
 
-    @if (!isAuthed() || qty() === 0) {
-      <button matButton="filled" color="primary" type="button" class="!min-h-10" [disabled]="busy || !canIncrease()" (click)="onAddToCart()">
+    @if (purchaseBlocked() && qty() === 0) {
+      <p class="text-sm text-on-surface/80 m-0">{{ 'PRODUCTS.PURCHASE_UNAVAILABLE_CATALOG' | translate }}</p>
+    } @else if (!isAuthed() || qty() === 0) {
+      <button
+        matButton="filled"
+        color="primary"
+        type="button"
+        class="!min-h-10"
+        [disabled]="busy || purchaseBlocked() || !canIncrease()"
+        (click)="onAddToCart()"
+      >
         {{ 'PRODUCTS.ADD_TO_CART' | translate }}
       </button>
     } @else {
@@ -36,7 +45,7 @@
           matIconButton
           type="button"
           class="shrink-0"
-          [disabled]="busy || !canIncrease()"
+          [disabled]="busy || purchaseBlocked() || !canIncrease()"
           (click)="inc()"
           [attr.aria-label]="'PRODUCTS.CART_INCREASE' | translate"
         >

@@ -67,14 +67,27 @@
           <div
             class="rounded-2xl border border-outline-variant bg-surface-container-high p-4 flex flex-col gap-2 min-w-0"
           >
-            <div class="flex flex-wrap items-center gap-2">
-              <a
-                class="font-medium break-words text-primary hover:underline"
-                [href]="productHref(r)"
-                target="_blank"
-                rel="noopener noreferrer"
-                >{{ r.productName }}</a
-              >
+            <div class="flex flex-wrap items-start gap-2">
+              @if (r.productMainImageKey?.trim()) {
+                <app-media-image-thumb class="shrink-0" [imageKey]="r.productMainImageKey!" />
+              }
+              <div class="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+              @if (reviewProductHref(r); as href) {
+                <a
+                  class="font-medium break-words text-primary hover:underline"
+                  [href]="href"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >{{ r.productName }}</a
+                >
+              } @else {
+                <span class="font-medium break-words">{{ r.productName }}</span>
+              }
+              @if (reviewProductBadgeKey(r); as badgeK) {
+                <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-on-surface/10 text-on-surface/80 shrink-0">{{
+                  badgeK | translate
+                }}</span>
+              }
               @if (r.isApproved) {
                 <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary">{{
                   'ADMIN.REVIEWS_PAGE.BADGE_PUBLISHED' | translate
@@ -85,6 +98,7 @@
                   'ADMIN.REVIEWS_PAGE.BADGE_REJECTED' | translate
                 }}</span>
               }
+              </div>
             </div>
             <span class="text-sm">⭐ {{ r.rating }}</span>
             @if (commentBody(r) === '') {
@@ -182,14 +196,21 @@
               {{ 'ADMIN.REVIEWS_PAGE.COL_PRODUCT' | translate }}
             </th>
             <td mat-cell *matCellDef="let row" class="font-medium break-words max-w-[16rem]">
-              <div class="flex flex-wrap items-center gap-2">
-                <a
-                  class="text-primary hover:underline"
-                  [href]="productHref(row)"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  >{{ row.productName }}</a
-                >
+              <div class="flex flex-wrap items-start gap-2">
+                @if (row.productMainImageKey?.trim()) {
+                  <app-media-image-thumb class="shrink-0" [imageKey]="row.productMainImageKey!" />
+                }
+                <div class="flex flex-wrap items-center gap-2 min-w-0 flex-1">
+                @if (reviewProductHref(row); as href) {
+                  <a class="text-primary hover:underline" [href]="href" target="_blank" rel="noopener noreferrer">{{
+                    row.productName
+                  }}</a>
+                } @else {
+                  <span>{{ row.productName }}</span>
+                }
+                @if (reviewProductBadgeKey(row); as bk) {
+                  <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-on-surface/10 text-on-surface/80 shrink-0">{{ bk | translate }}</span>
+                }
                 @if (row.isApproved) {
                   <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-primary/15 text-primary shrink-0">{{
                     'ADMIN.REVIEWS_PAGE.BADGE_PUBLISHED' | translate
@@ -200,6 +221,7 @@
                     'ADMIN.REVIEWS_PAGE.BADGE_REJECTED' | translate
                   }}</span>
                 }
+                </div>
               </div>
             </td>
           </ng-container>

@@ -1,3 +1,5 @@
+import type { ProductCatalogDisplayState } from '../products/product-catalog-display';
+
 /** Відповідає PromotionLevel на бекенді. */
 export enum PromotionLevel {
   Product = 0,
@@ -28,6 +30,16 @@ export interface PromotionTranslationDto {
   description?: string | null;
 }
 
+/** Унікальні productId з умов акції для таблиць/бейджів без парсингу JSON. */
+export interface PromotionReferencedProductDto {
+  productId: string;
+  name?: string | null;
+  slug?: string | null;
+  existsInCatalog?: boolean;
+  isActive?: boolean | null;
+  catalogDisplayState?: ProductCatalogDisplayState | string | null;
+}
+
 /** Відповідь API — додайте productConditions/cartConditions/coupon у MapToDto на бекенді для повного редагування. */
 export interface PromotionResponseDto {
   id: string;
@@ -50,6 +62,7 @@ export interface PromotionResponseDto {
   usedCount?: number | null;
   productConditions?: ProductLevelConditionDto | null;
   cartConditions?: CartLevelConditionDto | null;
+  referencedProducts?: PromotionReferencedProductDto[] | null;
   translations: PromotionTranslationDto[];
 }
 

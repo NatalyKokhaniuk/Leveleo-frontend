@@ -22,12 +22,18 @@
         <div
           class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4 min-w-0"
         >
-          <div class="flex-1 min-w-0 flex items-start gap-2">
+          <div class="flex-1 min-w-0 flex flex-wrap items-center gap-x-3 gap-y-2">
             <h1
               class="modal-title text-xl sm:text-2xl md:text-3xl font-fixel font-semibold text-on-surface m-0 break-words [overflow-wrap:anywhere] flex-1 min-w-0"
             >
               {{ productTitle(p) }}
             </h1>
+            @if (productCatalogBadgeKey(p); as catBadge) {
+              <span
+                class="text-xs font-medium px-2.5 py-1 rounded-full bg-on-surface/10 text-on-surface/90 shrink-0 max-w-full [overflow-wrap:anywhere]"
+                >{{ catBadge | translate }}</span
+              >
+            }
             @if (canManageProduct()) {
               <a
                 matIconButton
@@ -58,7 +64,11 @@
           [forceSquareMedia]="true"
           [hideTitleInDetailsTab]="true"
         />
-        <app-product-commerce-toolbar [productId]="p.id" />
+        <app-product-commerce-toolbar
+          [productId]="p.id"
+          [maxQuantity]="productToolbarMaxQty(p)"
+          [purchaseBlocked]="productPurchaseBlocked(p)"
+        />
       </section>
 
       @if (recommendedProducts().length > 0) {

@@ -7,7 +7,7 @@
     </p>
   </main>
 } @else {
-  <main class="comparison-page pt-28 px-4 md:px-10 max-w-5xl mx-auto flex flex-col gap-8 pb-16 min-w-0 w-full overflow-x-hidden">
+  <main class="comparison-page pt-28 px-4 md:px-10 max-w-7xl mx-auto flex flex-col gap-8 pb-16 min-w-0 w-full">
     <header class="flex flex-col gap-2 min-w-0">
       <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'COMPARISON.TITLE' | translate }}</h1>
       <p class="modal-desc text-left max-w-2xl">{{ 'COMPARISON.DESCRIPTION' | translate }}</p>
@@ -29,32 +29,29 @@
     } @else if (items().length === 0) {
       <p class="text-center text-on-surface/80 py-12">{{ 'COMPARISON.EMPTY' | translate }}</p>
     } @else {
-      <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5 flex flex-col gap-3">
-        <div class="comparison-page__category-groups flex flex-col divide-y divide-outline-variant/35">
-          @for (g of grouped(); track g.categoryId) {
-            <div class="flex items-center justify-between gap-3 py-3 min-w-0">
-              <div class="font-medium">
-                {{ g.categoryName }}
-                <span class="opacity-70">({{ g.products.length }})</span>
+      <ng-template #comparisonCategoryNav>
+        <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5 flex flex-col gap-3">
+          <div class="comparison-page__category-groups flex flex-col divide-y divide-outline-variant/35">
+            @for (g of grouped(); track g.categoryId) {
+              <div class="flex items-center justify-between gap-3 py-3 min-w-0">
+                <div class="font-medium">
+                  {{ g.categoryName }}
+                  <span class="opacity-70">({{ g.products.length }})</span>
+                </div>
+                @if (g.products.length >= 2) {
+                  <button matButton="outlined" type="button" (click)="compareCategory(g.categoryId)">
+                    {{ 'COMPARISON.COMPARE_CATEGORY' | translate }}
+                  </button>
+                }
               </div>
-              @if (g.products.length >= 2) {
-                <button matButton="outlined" type="button" (click)="compareCategory(g.categoryId)">
-                  {{ 'COMPARISON.COMPARE_CATEGORY' | translate }}
-                </button>
-              }
-            </div>
-          }
-        </div>
-        @if (activeCategoryId()) {
-          <div class="pt-1">
-            <button matButton="outlined" type="button" (click)="clearCategoryCompare()">
-              {{ 'COMPARISON.SHOW_ALL' | translate }}
-            </button>
+            }
           </div>
-        }
-      </section>
+        </section>
+      </ng-template>
 
       @if (!activeCategoryId()) {
+        <ng-container *ngTemplateOutlet="comparisonCategoryNav" />
+
         <ul class="flex flex-col gap-6 list-none p-0 m-0 w-full min-w-0">
           @for (p of visibleItems(); track p.id) {
             <li
@@ -62,9 +59,9 @@
             >
               <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
                 <div class="min-w-0 w-full">
-                  @if (p.slug) {
+                  @if (productPublicLinkSegments(p); as link) {
                     <a
-                      [routerLink]="['/products', p.slug]"
+                      [routerLink]="link"
                       class="text-base md:text-lg font-semibold text-on-surface hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded break-words [overflow-wrap:anywhere]"
                     >
                       {{ productLabel(p) }}
@@ -76,13 +73,13 @@
                   }
                 </div>
                 <div class="min-w-0 w-full max-w-full overflow-hidden">
-                  <app-product-detail-tabs
-                    [product]="p"
-                    [roomyRating]="true"
-                    [hideTitleInDetailsTab]="true"
-                  />
+                  <app-product-detail-tabs [product]="p" [roomyRating]="true" [hideTitleInDetailsTab]="true" />
                 </div>
-                <app-product-commerce-toolbar class="w-full min-w-0" [productId]="p.id" />
+                <app-product-commerce-toolbar
+                  class="w-full min-w-0"
+                  [productId]="p.id"
+                  [purchaseBlocked]="productPurchaseBlocked(p)"
+                />
                 <div class="flex justify-end shrink-0">
                   <button
                     matButton="tonal"
@@ -99,11 +96,33 @@
           }
         </ul>
       } @else {
-        <section class="rounded-2xl border border-outline-variant/25 bg-surface-container-lowest/50 overflow-hidden">
-          <div
-            appHorizontalDragScroll
-            class="overflow-auto max-h-[70vh] cursor-grab active:cursor-grabbing select-none touch-pan-y"
-          >
+        <section
+          class="comparison-table-shell rounded-2xl border border-outline-variant/25 bg-surface-container-lowest/50 flex flex-col min-w-0 w-full overflow-hidden"
+        >
+          <div class="comparison-table-toolbar px-4 md:px-5 pt-4 pb-3 border-b border-outline-variant/20 flex flex-col gap-3 min-w-0">
+            @if (activeCategoryLabel(); as catTitle) {
+              <p class="text-sm md:text-base text-on-surface/85 m-0 font-medium">{{ catTitle }}</p>
+            }
+            <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:items-center sm:justify-between min-w-0">
+              <mat-button-toggle-group
+                class="comparison-attr-filter flex flex-wrap shrink min-w-0"
+                hideSingleSelectionIndicator
+                [value]="attrFilterMode()"
+                (change)="onAttrFilterChange($event)"
+                [attr.aria-label]="'COMPARISON.ATTR_FILTERS_LEGEND' | translate"
+              >
+                <mat-button-toggle value="all">{{ 'COMPARISON.FILTER_ATTR_ALL' | translate }}</mat-button-toggle>
+                <mat-button-toggle value="matching">{{ 'COMPARISON.FILTER_ATTR_MATCHING' | translate }}</mat-button-toggle>
+                <mat-button-toggle value="different">{{ 'COMPARISON.FILTER_ATTR_DIFFERENT' | translate }}</mat-button-toggle>
+                <mat-button-toggle value="allFilled">{{ 'COMPARISON.FILTER_ATTR_ALL_FILLED' | translate }}</mat-button-toggle>
+              </mat-button-toggle-group>
+              <button matButton="outlined" type="button" class="shrink-0 self-start sm:self-auto" (click)="clearCategoryCompare()">
+                {{ 'COMPARISON.SHOW_ALL' | translate }}
+              </button>
+            </div>
+          </div>
+
+          <div class="comparison-table-scroll w-full overflow-x-auto">
             <table class="min-w-[760px] w-full border-separate border-spacing-0">
               <thead>
                 <tr>
@@ -117,9 +136,9 @@
                       class="sticky top-0 z-20 bg-surface-container-high text-left align-top p-3 md:p-4 border-b border-l border-outline-variant/20 min-w-[230px]"
                     >
                       <div class="flex flex-col gap-2">
-                        @if (p.slug) {
+                        @if (productPublicLinkSegments(p); as hlink) {
                           <a
-                            [routerLink]="['/products', p.slug]"
+                            [routerLink]="hlink"
                             class="font-semibold text-sm leading-snug break-words text-primary hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded-sm w-fit"
                           >
                             {{ productLabel(p) }}
@@ -133,13 +152,11 @@
                           <img
                             [src]="img"
                             [alt]="productLabel(p)"
-                            class="h-14 w-14 rounded-lg object-cover border border-outline-variant/25 bg-surface-container"
+                            class="h-14 w-14 rounded-lg object-cover border border-outline-variant/25 bg-transparent"
                             loading="lazy"
                           />
                         } @else {
-                          <div
-                            class="h-14 w-14 rounded-lg border border-outline-variant/25 bg-surface-container flex items-center justify-center"
-                          >
+                          <div class="h-14 w-14 rounded-lg border border-outline-variant/25 bg-transparent flex items-center justify-center">
                             <mat-icon class="text-on-surface/35">image_not_supported</mat-icon>
                           </div>
                         }
@@ -184,7 +201,17 @@
                     </td>
                   }
                 </tr>
-                @for (grp of attributeRowGroups(); track grp.groupKey) {
+                @if (filteredAttributeRowGroups().length === 0 && attrFilterMode() !== 'all') {
+                  <tr>
+                    <td
+                      class="p-4 md:p-5 text-center text-on-surface/75 border-b border-outline-variant/15"
+                      [attr.colspan]="1 + visibleItems().length"
+                    >
+                      {{ 'COMPARISON.ATTR_FILTER_EMPTY' | translate }}
+                    </td>
+                  </tr>
+                }
+                @for (grp of filteredAttributeRowGroups(); track grp.groupKey) {
                   <tr
                     class="comparison-attr-group-header"
                     [class.comparison-attr-stripe-a]="grp.stripe % 2 === 0"
@@ -234,6 +261,8 @@
             </table>
           </div>
         </section>
+
+        <ng-container *ngTemplateOutlet="comparisonCategoryNav" />
       }
     }
   </main>

@@ -12,7 +12,7 @@
     >
       <div class="relative w-full">
         <div
-          class="product-card__media relative w-full bg-surface-container/35 flex flex-col items-stretch justify-center overflow-hidden"
+          class="product-card__media relative w-full bg-transparent flex flex-col items-stretch justify-center overflow-hidden"
         >
           @if (imageLoading()) {
             <div class="flex flex-1 w-full min-h-[10rem] items-center justify-center">
@@ -57,15 +57,22 @@
             </span>
           }
         }
+        @if (catalogStateBadgeTranslateKey(); as badgeKey) {
+          <span
+            class="absolute left-2 bottom-[3.25rem] z-[2] max-w-[calc(100%-5.5rem)] text-[0.6875rem] font-medium leading-snug px-2 py-0.5 rounded-md bg-surface/95 text-on-surface/90 shadow-sm border border-outline-variant/35 pointer-events-none text-center truncate"
+            [title]="badgeKey | translate"
+            >{{ badgeKey | translate }}</span
+          >
+        }
       </div>
 
       <div class="flex flex-col gap-2 px-4 pt-4 pb-14 min-w-0 max-w-full overflow-x-hidden">
         <h2
           class="text-base font-medium text-on-surface line-clamp-2 min-h-[2.75rem] break-words hyphens-auto"
         >
-          @if (product.slug) {
+          @if (titlePublicSegments(); as titleLink) {
             <a
-              [routerLink]="['/products', product.slug]"
+              [routerLink]="titleLink"
               target="_blank"
               rel="noopener noreferrer"
               class="hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded"

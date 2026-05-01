@@ -27,9 +27,9 @@
         >
           <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
             <div class="min-w-0 w-full">
-              @if (p.slug) {
+              @if (productPublicLinkSegments(p); as link) {
                 <a
-                  [routerLink]="['/products', p.slug]"
+                  [routerLink]="link"
                   class="text-base md:text-lg font-semibold text-on-surface hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded break-words [overflow-wrap:anywhere]"
                 >
                   {{ productName(p) }}
@@ -43,7 +43,11 @@
             <div class="min-w-0 w-full max-w-full overflow-hidden">
               <app-product-detail-tabs [product]="p" [roomyRating]="true" [hideTitleInDetailsTab]="true" />
             </div>
-            <app-product-commerce-toolbar class="w-full min-w-0" [productId]="p.id" />
+            <app-product-commerce-toolbar
+              class="w-full min-w-0"
+              [productId]="p.id"
+              [purchaseBlocked]="productPurchaseBlocked(p)"
+            />
             <div class="flex justify-end shrink-0">
               <button
                 mat-stroked-button

@@ -1,6 +1,8 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -20,12 +22,18 @@ import { brandLocalizedName } from '../../features/brands/brand-display-i18n';
 import { BrandService } from '../../features/brands/brand.service';
 import { BrandResponseDto } from '../../features/brands/brand.types';
 import { productLocalizedName } from '../../features/products/product-display-i18n';
+import { sortProductsByComparisonAddedAtDesc } from '../../features/products/product-relation-sort.util';
 import { UserProductRelationsService } from '../../features/user-product-relations/user-product-relations.service';
+import {
+  isArchivedFromSaleState,
+  isCatalogPurchaseBlocked,
+  isMissingFromDatabaseState,
+  resolveProductCatalogDisplayState,
+} from '../../features/products/product-catalog-display';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { CategoryService } from '../../features/categories/category.service';
 import { AttributeGroupService } from '../../features/attribute-groups/attribute-group.service';
 import { AttributeGroupResponseDto } from '../../features/attribute-groups/attribute-group.types';
-import { HorizontalDragScrollDirective } from '../../shared/directives/horizontal-drag-scroll.directive';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
 
@@ -51,16 +59,21 @@ export interface ComparisonAttributeGroupSection {
   rows: ComparisonAttributeValueRow[];
 }
 
+/** Фільтр рядків атрибутів у таблиці порівняння. */
+export type ComparisonAttrFilterMode = 'all' | 'matching' | 'different' | 'allFilled';
+
 @Component({
   selector: 'app-comparison',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     TranslateModule,
     RouterLink,
     MatProgressSpinnerModule,
     MatButtonModule,
     MatIconModule,
-    HorizontalDragScrollDirective,
+    MatButtonToggleGroup,
+    MatButtonToggle,
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
@@ -90,6 +103,8 @@ export class ComparisonPage implements OnInit {
   attributeGroupsById = signal<Map<string, AttributeGroupResponseDto>>(new Map());
   valuesByProduct = signal<Map<string, ProductAttributeValueResponseDto[]>>(new Map());
   lang = signal(this.translate.currentLang || 'uk');
+  /** Режим відображення атрибутів у табличному порівнянні. */
+  attrFilterMode = signal<ComparisonAttrFilterMode>('all');
 
   grouped = computed(() => {
     const names = this.categoryNames();
@@ -169,6 +184,44 @@ export class ComparisonPage implements OnInit {
     }));
   });
 
+  /** Підпис активної категорії для підзаголовка таблиці. */
+  activeCategoryLabel = computed(() => {
+    const id = this.activeCategoryId();
+    if (!id) return null;
+    return this.grouped().find((g) => g.categoryId === id)?.categoryName ?? null;
+  });
+
+  /** Атрибутні групи з урахуванням обраного фільтра. */
+  filteredAttributeRowGroups = computed((): ComparisonAttributeGroupSection[] => {
+    const groups = this.attributeRowGroups();
+    const mode = this.attrFilterMode();
+    if (mode === 'all') {
+      return groups;
+    }
+
+    const keepRow = (row: ComparisonAttributeValueRow): boolean => {
+      const cells = row.values;
+      switch (mode) {
+        case 'matching':
+          return this.comparisonCellsAllComparableMatch(cells);
+        case 'different':
+          return !this.comparisonCellsAllComparableMatch(cells);
+        case 'allFilled':
+          return this.comparisonCellsAllFilled(cells);
+        default:
+          return true;
+      }
+    };
+
+    return groups
+      .map((g) => ({
+        ...g,
+        rows: g.rows.filter(keepRow),
+      }))
+      .filter((g) => g.rows.length > 0)
+      .map((g, stripe) => ({ ...g, stripe }));
+  });
+
   readonly isAuthenticated = this.auth.isAuthenticated;
 
   ngOnInit(): void {
@@ -203,7 +256,7 @@ export class ComparisonPage implements OnInit {
         }),
       )
       .subscribe(({ items, categories, brands, attributes, attributeGroups }) => {
-        const active = items.filter((p) => p.isActive);
+        const active = sortProductsByComparisonAddedAtDesc(items).filter((p) => p.isActive);
         this.items.set(active);
         this.categoryNames.set(new Map(categories.map((c) => [c.id, c.name])));
         this.brandCatalog.set(brands);
@@ -263,14 +316,34 @@ export class ComparisonPage implements OnInit {
 
   compareCategory(categoryId: string): void {
     this.activeCategoryId.set(categoryId);
+    this.attrFilterMode.set('all');
   }
 
   clearCategoryCompare(): void {
     this.activeCategoryId.set(null);
+    this.attrFilterMode.set('all');
+  }
+
+  onAttrFilterChange(e: MatButtonToggleChange): void {
+    const v = e.value as ComparisonAttrFilterMode;
+    if (v === 'all' || v === 'matching' || v === 'different' || v === 'allFilled') {
+      this.attrFilterMode.set(v);
+    }
   }
 
   productLabel(p: ProductResponseDto): string {
     return productLocalizedName(p, this.lang());
+  }
+
+  productPublicLinkSegments(p: ProductResponseDto): string[] | null {
+    const st = resolveProductCatalogDisplayState(p);
+    if (isMissingFromDatabaseState(st) || isArchivedFromSaleState(st)) return null;
+    const slug = p.slug?.trim();
+    return slug ? ['/products', slug] : null;
+  }
+
+  productPurchaseBlocked(p: ProductResponseDto): boolean {
+    return isCatalogPurchaseBlocked(p);
   }
 
   productImageUrl(productId: string): string | null {
@@ -358,5 +431,28 @@ export class ComparisonPage implements OnInit {
       label: brandLocalizedName(b, this.lang()),
       slug: b.slug?.trim() || null,
     };
+  }
+
+  private comparisonCellsComparableKey(cell: ComparisonAttrCell): string {
+    switch (cell.kind) {
+      case 'missing':
+        return '|m|';
+      case 'boolean':
+        return cell.value ? '|b|1' : '|b|0';
+      case 'text': {
+        const t = cell.text.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+        return `|t|${t}`;
+      }
+    }
+  }
+
+  private comparisonCellsAllComparableMatch(values: ComparisonAttrCell[]): boolean {
+    if (values.length <= 1) return true;
+    const k0 = this.comparisonCellsComparableKey(values[0]);
+    return values.every((c) => this.comparisonCellsComparableKey(c) === k0);
+  }
+
+  private comparisonCellsAllFilled(values: ComparisonAttrCell[]): boolean {
+    return values.length > 0 && values.every((c) => c.kind !== 'missing');
   }
 }

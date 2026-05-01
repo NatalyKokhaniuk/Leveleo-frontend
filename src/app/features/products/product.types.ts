@@ -1,4 +1,5 @@
 import type { PromotionTranslationDto } from '../promotions/promotion.types';
+import type { ProductCatalogDisplayState } from './product-catalog-display';
 
 /** Відповідає ProductSortBy на бекенді. */
 export enum ProductSortBy {
@@ -89,6 +90,8 @@ export interface ProductResponseDto {
   stockQuantity: number;
   availableQuantity: number;
   isActive: boolean;
+  /** Стан у каталозі поруч із isActive (бекенд ProductCatalogDisplayState). */
+  catalogDisplayState?: ProductCatalogDisplayState | string | null;
   categoryId: string;
   brandId: string;
   averageRating: number;
@@ -97,6 +100,10 @@ export interface ProductResponseDto {
   translations: ProductTranslationResponseDto[];
   discountedPrice?: number | null;
   appliedPromotion?: AppliedPromotionDto | null;
+  /** ISO: дата додавання до обраного (GET favorites/me — порядок сортування). */
+  favoriteAddedAt?: string | null;
+  /** ISO: дата додавання до порівняння (GET comparison/me). */
+  comparisonAddedAt?: string | null;
 }
 
 export interface CreateProductDto {

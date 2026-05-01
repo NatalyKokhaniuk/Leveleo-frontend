@@ -10,6 +10,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
+import { isCatalogPurchaseBlocked } from '../../../features/products/product-catalog-display';
 import { ProductResponseDto } from '../../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../product-detail-tabs/product-detail-tabs.component';
@@ -56,14 +57,25 @@ export class ProductQuickViewDialogComponent implements OnInit {
     return productLocalizedName(this.data.product, this.lang());
   }
 
+  /** Заголовок у діалозі: публічне посилання лише якщо товар можна купити з вітрини. */
+  titlePublicSegments(): string[] | null {
+    const p = this.data.product;
+    if (!p?.slug?.trim() || isCatalogPurchaseBlocked(p)) return null;
+    return ['/products', p.slug.trim()];
+  }
+
+  toolbarPurchaseBlocked(): boolean {
+    return isCatalogPurchaseBlocked(this.data.product);
+  }
+
   close(): void {
     this.dialogRef.close();
   }
 
   openProductPage(): void {
-    const slug = this.data.product.slug?.trim();
-    if (!slug) return;
-    const tree = this.router.createUrlTree(['/products', slug]);
+    const segs = this.titlePublicSegments();
+    if (!segs) return;
+    const tree = this.router.createUrlTree(segs);
     const url = this.router.serializeUrl(tree);
     window.open(url, '_blank', 'noopener');
     this.dialogRef.close();

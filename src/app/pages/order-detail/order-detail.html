@@ -139,7 +139,22 @@
               <tbody>
                 @for (item of o.orderItems; track item.id) {
                   <tr class="border-t border-solid border-outline-variant text-on-surface">
-                    <td class="py-2 pr-3 align-top">{{ item.productName }}</td>
+                    <td class="py-2 pr-3 align-top">
+                      <div class="flex flex-col gap-0.5 min-w-0">
+                        @if (lineProductPublicLinkSegments(item); as link) {
+                          <a
+                            [routerLink]="link"
+                            class="text-primary font-medium hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 rounded break-words"
+                            >{{ lineProductTitle(item) }}</a
+                          >
+                        } @else {
+                          <span class="font-medium text-on-surface break-words">{{ lineProductTitle(item) }}</span>
+                        }
+                        @if (lineCatalogHintKey(item); as hintKey) {
+                          <span class="text-xs text-on-surface/75">{{ hintKey | translate }}</span>
+                        }
+                      </div>
+                    </td>
                     <td class="py-2 pr-3 align-top whitespace-nowrap">{{ item.quantity }}</td>
                     <td class="py-2 pr-3 align-top whitespace-nowrap">
                       {{ lineUnitPrice(item) | number: '1.2-2' }}

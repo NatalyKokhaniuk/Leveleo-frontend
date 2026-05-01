@@ -136,7 +136,26 @@
             <table mat-table [dataSource]="o.orderItems!" class="w-full min-w-[280px]">
               <ng-container matColumnDef="productName">
                 <th mat-header-cell *matHeaderCellDef>{{ 'ORDER_VIEW.COL_PRODUCT' | translate }}</th>
-                <td mat-cell *matCellDef="let item">{{ item.productName }}</td>
+                <td mat-cell *matCellDef="let item">
+                  <div class="flex flex-col gap-1 min-w-0 max-w-[20rem]">
+                    <span class="font-medium break-words">{{ lineProductTitle(item) }}</span>
+                    @if (lineCatalogHintKey(item); as hintKey) {
+                      <span class="text-xs text-on-surface/75">{{ hintKey | translate }}</span>
+                    }
+                    <div class="flex flex-wrap gap-2">
+                      @if (lineProductPublicLinkSegments(item); as pub) {
+                        <a matButton="text" type="button" [routerLink]="pub" class="!min-h-0 !py-1 !text-sm">{{
+                          'ADMIN.PROMOTION.REF_OPEN_STORE' | translate
+                        }}</a>
+                      }
+                      @if (lineProductAdminLinkSegments(item); as adm) {
+                        <a matButton="text" type="button" [routerLink]="adm" class="!min-h-0 !py-1 !text-sm">{{
+                          'ADMIN.PROMOTION.REF_OPEN_ADMIN' | translate
+                        }}</a>
+                      }
+                    </div>
+                  </div>
+                </td>
               </ng-container>
               <ng-container matColumnDef="quantity">
                 <th mat-header-cell *matHeaderCellDef>{{ 'ORDER_VIEW.COL_QTY' | translate }}</th>

@@ -286,7 +286,18 @@
                         class="border-t border-[var(--color-border)] text-[var(--color-text)] cursor-pointer hover:bg-[var(--color-surface-hover)] transition-colors"
                         [routerLink]="['/orders', o.id]"
                       >
-                        <td class="py-2 pr-3 align-top">{{ orderPrimaryLabel(o) }}</td>
+                        <td class="py-2 pr-3 align-top">
+                          <div class="inline-flex items-center gap-1.5 min-w-0">
+                            @if (o.hasArchivedProducts) {
+                              <mat-icon
+                                class="text-amber-800 dark:text-amber-300 text-lg shrink-0"
+                                [matTooltip]="'ORDER_VIEW.HAS_ARCHIVED_PRODUCTS' | translate"
+                                >archive</mat-icon
+                              >
+                            }
+                            <span class="min-w-0">{{ orderPrimaryLabel(o) }}</span>
+                          </div>
+                        </td>
                         <td class="py-2 pr-3 align-top">
                           @if (o.createdAt) {
                             {{ o.createdAt | date: 'short' }}

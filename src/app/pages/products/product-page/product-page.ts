@@ -28,6 +28,11 @@ import { AuthService } from '../../../core/auth/services/auth.service';
 import { CategoryService } from '../../../features/categories/category.service';
 import { ProductService } from '../../../features/products/product.service';
 import { defaultProductFilter } from '../../../features/products/product-filter.encode';
+import {
+  catalogStateBadgeKey,
+  isCatalogPurchaseBlocked,
+  resolveProductCatalogDisplayState,
+} from '../../../features/products/product-catalog-display';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
 import { ProductResponseDto, ProductSortBy } from '../../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../product-commerce-toolbar/product-commerce-toolbar.component';
@@ -199,6 +204,23 @@ export class ProductPage implements OnInit {
 
   productTitle(p: ProductResponseDto): string {
     return productLocalizedName(p, this.lang());
+  }
+
+  productCatalogBadgeKey(p: ProductResponseDto): string | null {
+    const st = resolveProductCatalogDisplayState(p);
+    return st === 'activeInCatalog' ? null : catalogStateBadgeKey(st);
+  }
+
+  productPurchaseBlocked(p: ProductResponseDto): boolean {
+    return isCatalogPurchaseBlocked(p);
+  }
+
+  productToolbarMaxQty(p: ProductResponseDto): number | null {
+    const avail = p.availableQuantity;
+    if (typeof avail === 'number' && !Number.isNaN(avail)) return Math.max(0, avail);
+    const stock = p.stockQuantity;
+    if (typeof stock === 'number' && !Number.isNaN(stock)) return Math.max(0, stock);
+    return null;
   }
 
   isFavorite(p: ProductResponseDto): boolean {

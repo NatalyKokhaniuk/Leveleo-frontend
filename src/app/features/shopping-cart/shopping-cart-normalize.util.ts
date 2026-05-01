@@ -1,4 +1,5 @@
 import type { AppliedCartPromotionDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
+import type { ProductResponseDto } from '../products/product.types';
 
 function numOpt(v: unknown): number | undefined {
   if (v == null) return undefined;
@@ -20,6 +21,41 @@ function intApplyResult(v: unknown): number | null | undefined {
   return Number.isFinite(n) ? Math.trunc(n) : undefined;
 }
 
+function normalizeGuidList(raw: unknown): string[] | undefined {
+  if (!Array.isArray(raw)) return undefined;
+  return raw.map((x) => String(x).trim()).filter((id) => id.length > 0);
+}
+
+/**
+ * Єдиний вигляд рядка кошика з camel/Pascal casing.
+ */
+export function normalizeShoppingCartItem(raw: unknown): ShoppingCartItemDto {
+  if (!raw || typeof raw !== 'object') {
+    return { quantity: 0 };
+  }
+  const o = raw as Record<string, unknown>;
+  const qty = Number(o['quantity'] ?? o['Quantity']) || 0;
+  const productRaw = (o['product'] ?? o['Product']) as ProductResponseDto | null | undefined;
+  const product = typeof productRaw === 'object' && productRaw ? productRaw : undefined;
+  const pidRaw = (o['productId'] ?? o['ProductId']) as string | undefined;
+
+  const qApply = numOpt(o['quantityApplyingToTotals'] ?? o['QuantityApplyingToTotals']);
+
+  const item: ShoppingCartItemDto = {
+    productId: pidRaw ?? product?.id,
+    product,
+    quantity: qty,
+    availableQuantity: numOpt(o['availableQuantity'] ?? o['AvailableQuantity']),
+    quantityApplyingToTotals: qApply,
+    isExcludedFromPurchase: Boolean(o['isExcludedFromPurchase'] ?? o['IsExcludedFromPurchase']),
+    totalPrice: numOpt(o['totalPrice'] ?? o['TotalPrice']),
+    price: numOpt(o['price'] ?? o['Price']),
+    priceAfterProductPromotion: numOpt(o['priceAfterProductPromotion'] ?? o['PriceAfterProductPromotion']),
+    priceAfterCartPromotion: numOpt(o['priceAfterCartPromotion'] ?? o['PriceAfterCartPromotion']),
+  };
+  return item;
+}
+
 /**
  * Узгоджує camelCase / PascalCase у відповідях ASP.NET, щоб купон і акція кошика коректно читались у UI.
  */
@@ -28,7 +64,10 @@ export function normalizeShoppingCartDto(raw: unknown): ShoppingCartDto {
     return { items: [] };
   }
   const o = raw as Record<string, unknown>;
-  const items = (o['items'] ?? o['Items']) as ShoppingCartItemDto[] | null | undefined;
+  const rawItems = o['items'] ?? o['Items'];
+  const items = Array.isArray(rawItems)
+    ? (rawItems as unknown[]).map(normalizeShoppingCartItem)
+    : (rawItems as ShoppingCartItemDto[] | null | undefined);
   const cc = o['couponCode'] ?? o['CouponCode'];
   const couponApplyResult = intApplyResult(o['couponApplyResult'] ?? o['CouponApplyResult']);
   const cam = o['couponApplyMessage'] ?? o['CouponApplyMessage'];
@@ -60,7 +99,14 @@ export function normalizeShoppingCartDto(raw: unknown): ShoppingCartDto {
     couponApplyResult,
     couponApplyMessage,
     items,
-    removedItems: (o['removedItems'] ?? o['RemovedItems']) as ShoppingCartItemDto[] | null | undefined,
+    removedItems: (() => {
+      const ri = o['removedItems'] ?? o['RemovedItems'];
+      if (!Array.isArray(ri)) return ri as ShoppingCartItemDto[] | null | undefined;
+      return (ri as unknown[]).map(normalizeShoppingCartItem);
+    })(),
+    removedMissingProductIds: normalizeGuidList(
+      o['removedMissingProductIds'] ?? o['RemovedMissingProductIds'],
+    ),
     cartAdjusted: Boolean(o['cartAdjusted'] ?? o['CartAdjusted']),
     totalOriginalPrice: numOpt(o['totalOriginalPrice'] ?? o['TotalOriginalPrice']),
     totalProductDiscount: numOpt(o['totalProductDiscount'] ?? o['TotalProductDiscount']),

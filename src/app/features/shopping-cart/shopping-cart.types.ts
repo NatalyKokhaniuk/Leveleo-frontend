@@ -16,7 +16,19 @@ export interface ShoppingCartItemDto {
   productId?: string;
   /** Актуальний формат з бекенду (див. ShoppingCartService.MapToDtoAsync). */
   product?: ProductResponseDto;
+  /** Кількість «в рядку кошика» (запитані одиниці). */
   quantity: number;
+  /**
+   * Реально доступні одиниці (склад).
+   * Можуть від бекенду; інакше дивимось product.availableQuantity.
+   */
+  availableQuantity?: number;
+  /** Скільки одиниць входить у підсумок сплати (після резервів/лімітів). */
+  quantityApplyingToTotals?: number;
+  /** Неможливо викупити цей рядок (окр. сума йде з quantityApplyingToTotals / TotalPrice). */
+  isExcludedFromPurchase?: boolean;
+  /** Сума до сплати по рядку; узгоджена з quantityApplyingToTotals. */
+  totalPrice?: number;
   /** Оригінальна ціна за одиницю в контексті кошика (GET /me). */
   price?: number;
   priceAfterProductPromotion?: number;
@@ -26,7 +38,16 @@ export interface ShoppingCartItemDto {
 /** Рядок кошика на UI: товар + пер-юніт ціни з ShoppingCartItemDto (джерело істини — GET /me). */
 export interface CartLineView {
   product: ProductResponseDto;
-  quantity: number;
+  /** Кількість у кошику («заплановані» одиниці). */
+  quantityInCart: number;
+  /** Одиниці, що входять у підсумок сплати. */
+  quantityApplyingToTotals: number;
+  /** Доступність для відображення (рядок кошика або товар каталогу). */
+  availableQuantityEffective: number;
+  /** Рядок у кошику, але не платний через сток тощо. */
+  isExcludedFromPurchase: boolean;
+  /** Сума рядка з API; коли немає — множимо unit × quantityApplyingToTotals. */
+  lineTotalPrice: number | null;
   unitListPrice: number;
   unitAfterProductPromotion: number;
   unitAfterCartPromotion: number;
@@ -52,7 +73,10 @@ export interface ShoppingCartDto {
   /** Текст від бекенда (помилка / пояснення). */
   couponApplyMessage?: string | null;
   items?: ShoppingCartItemDto[] | null;
+  /** Застарілий список; при перерахунку може бути порожнім. */
   removedItems?: ShoppingCartItemDto[] | null;
+  /** Товари, що зникли з каталогу — рядки прибрано з кошика. */
+  removedMissingProductIds?: string[] | null;
   cartAdjusted?: boolean;
   totalOriginalPrice?: number;
   totalProductDiscount?: number;

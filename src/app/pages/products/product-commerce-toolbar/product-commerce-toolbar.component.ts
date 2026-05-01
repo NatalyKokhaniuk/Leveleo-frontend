@@ -19,6 +19,8 @@ export class ProductCommerceToolbarComponent {
   maxQuantity = input<number | null>(null);
   /** Приховати кнопку порівняння (наприклад у кошику). */
   hideCompare = input(false);
+  /** Знято з продажу / нема в каталозі — не додавати й не збільшувати кількість (зменшити/прибрати з кошика можна). */
+  purchaseBlocked = input(false);
 
   private auth = inject(AuthService);
   private cart = inject(CartStateService);
@@ -43,6 +45,7 @@ export class ProductCommerceToolbarComponent {
   qty = computed(() => this.cart.quantities().get(this.productId()) ?? 0);
   inComparison = computed(() => this.comparison.comparisonIds().has(this.productId()));
   canIncrease = computed(() => {
+    if (this.purchaseBlocked()) return false;
     const max = this.maxQuantity();
     if (max == null) return true;
     return this.qty() < Math.max(0, max);
@@ -65,6 +68,9 @@ export class ProductCommerceToolbarComponent {
   }
 
   onAddToCart(): void {
+    if (this.purchaseBlocked()) {
+      return;
+    }
     if (!this.isAuthed()) {
       this.guestHint.set('purchase');
       return;
@@ -80,6 +86,9 @@ export class ProductCommerceToolbarComponent {
   }
 
   inc(): void {
+    if (this.purchaseBlocked()) {
+      return;
+    }
     if (!this.isAuthed()) {
       this.guestHint.set('purchase');
       return;

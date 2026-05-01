@@ -92,7 +92,11 @@
     "MEDIA_FULLSCREEN": "Expand media",
     "MEDIA_LIGHTBOX_CLOSE": "Close preview",
     "MEDIA_LIGHTBOX_PREV": "Previous media",
-    "MEDIA_LIGHTBOX_NEXT": "Next media"
+    "MEDIA_LIGHTBOX_NEXT": "Next media",
+    "CATALOG_BADGE_ACTIVE": "In catalog",
+    "CATALOG_BADGE_ARCHIVED": "Archived / no longer sold",
+    "CATALOG_BADGE_MISSING": "Not in catalog",
+    "PURCHASE_UNAVAILABLE_CATALOG": "This product cannot be purchased from the catalog."
   },
   "FAVORITES": {
     "TITLE": "Favourites",
@@ -114,7 +118,13 @@
     "BRAND": "Brand",
     "COMPARE_CATEGORY": "Compare",
     "SHOW_ALL": "Show all categories",
-    "ATTR_GROUP_OTHER": "Other attributes"
+    "ATTR_GROUP_OTHER": "Other attributes",
+    "FILTER_ATTR_ALL": "All attributes",
+    "FILTER_ATTR_MATCHING": "Matching",
+    "FILTER_ATTR_DIFFERENT": "Different",
+    "FILTER_ATTR_ALL_FILLED": "Filled in all columns",
+    "ATTR_FILTERS_LEGEND": "Filter comparison attributes",
+    "ATTR_FILTER_EMPTY": "No attributes match this filter. Try another mode or \"All attributes\"."
   },
   "PROMOTIONS_PAGE": {
     "TITLE": "Promotions",
@@ -132,7 +142,16 @@
     "DESCRIPTION": "Items you added to your cart.",
     "BACK_TO_PRODUCTS": "Back to product selection",
     "EMPTY": "Your cart is empty.",
-    "REMOVED_ITEMS_TITLE": "The following items were removed from your cart:",
+    "REMOVED_MISSING_TITLE": "Products are no longer in the catalog and were removed from your cart:",
+    "REMOVED_MISSING_DISMISS": "Dismiss message",
+    "REMOVED_MISSING_FALLBACK_NAME": "Product (id {{id}})",
+    "LINE_EXCLUDED_FROM_PURCHASE": "This line stays in the cart but contributes 0 to pay (unavailable for your quantity).",
+    "LINE_QTY_BREAKDOWN": "Details",
+    "LINE_QTY_IN_CART": "in cart",
+    "LINE_QTY_IN_TOTAL": "counted toward total",
+    "LINE_AVAILABLE": "in stock",
+    "LINE_TOTAL_FROM_SERVER": "Line total (from server)",
+    "REMOVED_ITEMS_TITLE": "Removed from cart (other changes):",
     "UNAVAILABLE_ITEMS_TITLE": "These items cannot be ordered (discontinued, out of stock, or removed from the catalog):",
     "UNAVAILABLE_ITEMS_DISMISS": "Dismiss message",
     "LINE_OUT_OF_STOCK": "This product is temporarily out of stock. Reduce the quantity or remove the line from your cart.",
@@ -183,6 +202,8 @@
     "BACK_TO_CART": "Back to cart",
     "LOAD_ERROR": "Could not load the cart.",
     "CART_EMPTY": "Your cart is empty. Add items before checkout.",
+    "NO_PURCHASABLE_HINT": "Total to pay is 0 while some lines remain unavailable. Adjust quantities or remove lines on the cart page.",
+    "NO_PURCHASABLE_ITEMS": "No purchasable items in the cart. Update the cart and try again.",
     "TO_CART": "Go to cart",
     "CONTACT_TITLE": "Your contact details",
     "PHONE": "Mobile phone",
@@ -332,7 +353,10 @@
     "AWAIT_LOGIN": "Log in or register using the menu at the top of the page to view this order.",
     "LOGIN_CANCELLED": "To view this order, sign in as the order owner using the menu at the top of the page.",
     "LOGIN_AGAIN": "Show hint again",
-    "GUEST_DISMISS": "Not now"
+    "GUEST_DISMISS": "Not now",
+    "LINE_PRODUCT_ARCHIVED": "This product is no longer sold.",
+    "LINE_PRODUCT_MISSING": "Product details are unavailable.",
+    "HAS_ARCHIVED_PRODUCTS": "This order includes archived items"
   },
   "CAROUSEL": {
     "PREV_SLIDE": "Previous slide",
@@ -679,6 +703,8 @@
       "ATTR_VALUE_PICK_HINT": "Select an attribute in the list above.",
       "ATTR_VALUE_SAVE_ERROR": "Could not save the attribute value.",
       "ATTR_VALUE_DELETE_ERROR": "Could not delete the value.",
+      "ATTR_VALUE_ALL_ASSIGNED": "Every catalog attribute already has a value on this product.",
+      "ATTR_VALUE_ALL_ASSIGNED_HINT": "There are no more attributes left to add. Remove a row or define a new attribute in the catalog.",
       "UPLOAD_ERROR": "Could not upload the file.",
       "MEDIA_ADD_ERROR": "Could not add media to the product.",
       "MEDIA_DELETE_ERROR": "Could not remove media.",
@@ -793,7 +819,13 @@
       "COL_ACTIVE": "Active now",
       "COL_IMAGE": "Image",
       "DELETE_TITLE": "Delete promotion?",
-      "DELETE_DESC": "“{{name}}” will be permanently removed."
+      "DELETE_DESC": "“{{name}}” will be permanently removed.",
+      "REFERENCED_PRODUCTS_TITLE": "Products from conditions (API)",
+      "REFERENCED_PRODUCTS_HINT": "Product catalog state is independent of the «Active promotion» flag.",
+      "REF_COL_NAME": "Name / id",
+      "REF_COL_CATALOG": "In catalog",
+      "REF_OPEN_STORE": "Storefront",
+      "REF_OPEN_ADMIN": "Admin"
     },
     "TASKS_PAGE": {
       "TITLE": "Tasks",

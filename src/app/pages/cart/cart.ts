@@ -38,6 +38,7 @@ import {
 } from '../../features/shopping-cart/shopping-cart.types';
 import type { PromotionTranslationDto } from '../../features/promotions/promotion.types';
 import { ProductService } from '../../features/products/product.service';
+import { isCatalogPurchaseBlocked } from '../../features/products/product-catalog-display';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 
@@ -72,7 +73,7 @@ export class CartPage implements OnInit {
 
   loading = signal(true);
   loadError = signal(false);
-  /** Порядок як у відповіді кошика; ціни за одиницю з рядка GET /me. */
+  /** Порядок як у відповіді кошика; ціни з рядка GET /me + quantityApplyingToTotals / totalPrice. */
   lines = signal<CartLineView[]>([]);
   cartTotals = signal<{
     /** Σ каталожних цін — для узгодженості з рядками. */
@@ -93,9 +94,9 @@ export class CartPage implements OnInit {
     promoUsedCount: number | null;
   } | null>(null);
 
-  /** Рендеримо рядки напряму з API, щоб кошик не "порожнів" через затримку локального state. */
+  /** Рядки з quantityInCart > 0 (можуть бути з нульовим входженням у суму — після оплати або сток 0). */
   visibleLines = computed(() => {
-    return this.lines().filter((row) => row.quantity > 0);
+    return this.lines().filter((row) => row.quantityInCart > 0);
   });
   displayedTotal = computed(() => {
     const totals = this.cartTotals();
@@ -112,7 +113,10 @@ export class CartPage implements OnInit {
   private imageUrls = signal<Map<string, string | null>>(new Map());
   private brandCatalog = signal<BrandResponseDto[]>([]);
 
-  /** Назви товарів, що зникли з кошика порівняно з попереднім знімком (sessionStorage). */
+  /** Прибрано з каталогу (RemovedMissingProductIds) — текст з минулого знімку кошика. */
+  removedMissingCatalogNotice = signal<string[]>([]);
+
+  /** Інші прибрані рядки (не обов’язково «зниклий каталог»), за знімком sessionStorage. */
   removedCartItemsNotice = signal<string[]>([]);
 
   /**
@@ -153,11 +157,17 @@ export class CartPage implements OnInit {
     this.cartApi
       .getMyCart()
       .pipe(
-        switchMap((cart: ShoppingCartDto) => this.mapCartToRows(cart)),
+        switchMap((cart: ShoppingCartDto) =>
+          this.mapCartToRows(cart).pipe(map((payload) => ({ ...payload, cart }))),
+        ),
         catchError(() => {
           this.loadError.set(true);
           this.cartTotals.set(null);
-          return of({ lines: [] as CartLineView[], unavailableNames: [] as string[] });
+          return of({
+            lines: [] as CartLineView[],
+            unavailableNames: [] as string[],
+            cart: { items: [] } as ShoppingCartDto,
+          });
         }),
       )
       .subscribe((result) => {
@@ -167,7 +177,7 @@ export class CartPage implements OnInit {
         this.loadRowMeta(rows);
         this.loading.set(false);
         if (!this.loadError()) {
-          this.syncRemovedCartNotice(rows);
+          this.refreshRemovalNotices(result.cart, rows);
         }
       });
   }
@@ -297,11 +307,14 @@ export class CartPage implements OnInit {
    * Для відображуваного рядка: залишок на складі 0 або кількість у кошику більша за доступну.
    */
   lineStockIssueKey(row: CartLineView): 'out_of_stock' | 'exceeds' | null {
-    const q = row.quantity;
+    const q = row.quantityInCart;
     if (q <= 0) {
       return null;
     }
-    const avail = Math.max(0, Math.floor(Number(row.product.availableQuantity) || 0));
+    if (row.isExcludedFromPurchase) {
+      return null;
+    }
+    const avail = row.availableQuantityEffective;
     if (avail <= 0) {
       return 'out_of_stock';
     }
@@ -457,6 +470,10 @@ export class CartPage implements OnInit {
     this.router.navigate(['/order-checkout']);
   }
 
+  dismissRemovedMissingCatalogNotice(): void {
+    this.removedMissingCatalogNotice.set([]);
+  }
+
   dismissRemovedCartNotice(): void {
     this.removedCartItemsNotice.set([]);
   }
@@ -490,20 +507,35 @@ export class CartPage implements OnInit {
   }
 
   /**
-   * Порівнюємо поточні позиції з останнім знімком у sessionStorage: якщо id зник —
-   * товар прибрали з кошика (бекенд або користувач), показуємо банер з назвами.
+   * «Зникли з каталогу» — із RemovedMissingProductIds.
+   * Інші зниклі id — за знімком (бекенд міг просто забрати рядок без id у списку missing).
    */
-  private syncRemovedCartNotice(rows: CartLineView[]): void {
+  private refreshRemovalNotices(cart: ShoppingCartDto, rows: CartLineView[]): void {
     const prevNames = this.readCartSnapshotFromSession();
     const currIds = new Set(rows.map((r) => r.product.id));
-    const removed: string[] = [];
-    for (const [id, name] of Object.entries(prevNames)) {
-      if (!currIds.has(id)) {
-        removed.push((name && name.trim()) || id);
-      }
+    const apiMissingIds = new Set(
+      (cart.removedMissingProductIds ?? []).map((x) => String(x).trim()).filter((id) => id.length > 0),
+    );
+
+    const missingCatalogNames: string[] = [];
+    for (const id of apiMissingIds) {
+      missingCatalogNames.push(prevNames[id]?.trim() || this.removedProductFallbackLabel(id));
     }
+
+    const otherRemoved: string[] = [];
+    for (const [id, name] of Object.entries(prevNames)) {
+      if (currIds.has(id) || apiMissingIds.has(id)) continue;
+      otherRemoved.push((name && name.trim()) || id);
+    }
+
+    this.removedMissingCatalogNotice.set(missingCatalogNames);
+    this.removedCartItemsNotice.set(otherRemoved);
     this.writeCartSnapshotToSession(rows);
-    this.removedCartItemsNotice.set(removed);
+  }
+
+  private removedProductFallbackLabel(id: string): string {
+    const short = id.length > 12 ? `${id.slice(0, 8)}…` : id;
+    return this.translate.instant('CART.REMOVED_MISSING_FALLBACK_NAME', { id: short });
   }
 
   productName(p: ProductResponseDto): string {
@@ -534,6 +566,14 @@ export class CartPage implements OnInit {
     return row.unitAfterCartPromotion;
   }
 
+  /** Сума до сплати по рядку — TotalPrice або unit × QuantityApplyingToTotals. */
+  linePayableTotal(row: CartLineView): number {
+    if (row.lineTotalPrice != null && Number.isFinite(row.lineTotalPrice)) {
+      return Math.max(0, row.lineTotalPrice);
+    }
+    return Math.max(0, row.unitAfterCartPromotion * row.quantityApplyingToTotals);
+  }
+
   /**
    * Закреслення каталожної ціни, якщо фактична ціна за одиницю нижча — після товарної акції та/або знижки кошика.
    */
@@ -543,6 +583,10 @@ export class CartPage implements OnInit {
 
   linePromotionLabel(p: ProductResponseDto): string | null {
     return formatAppliedPromotionBadgeLabel(p.appliedPromotion, this.lang());
+  }
+
+  linePurchaseBlocked(row: CartLineView): boolean {
+    return isCatalogPurchaseBlocked(row.product);
   }
 
   linePromotionSlug(p: ProductResponseDto): string | null {

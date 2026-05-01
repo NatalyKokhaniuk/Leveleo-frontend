@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTableModule } from '@angular/material/table';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -39,6 +40,7 @@ import { OrderStatusLabelPipe } from '../../../../shared/pipes/order-status-labe
     MatTableModule,
     MatProgressSpinnerModule,
     MatSnackBarModule,
+    MatTooltipModule,
     HorizontalDragScrollDirective,
     OrderStatusLabelPipe,
   ],

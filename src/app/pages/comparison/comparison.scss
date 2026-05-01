@@ -23,3 +23,12 @@
   height: 1.25rem;
   line-height: 1.25rem;
 }
+
+/** Рядок кнопок фільтра може переноситись без обрізання. */
+.comparison-attr-filter {
+  flex-wrap: wrap;
+}
+
+.comparison-attr-filter .mat-button-toggle-appearance-standard {
+  flex: 0 1 auto;
+}

@@ -4,6 +4,23 @@ import type { ProductResponseDto } from '../products/product.types';
 /** Порівняння цін (копійки / float з API). */
 const PRICE_EPS = 0.01;
 
+/** Кількість у рядку (відображення). */
+export function cartItemQuantityInCart(it: ShoppingCartItemDto): number {
+  return Math.max(0, Number(it.quantity) || 0);
+}
+
+/**
+ * Одиниці, що входять у підрахунки сплати: з поля або збіг з quantity для старого API.
+ */
+export function quantityApplyingToTotalsForItem(it: ShoppingCartItemDto): number {
+  const qCart = cartItemQuantityInCart(it);
+  const qRaw = it.quantityApplyingToTotals;
+  if (qRaw !== undefined && qRaw !== null && Number.isFinite(Number(qRaw))) {
+    return Math.max(0, Math.floor(Number(qRaw)));
+  }
+  return qCart;
+}
+
 /** Агрегати з рядків кошика (коректніше, ніж лише totalProductDiscount з DTO). */
 export interface CartPricingFromItems {
   /** Σ (каталожна ціна × кількість) — «вітринна» сума без товарних знижок. */
@@ -66,8 +83,9 @@ export function computePricingFromCartItems(
   let totalCartDiscountFromLines = 0;
 
   for (const it of items ?? []) {
-    const q = Math.max(0, Number(it.quantity) || 0);
-    if (q === 0) continue;
+    const qCart = cartItemQuantityInCart(it);
+    const qApply = quantityApplyingToTotalsForItem(it);
+    if (qCart === 0 && qApply === 0) continue;
 
     const product = it.product;
     let listUnit: number;
@@ -93,10 +111,10 @@ export function computePricingFromCartItems(
       );
     }
 
-    totalCatalogList += listUnit * q;
-    totalProductDiscount += Math.max(0, listUnit - afterProductUnit) * q;
-    subtotalAfterProductPromotions += afterProductUnit * q;
-    totalCartDiscountFromLines += Math.max(0, afterProductUnit - afterCartUnit) * q;
+    totalCatalogList += listUnit * qApply;
+    totalProductDiscount += Math.max(0, listUnit - afterProductUnit) * qApply;
+    subtotalAfterProductPromotions += afterProductUnit * qApply;
+    totalCartDiscountFromLines += Math.max(0, afterProductUnit - afterCartUnit) * qApply;
   }
 
   return {
@@ -112,14 +130,33 @@ export function buildCartLineView(
   it: ShoppingCartItemDto,
   product: ProductResponseDto,
 ): CartLineView {
-  const quantity = Math.max(0, Number(it.quantity) || 0);
+  const quantityInCart = cartItemQuantityInCart(it);
+  const quantityApplyingToTotals = quantityApplyingToTotalsForItem(it);
+
+  const fromLine = it.availableQuantity;
+  const fromProduct = Math.max(0, Math.floor(Number(product.availableQuantity) || 0));
+  const availableQuantityEffective =
+    fromLine !== undefined && fromLine !== null && Number.isFinite(Number(fromLine))
+      ? Math.max(0, Math.floor(Number(fromLine)))
+      : fromProduct;
+
+  const isExcludedFromPurchase = Boolean(it.isExcludedFromPurchase);
+  let lineTotalPrice: number | null = null;
+  if (it.totalPrice != null && Number.isFinite(Number(it.totalPrice))) {
+    lineTotalPrice = Number(it.totalPrice);
+  }
+
   const { unitListPrice, unitAfterProductPromotion, unitAfterCartPromotion } = resolveCartLineUnitPrices(
     it,
     product,
   );
   return {
     product,
-    quantity,
+    quantityInCart,
+    quantityApplyingToTotals,
+    availableQuantityEffective,
+    isExcludedFromPurchase,
+    lineTotalPrice,
     unitListPrice,
     unitAfterProductPromotion,
     unitAfterCartPromotion,

@@ -1,3 +1,4 @@
+import type { ProductCatalogDisplayState } from '../products/product-catalog-display';
 import { ShoppingCartDto } from '../shopping-cart/shopping-cart.types';
 
 export interface OrderCreateDto {
@@ -31,6 +32,8 @@ export interface OrderListItemDto {
   total?: number | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  /** Є хоч один товар із Products.isActive === false. */
+  hasArchivedProducts?: boolean;
   /** Короткий текст адреси (admin/all, my-orders тощо) */
   addressSummary?: string | null;
   userId?: string | null;
@@ -123,6 +126,17 @@ export interface OrderDeliveryDto {
   [key: string]: unknown;
 }
 
+/** Знімок товару на момент рядка замовлення (OrderLineProductSummaryDto на бекенді). */
+export interface OrderLineProductSummaryDto {
+  id: string;
+  slug?: string | null;
+  name?: string | null;
+  mainImageKey?: string | null;
+  existsInCatalog?: boolean;
+  isActive?: boolean | null;
+  catalogDisplayState?: ProductCatalogDisplayState | string | null;
+}
+
 export interface OrderItemDto {
   id: string;
   orderId: string;
@@ -133,6 +147,7 @@ export interface OrderItemDto {
   discountedUnitPrice: number;
   totalOriginalPrice: number;
   totalDiscountedPrice: number;
+  productSnapshot?: OrderLineProductSummaryDto | null;
 }
 
 export interface OrderDetailDto extends OrderSummaryDto {

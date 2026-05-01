@@ -25,6 +25,12 @@ import { AdminTaskService } from '../../../../../features/admin-tasks/admin-task
 import { DeliveryService } from '../../../../../features/orders/delivery.service';
 import { OrderService } from '../../../../../features/orders/order.service';
 import {
+  isArchivedFromSaleState,
+  isMissingFromDatabaseState,
+  orderLineCatalogHintKey,
+  resolveOrderLineCatalogState,
+} from '../../../../../features/products/product-catalog-display';
+import {
   ORDER_STATUS_VALUES,
   OrderStatus,
   OrderAddressDto,
@@ -182,6 +188,33 @@ export class AdminOrderDetailComponent implements OnInit {
     const d = item.totalDiscountedPrice;
     if (typeof d === 'number' && !Number.isNaN(d)) return d;
     return item.quantity * this.lineUnitPrice(item);
+  }
+
+  lineProductTitle(item: OrderItemDto): string {
+    const n = item.productSnapshot?.name?.trim();
+    return n || item.productName;
+  }
+
+  lineCatalogHintKey(item: OrderItemDto): string | null {
+    return orderLineCatalogHintKey(resolveOrderLineCatalogState(item.productSnapshot));
+  }
+
+  lineProductPublicLinkSegments(item: OrderItemDto): string[] | null {
+    const st = resolveOrderLineCatalogState(item.productSnapshot);
+    if (isMissingFromDatabaseState(st) || isArchivedFromSaleState(st)) return null;
+    const slug = item.productSnapshot?.slug?.trim();
+    if (!slug) return null;
+    return ['/products', slug];
+  }
+
+  /** Для архівних/існуючих рядків — адмін-товар за id рядка. */
+  lineProductAdminLinkSegments(item: OrderItemDto): string[] | null {
+    if (isMissingFromDatabaseState(resolveOrderLineCatalogState(item.productSnapshot))) {
+      return null;
+    }
+    const id = item.productSnapshot?.id?.trim() || item.productId?.trim();
+    if (!id) return null;
+    return ['/admin/products', id];
   }
 
   saveStatus(): void {

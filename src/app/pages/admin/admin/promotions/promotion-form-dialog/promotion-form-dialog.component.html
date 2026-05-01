@@ -89,6 +89,35 @@
         <app-promotion-coupon-assignments [promotionId]="data.promotion!.id" />
       }
 
+      @if (data.mode === 'edit' && referencedPromotionProducts().length > 0) {
+        <section class="space-y-3 pt-2 rounded-xl border border-outline-variant/40 bg-surface-container/40 p-3">
+          <p class="text-xs font-semibold uppercase tracking-wide opacity-80 m-0">{{ 'ADMIN.PROMOTION.REFERENCED_PRODUCTS_TITLE' | translate }}</p>
+          <p class="text-xs text-on-surface/70 m-0">{{ 'ADMIN.PROMOTION.REFERENCED_PRODUCTS_HINT' | translate }}</p>
+          <ul class="list-none m-0 p-0 flex flex-col gap-2 max-h-[280px] overflow-y-auto">
+            @for (row of referencedPromotionProducts(); track row.productId) {
+              <li
+                class="flex flex-wrap items-start gap-x-4 gap-y-2 justify-between rounded-lg border border-outline-variant/30 bg-surface-container/50 p-2"
+              >
+                <div class="min-w-0 flex flex-col gap-1 flex-1">
+                  <span class="text-sm font-medium break-all">{{ referencedProductLabel(row) }}</span>
+                  <span class="text-[0.6875rem] font-medium opacity-85">{{ referencedProductBadgeKey(row) | translate }}</span>
+                </div>
+                <div class="flex flex-wrap gap-2 shrink-0">
+                  @if (referencedProductStoreSegments(row); as st) {
+                    <a matButton="text" type="button" [routerLink]="st" target="_blank" rel="noopener noreferrer">{{
+                      'ADMIN.PROMOTION.REF_OPEN_STORE' | translate
+                    }}</a>
+                  }
+                  @if (referencedProductAdminSegments(row); as adm) {
+                    <a matButton="text" type="button" [routerLink]="adm">{{ 'ADMIN.PROMOTION.REF_OPEN_ADMIN' | translate }}</a>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
       @if (error(); as err) { <div class="error-banner"><span>{{ err }}</span></div> }
 
       <div class="modal-actions">

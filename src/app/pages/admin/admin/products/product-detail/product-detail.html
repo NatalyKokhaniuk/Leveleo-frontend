@@ -214,7 +214,15 @@
         >
           <div class="flex flex-wrap items-center justify-between gap-2">
             <h2 class="text-lg font-medium">{{ 'ADMIN.PRODUCT.SECTION_ATTRIBUTES' | translate }}</h2>
-            <button mat-flat-button type="button" color="primary" (click)="openAddAttributeValue()">
+            <button
+              mat-flat-button
+              type="button"
+              color="primary"
+              (click)="openAddAttributeValue()"
+              [disabled]="!attributesAvailableForAdd().length"
+              [matTooltip]="'ADMIN.PRODUCT.ATTR_VALUE_ALL_ASSIGNED_HINT' | translate"
+              [matTooltipDisabled]="!!attributesAvailableForAdd().length"
+            >
               <mat-icon>add</mat-icon>
               {{ 'ADMIN.PRODUCT.ATTR_VALUE_ADD' | translate }}
             </button>

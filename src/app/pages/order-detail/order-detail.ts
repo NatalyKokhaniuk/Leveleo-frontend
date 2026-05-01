@@ -12,6 +12,12 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Subscription, catchError, filter, firstValueFrom, forkJoin, map, of, take } from 'rxjs';
 import { AuthService } from '../../core/auth/services/auth.service';
 import { DeliveryType } from '../../features/addresses/address.types';
+import {
+  isArchivedFromSaleState,
+  isMissingFromDatabaseState,
+  orderLineCatalogHintKey,
+  resolveOrderLineCatalogState,
+} from '../../features/products/product-catalog-display';
 import { OrderService } from '../../features/orders/order.service';
 import { OrderAddressDto, OrderDetailDto, OrderItemDto } from '../../features/orders/order.types';
 import { ReviewService } from '../../features/reviews/review.service';
@@ -236,6 +242,24 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     const d = item.totalDiscountedPrice;
     if (typeof d === 'number' && !Number.isNaN(d)) return d;
     return item.quantity * this.lineUnitPrice(item);
+  }
+
+  lineProductTitle(item: OrderItemDto): string {
+    const n = item.productSnapshot?.name?.trim();
+    return n || item.productName;
+  }
+
+  lineCatalogHintKey(item: OrderItemDto): string | null {
+    return orderLineCatalogHintKey(resolveOrderLineCatalogState(item.productSnapshot));
+  }
+
+  /** Посилання на публічну картку — лише для активного товару в каталозі з slug. */
+  lineProductPublicLinkSegments(item: OrderItemDto): string[] | null {
+    const st = resolveOrderLineCatalogState(item.productSnapshot);
+    if (isMissingFromDatabaseState(st) || isArchivedFromSaleState(st)) return null;
+    const slug = item.productSnapshot?.slug?.trim();
+    if (!slug) return null;
+    return ['/products', slug];
   }
 
   trackingUrl(trackingNumber: string): string {

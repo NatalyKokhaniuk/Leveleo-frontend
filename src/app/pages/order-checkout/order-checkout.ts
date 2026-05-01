@@ -63,6 +63,8 @@ export class OrderCheckoutPage implements OnInit {
   loading = signal(true);
   loadError = signal(false);
   cartEmpty = signal(false);
+  /** Є рядки з quantity > 0 (після оплати або стоку рядки можуть лишатись із сумаю 0). */
+  cartHasQuantityLines = signal(false);
   /** Кінцева сума після усіх знижок (як у кошику). */
   totalPayable = signal(0);
 
@@ -122,10 +124,22 @@ export class OrderCheckoutPage implements OnInit {
 
   canPurchase = computed(() => {
     if (this.loading() || this.loadError() || this.cartEmpty()) return false;
+    if (this.totalPayable() <= 0.0001) return false;
     if (!this.contactForm.valid) return false;
     if (!this.selectedAddress()) return false;
     if (this.deliveryType() === null) return false;
     return true;
+  });
+
+  /** Рядки в кошику є, але нічого не оплачується (усі недоступні). */
+  checkoutZeroPayableWithLines = computed(() => {
+    return (
+      !this.loading() &&
+      !this.loadError() &&
+      !this.cartEmpty() &&
+      this.cartHasQuantityLines() &&
+      this.totalPayable() <= 0.0001
+    );
   });
 
   ngOnInit(): void {
@@ -157,8 +171,9 @@ export class OrderCheckoutPage implements OnInit {
         }
         const payable = this.resolveTotalPayable(cart);
         this.totalPayable.set(payable);
-        const hasItems = (cart.items ?? []).some((it) => (Number(it.quantity) || 0) > 0);
-        this.cartEmpty.set(!hasItems);
+        const hasQty = (cart.items ?? []).some((it) => (Number(it.quantity) || 0) > 0);
+        this.cartHasQuantityLines.set(hasQty);
+        this.cartEmpty.set(!hasQty);
       });
   }
 
@@ -281,7 +296,7 @@ export class OrderCheckoutPage implements OnInit {
     this.placingOrder.set(true);
     this.cartApi.getMyCart().subscribe({
       next: (cart) => {
-        const hasConflict = Boolean(cart.cartAdjusted) || ((cart.removedItems?.length ?? 0) > 0);
+        const hasConflict = this.isCartStructuralChange(cart);
         if (hasConflict) {
           this.placingOrder.set(false);
           this.snack.open(this.translate.instant('CART.CART_CHANGED'), 'OK', { duration: 4500 });
@@ -362,12 +377,18 @@ export class OrderCheckoutPage implements OnInit {
    */
   private handleOrderCreateError(err: HttpErrorResponse): void {
     if (err.status === 409) {
-      const body = err.error as Partial<CreateOrderResultDto> | null | undefined;
+      const body = err.error as Partial<CreateOrderResultDto> & {
+        errorCode?: string;
+        ErrorCode?: string;
+      } | null | undefined;
       const conflictCart = (body?.shoppingCart as ShoppingCartDto | null | undefined) ?? null;
       const raw = (typeof body?.message === 'string' && body.message.trim()) || '';
+      const errCode = String(body?.errorCode ?? body?.ErrorCode ?? '').toUpperCase();
 
       let message: string;
-      if (raw === OrderCheckoutPage.backendOrderCreationFailed) {
+      if (errCode === 'NO_PURCHASABLE_ITEMS') {
+        message = this.translate.instant('ORDER_CHECKOUT.NO_PURCHASABLE_ITEMS');
+      } else if (raw === OrderCheckoutPage.backendOrderCreationFailed) {
         message = this.translate.instant('ORDER_CHECKOUT.CONFLICT_ORDER_CREATION_FAILED');
       } else if (this.isBackendCartChangedMessage(raw)) {
         message = this.translate.instant('CART.CART_CHANGED');
@@ -383,7 +404,10 @@ export class OrderCheckoutPage implements OnInit {
       if (conflictCart) {
         this.applyCartSnapshot(conflictCart);
       }
-      if (conflictCart && this.isCartChanged(conflictCart)) {
+      const goCart =
+        errCode === 'NO_PURCHASABLE_ITEMS' ||
+        (conflictCart != null && this.isCartChanged(conflictCart));
+      if (goCart) {
         this.router.navigateByUrl('/cart');
       }
       return;
@@ -408,7 +432,15 @@ export class OrderCheckoutPage implements OnInit {
   }
 
   private isCartChanged(cart: ShoppingCartDto): boolean {
-    return Boolean(cart.cartAdjusted) || ((cart.removedItems?.length ?? 0) > 0);
+    return this.isCartStructuralChange(cart);
+  }
+
+  private isCartStructuralChange(cart: ShoppingCartDto): boolean {
+    return (
+      Boolean(cart.cartAdjusted) ||
+      ((cart.removedItems?.length ?? 0) > 0) ||
+      ((cart.removedMissingProductIds?.length ?? 0) > 0)
+    );
   }
 
   /** Повідомлення про зміну кошика (окремо від загальної помилки створення замовлення). */
@@ -420,8 +452,9 @@ export class OrderCheckoutPage implements OnInit {
   /** Після 409 оновлюємо відображення сум / порожнечі з тіла відповіді. */
   private applyCartSnapshot(cart: ShoppingCartDto): void {
     this.totalPayable.set(this.resolveTotalPayable(cart));
-    const hasItems = (cart.items ?? []).some((it) => (Number(it.quantity) || 0) > 0);
-    this.cartEmpty.set(!hasItems);
+    const hasQty = (cart.items ?? []).some((it) => (Number(it.quantity) || 0) > 0);
+    this.cartHasQuantityLines.set(hasQty);
+    this.cartEmpty.set(!hasQty);
   }
 
   /** Backend may echo an empty GUID when the order was not created. */

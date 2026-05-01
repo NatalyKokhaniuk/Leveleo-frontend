@@ -21,6 +21,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, from, Observable, of, throwError } from 'rxjs';
 import { catchError, concatMap, finalize, map, switchMap } from 'rxjs/operators';
@@ -31,6 +32,12 @@ import type {
   PromotionCouponAdminDto,
   UpdatePromotionCouponAdminDto,
 } from '../../../../../features/promotions/promotion-coupon-admin.types';
+import {
+  catalogStateBadgeKey,
+  resolveOrderLineCatalogState,
+  isArchivedFromSaleState,
+  isMissingFromDatabaseState,
+} from '../../../../../features/products/product-catalog-display';
 import { PromotionService } from '../../../../../features/promotions/promotion.service';
 import {
   CartLevelConditionDto,
@@ -38,6 +45,7 @@ import {
   DiscountType,
   ProductLevelConditionDto,
   PromotionLevel,
+  PromotionReferencedProductDto,
   PromotionResponseDto,
   PromotionTranslationDto,
   UpdatePromotionDto,
@@ -109,6 +117,7 @@ function datesEqualValidator(group: AbstractControl): ValidationErrors | null {
     TranslateModule,
     PromotionEntityIdsPickerComponent,
     PromotionCouponAssignmentsComponent,
+    RouterLink,
   ],
   templateUrl: './promotion-form-dialog.component.html',
   styleUrl: './promotion-form-dialog.component.scss',
@@ -150,6 +159,46 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     { value: DiscountType.Percentage, labelKey: 'ADMIN.PROMOTION.DISCOUNT_PERCENT' },
     { value: DiscountType.FixedAmount, labelKey: 'ADMIN.PROMOTION.DISCOUNT_FIXED' },
   ];
+
+  referencedPromotionProducts(): PromotionReferencedProductDto[] {
+    const raw = this.data.promotion?.referencedProducts;
+    return Array.isArray(raw) ? raw : [];
+  }
+
+  referencedProductLabel(row: PromotionReferencedProductDto): string {
+    return row.name?.trim() || row.productId;
+  }
+
+  referencedProductBadgeKey(row: PromotionReferencedProductDto): string {
+    return catalogStateBadgeKey(
+      resolveOrderLineCatalogState({
+        existsInCatalog: row.existsInCatalog,
+        isActive: row.isActive ?? undefined,
+        catalogDisplayState: row.catalogDisplayState,
+      }),
+    );
+  }
+
+  referencedProductStoreSegments(row: PromotionReferencedProductDto): string[] | null {
+    const st = resolveOrderLineCatalogState({
+      existsInCatalog: row.existsInCatalog,
+      isActive: row.isActive ?? undefined,
+      catalogDisplayState: row.catalogDisplayState,
+    });
+    if (isMissingFromDatabaseState(st) || isArchivedFromSaleState(st)) return null;
+    const slug = row.slug?.trim();
+    return slug ? ['/products', slug] : null;
+  }
+
+  referencedProductAdminSegments(row: PromotionReferencedProductDto): string[] | null {
+    const st = resolveOrderLineCatalogState({
+      existsInCatalog: row.existsInCatalog,
+      isActive: row.isActive ?? undefined,
+      catalogDisplayState: row.catalogDisplayState,
+    });
+    if (isMissingFromDatabaseState(st)) return null;
+    return ['/admin/products', row.productId];
+  }
 
   form = this.fb.nonNullable.group(
     {

@@ -1,9 +1,15 @@
+import type { ProductCatalogDisplayState } from '../products/product-catalog-display';
+
 export interface ReviewDto {
   id: string;
   orderItemId: string;
   productId: string;
   /** Slug для посилання на вітрину `/products/:slug`; якщо немає — посилання веде в адмінку товару. */
   productSlug?: string | null;
+  productMainImageKey?: string | null;
+  productExistsInCatalog?: boolean;
+  productIsActive?: boolean | null;
+  productCatalogDisplayState?: ProductCatalogDisplayState | string | null;
   productName: string;
   rating: number;
   comment: string | null;

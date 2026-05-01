@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, computed, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -84,6 +84,12 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
   images = signal<ProductImageDto[]>([]);
   videos = signal<ProductVideoDto[]>([]);
   attributeValues = signal<ProductAttributeValueResponseDto[]>([]);
+
+  /** Атрибути каталогу, які ще не додані до поточного товару (для діалогу «Додати значення»). */
+  attributesAvailableForAdd = computed((): ProductAttributeResponseDto[] => {
+    const used = new Set(this.attributeValues().map((v) => v.productAttributeId));
+    return this.allAttributes().filter((a) => !used.has(a.id));
+  });
 
   categories = signal<CategoryResponseDto[]>([]);
   brands = signal<BrandResponseDto[]>([]);
@@ -359,12 +365,17 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
   openAddAttributeValue(): void {
     const pid = this.product()?.id;
     if (!pid) return;
+    const available = this.attributesAvailableForAdd();
+    if (!available.length) {
+      this.snack.open(this.translate.instant('ADMIN.PRODUCT.ATTR_VALUE_ALL_ASSIGNED'), 'OK', { duration: 4500 });
+      return;
+    }
     const ref = this.dialog.open(ProductAttributeValueDialogComponent, {
       width: 'min(520px, 100vw)',
       data: {
         mode: 'create',
         productId: pid,
-        attributes: this.allAttributes(),
+        attributes: available,
         existing: null,
       } satisfies ProductAttributeValueDialogData,
     });

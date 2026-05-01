@@ -68,6 +68,27 @@
           </div>
         </section>
       }
+      @if (removedMissingCatalogNotice().length) {
+        <section
+          class="relative flex flex-col gap-2 rounded-2xl border border-outline-variant bg-[var(--mat-sys-error-container)] p-4 md:p-6 pr-14"
+          role="status"
+        >
+          <button
+            type="button"
+            class="absolute top-3 right-3 inline-flex h-10 w-10 items-center justify-center rounded-full text-[var(--mat-sys-on-error-container)] hover:bg-black/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
+            (click)="dismissRemovedMissingCatalogNotice()"
+            [attr.aria-label]="'CART.REMOVED_MISSING_DISMISS' | translate"
+          >
+            <mat-icon class="!w-6 !h-6">close</mat-icon>
+          </button>
+          <p class="font-semibold text-[var(--mat-sys-on-error-container)] pr-2">
+            {{ 'CART.REMOVED_MISSING_TITLE' | translate }}
+          </p>
+          <p class="text-[var(--mat-sys-on-error-container)] text-sm md:text-base break-words">
+            {{ removedMissingCatalogNotice().join(', ') }}
+          </p>
+        </section>
+      }
       @if (removedCartItemsNotice().length) {
         <section
           class="relative flex flex-col gap-2 rounded-2xl border border-outline-variant bg-[var(--mat-sys-error-container)] p-4 md:p-6 pr-14"
@@ -127,7 +148,7 @@
             <div class="flex flex-col gap-4 min-w-0 w-full max-w-full">
               <div class="min-w-0 w-full max-w-full overflow-hidden rounded-xl border border-outline-variant/20 bg-surface-container/35 p-3 md:p-4">
                 <div class="flex items-start gap-3 md:gap-4 min-w-0">
-                  <div class="shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg border border-outline-variant/20 bg-surface-container flex items-center justify-center overflow-hidden">
+                  <div class="shrink-0 w-20 h-20 md:w-24 md:h-24 rounded-lg border border-outline-variant/20 bg-transparent flex items-center justify-center overflow-hidden">
                     @if (productImageUrl(row.product.id); as img) {
                       <img [src]="img" [alt]="productName(row.product)" class="w-full h-full object-contain" loading="lazy" />
                     } @else {
@@ -162,6 +183,26 @@
                         {{ 'PRODUCTS.FILTER_BRAND' | translate }}: <span class="font-medium">{{ brand }}</span>
                       </p>
                     }
+                    @if (
+                      row.isExcludedFromPurchase ||
+                      row.quantityApplyingToTotals !== row.quantityInCart ||
+                      row.quantityInCart > row.availableQuantityEffective
+                    ) {
+                      <p
+                        class="mt-2 text-sm rounded-lg border border-outline-variant/50 bg-surface-container-high/40 text-on-surface px-3 py-2 space-y-1"
+                        role="status"
+                      >
+                        @if (row.isExcludedFromPurchase) {
+                          <span class="block">{{ 'CART.LINE_EXCLUDED_FROM_PURCHASE' | translate }}</span>
+                        }
+                        <span class="block text-xs text-on-surface/80">
+                          {{ 'CART.LINE_QTY_BREAKDOWN' | translate }}:
+                          {{ 'CART.LINE_QTY_IN_CART' | translate }}: {{ row.quantityInCart }};
+                          {{ 'CART.LINE_AVAILABLE' | translate }}: {{ row.availableQuantityEffective }};
+                          {{ 'CART.LINE_QTY_IN_TOTAL' | translate }}: {{ row.quantityApplyingToTotals }}
+                        </span>
+                      </p>
+                    }
                     @if (lineStockIssueKey(row); as stock) {
                       <p
                         class="mt-2 text-sm rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-950 dark:text-amber-50 px-3 py-2"
@@ -171,8 +212,7 @@
                           {{ 'CART.LINE_OUT_OF_STOCK' | translate }}
                         } @else {
                           {{
-                            'CART.LINE_ONLY_AVAILABLE'
-                              | translate: { count: row.product.availableQuantity }
+                            'CART.LINE_ONLY_AVAILABLE' | translate: { count: row.availableQuantityEffective }
                           }}
                         }
                       </p>
@@ -195,9 +235,19 @@
                         </span>
                       }
                     }
-                    <div class="text-lg md:text-xl font-semibold text-primary">
-                      {{ lineUnitFinal(row) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+                    <div class="text-lg md:text-xl font-semibold text-primary tabular-nums">
+                      {{ linePayableTotal(row) | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
                     </div>
+                    @if (row.lineTotalPrice != null) {
+                      <div class="text-xs text-on-surface/70">
+                        {{ 'CART.LINE_TOTAL_FROM_SERVER' | translate }}
+                      </div>
+                    } @else {
+                      <div class="text-xs text-on-surface/70 tabular-nums">
+                        {{ lineUnitFinal(row) | number: '1.2-2' }} × {{ row.quantityApplyingToTotals }}
+                        {{ 'PRODUCTS.CURRENCY' | translate }}
+                      </div>
+                    }
                     @if (lineShowStrikethroughListPrice(row)) {
                       <div class="text-sm text-on-surface/55 line-through">
                         {{ row.unitListPrice | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
@@ -209,7 +259,8 @@
               <app-product-commerce-toolbar
                 class="w-full min-w-0"
                 [productId]="row.product.id"
-                [maxQuantity]="row.product.availableQuantity"
+                [maxQuantity]="row.availableQuantityEffective"
+                [purchaseBlocked]="linePurchaseBlocked(row)"
                 [hideCompare]="true"
               />
             </div>

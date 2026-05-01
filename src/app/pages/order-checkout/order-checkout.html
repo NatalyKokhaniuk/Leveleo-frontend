@@ -104,6 +104,14 @@
             {{ totalPayable() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
           </span>
         </p>
+        @if (checkoutZeroPayableWithLines()) {
+          <p
+            class="text-sm rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-950 dark:text-amber-50 px-3 py-2 mb-4 m-0"
+            role="alert"
+          >
+            {{ 'ORDER_CHECKOUT.NO_PURCHASABLE_HINT' | translate }}
+          </p>
+        }
         <div class="flex flex-col sm:flex-row flex-wrap gap-2 sm:gap-4">
           <a
             routerLink="/cart"
@@ -258,7 +266,7 @@
             color="primary"
             type="button"
             class="min-w-[200px]"
-            [disabled]="placingOrder()"
+            [disabled]="placingOrder() || !canPurchase()"
             (click)="goToPayment()"
           >
             {{ 'ORDER_CHECKOUT.PURCHASE' | translate }}

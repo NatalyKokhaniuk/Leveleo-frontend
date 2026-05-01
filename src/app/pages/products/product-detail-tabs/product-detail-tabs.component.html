@@ -57,23 +57,25 @@
       >
         <mat-icon>chevron_right</mat-icon>
       </button>
-      <div class="product-detail-tabs__gallery-thumbs mt-2 flex flex-wrap gap-2">
-        @for (m of mediaItems(); track m.key; let i = $index) {
-          <button
-            type="button"
-            class="product-detail-tabs__thumb-btn"
-            [class.product-detail-tabs__thumb-btn--active]="isActiveMedia(i)"
-            (click)="selectMedia(i)"
-          >
-            @if (m.kind === 'video') {
-              <video class="product-detail-tabs__thumb-img" [src]="m.thumbUrl" muted preload="metadata"></video>
-              <span class="product-detail-tabs__thumb-video-badge"><mat-icon>play_arrow</mat-icon></span>
-            } @else {
-              <img [src]="m.thumbUrl" [alt]="displayName()" class="product-detail-tabs__thumb-img" loading="lazy" />
-            }
-          </button>
-        }
-      </div>
+      @if (!dialogLayout) {
+        <div class="product-detail-tabs__gallery-thumbs mt-2 flex flex-wrap gap-2">
+          @for (m of mediaItems(); track m.key; let i = $index) {
+            <button
+              type="button"
+              class="product-detail-tabs__thumb-btn"
+              [class.product-detail-tabs__thumb-btn--active]="isActiveMedia(i)"
+              (click)="selectMedia(i)"
+            >
+              @if (m.kind === 'video') {
+                <video class="product-detail-tabs__thumb-img" [src]="m.thumbUrl" muted preload="metadata"></video>
+                <span class="product-detail-tabs__thumb-video-badge"><mat-icon>play_arrow</mat-icon></span>
+              } @else {
+                <img [src]="m.thumbUrl" [alt]="displayName()" class="product-detail-tabs__thumb-img" loading="lazy" />
+              }
+            </button>
+          }
+        </div>
+      }
     }
     @if (promotionLabel(); as promoName) {
       @if (promotionSlug(); as slug) {

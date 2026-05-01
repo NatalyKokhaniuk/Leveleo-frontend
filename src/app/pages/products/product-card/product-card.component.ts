@@ -23,6 +23,11 @@ import { brandLocalizedName } from '../../../features/brands/brand-display-i18n'
 import { BrandService } from '../../../features/brands/brand.service';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
 import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
+import {
+  catalogStateBadgeKey,
+  isCatalogPurchaseBlocked,
+  resolveProductCatalogDisplayState,
+} from '../../../features/products/product-catalog-display';
 import { ProductResponseDto } from '../../../features/products/product.types';
 
 @Component({
@@ -214,8 +219,20 @@ export class ProductCardComponent implements OnInit, OnChanges {
 
   cartButtonDisabled(): boolean {
     if (this.cartBusy()) return true;
+    if (isCatalogPurchaseBlocked(this.product)) return true;
     if (!this.auth.isAuthenticated()) return false;
     return !this.canAddMoreToCart();
+  }
+
+  catalogStateBadgeTranslateKey(): string | null {
+    const st = resolveProductCatalogDisplayState(this.product);
+    return st === 'activeInCatalog' ? null : catalogStateBadgeKey(st);
+  }
+
+  titlePublicSegments(): string[] | null {
+    const p = this.product;
+    if (!p.slug?.trim() || isCatalogPurchaseBlocked(p)) return null;
+    return ['/products', p.slug.trim()];
   }
 
   onCartClick(event: Event): void {
