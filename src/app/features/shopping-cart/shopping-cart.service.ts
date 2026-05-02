@@ -3,7 +3,12 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { normalizeShoppingCartDto } from './shopping-cart-normalize.util';
-import { AddCartItemDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
+import {
+  AddCartItemDto,
+  CartClearResultDto,
+  ShoppingCartDto,
+  ShoppingCartItemDto,
+} from './shopping-cart.types';
 
 /**
  * ShoppingCartController — операції кошика лише для авторизованих.
@@ -59,7 +64,7 @@ export class ShoppingCartService {
       .pipe(map((raw) => normalizeShoppingCartDto(raw)));
   }
 
-  clear(): Observable<void> {
-    return this.api.delete<void>(`${this.base}/clear`);
+  clear(): Observable<CartClearResultDto> {
+    return this.api.delete<CartClearResultDto>(`${this.base}/clear`);
   }
 }

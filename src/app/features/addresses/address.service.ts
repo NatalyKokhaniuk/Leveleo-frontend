@@ -11,11 +11,20 @@ const DELIVERY_TYPE_API: Record<DeliveryType, string> = {
 };
 
 /** Бекенд очікує рядок enum (JsonStringEnumConverter), не число. */
-function serializeAddressBody(dto: CreateAddressDto | UpdateAddressDto): Record<string, unknown> {
-  return {
+function serializeAddressBody(
+  dto: CreateAddressDto | UpdateAddressDto,
+  mode: 'create' | 'update',
+): Record<string, unknown> {
+  const body: Record<string, unknown> = {
     ...dto,
     deliveryType: DELIVERY_TYPE_API[dto.deliveryType] ?? 'Warehouse',
   };
+  if (mode === 'update') {
+    delete body['setAsPrimary'];
+  } else if (body['setAsPrimary'] !== true) {
+    delete body['setAsPrimary'];
+  }
+  return body;
 }
 
 function asAddressList(data: unknown): AddressResponseDto[] {
@@ -46,7 +55,7 @@ export class AddressService {
 
   create(dto: CreateAddressDto): Observable<AddressResponseDto> {
     return this.api
-      .post<unknown>(`${this.base}`, serializeAddressBody(dto))
+      .post<unknown>(`${this.base}`, serializeAddressBody(dto, 'create'))
       .pipe(map((raw) => normalizeAddressResponse(raw) ?? ({} as AddressResponseDto)));
   }
 
@@ -56,7 +65,7 @@ export class AddressService {
    */
   update(id: string, dto: UpdateAddressDto): Observable<AddressResponseDto> {
     return this.api
-      .put<unknown>(`${this.base}/${id}`, serializeAddressBody(dto))
+      .put<unknown>(`${this.base}/${id}`, serializeAddressBody(dto, 'update'))
       .pipe(map((raw) => normalizeAddressResponse(raw) ?? ({} as AddressResponseDto)));
   }
 
@@ -76,6 +85,8 @@ function normalizeAddressResponse(raw: unknown): AddressResponseDto | null {
   const o = raw as Record<string, unknown>;
   const id = String(o['id'] ?? o['Id'] ?? '').trim();
   if (!id) return null;
+  const isDefaultRaw = o['isDefault'] ?? o['IsDefault'];
+  const isDefault = typeof isDefaultRaw === 'boolean' ? isDefaultRaw : undefined;
   return {
     id,
     firstName: String(o['firstName'] ?? o['FirstName'] ?? ''),
@@ -90,7 +101,9 @@ function normalizeAddressResponse(raw: unknown): AddressResponseDto | null {
     house: strOrNull(o['house'] ?? o['House']),
     flat: strOrNull(o['flat'] ?? o['Flat']),
     additionalInfo: strOrNull(o['additionalInfo'] ?? o['AdditionalInfo']),
+    ...(isDefault !== undefined ? { isDefault } : {}),
     cityRef: strOrNull(o['cityRef'] ?? o['CityRef']),
+    settlementRef: strOrNull(o['settlementRef'] ?? o['SettlementRef']),
     warehouseRef: strOrNull(o['warehouseRef'] ?? o['WarehouseRef']),
     streetRef: strOrNull(o['streetRef'] ?? o['StreetRef']),
     postomatRef: strOrNull(o['postomatRef'] ?? o['PostomatRef']),

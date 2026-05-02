@@ -1,4 +1,9 @@
-import type { AppliedCartPromotionDto, ShoppingCartDto, ShoppingCartItemDto } from './shopping-cart.types';
+import {
+  coerceApplyCouponResult,
+  type AppliedCartPromotionDto,
+  type ShoppingCartDto,
+  type ShoppingCartItemDto,
+} from './shopping-cart.types';
 import type { ProductResponseDto } from '../products/product.types';
 
 function numOpt(v: unknown): number | undefined {
@@ -14,11 +19,16 @@ function numOrNull(v: unknown): number | null | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
-function intApplyResult(v: unknown): number | null | undefined {
+function strOpt(v: unknown): string | null | undefined {
   if (v === undefined) return undefined;
-  if (v === null || v === '') return null;
-  const n = Number(v);
-  return Number.isFinite(n) ? Math.trunc(n) : undefined;
+  if (v === null) return null;
+  const s = String(v).trim();
+  return s.length ? s : null;
+}
+
+function boolOpt(v: unknown): boolean | undefined {
+  if (v === undefined) return undefined;
+  return Boolean(v);
 }
 
 function normalizeGuidList(raw: unknown): string[] | undefined {
@@ -69,7 +79,9 @@ export function normalizeShoppingCartDto(raw: unknown): ShoppingCartDto {
     ? (rawItems as unknown[]).map(normalizeShoppingCartItem)
     : (rawItems as ShoppingCartItemDto[] | null | undefined);
   const cc = o['couponCode'] ?? o['CouponCode'];
-  const couponApplyResult = intApplyResult(o['couponApplyResult'] ?? o['CouponApplyResult']);
+  const couponApplyResult = coerceApplyCouponResult(
+    o['couponApplyResult'] ?? o['CouponApplyResult'] ?? null,
+  );
   const cam = o['couponApplyMessage'] ?? o['CouponApplyMessage'];
   const couponApplyMessage =
     cam == null || cam === '' ? null : String(cam).trim() || null;
@@ -78,12 +90,30 @@ export function normalizeShoppingCartDto(raw: unknown): ShoppingCartDto {
   let appliedCartPromotion: AppliedCartPromotionDto | null | undefined;
   if (acpRaw && typeof acpRaw === 'object') {
     const a = acpRaw as Record<string, unknown>;
+    const dtRaw = a['discountType'] ?? a['DiscountType'];
+    let discountType: string | number | null | undefined;
+    if (dtRaw === undefined) discountType = undefined;
+    else if (dtRaw === null || dtRaw === '') discountType = null;
+    else if (typeof dtRaw === 'string') {
+      const t = dtRaw.trim();
+      discountType = t.length ? t : null;
+    } else if (typeof dtRaw === 'number') discountType = dtRaw;
+    else discountType = numOpt(dtRaw) ?? null;
+
     appliedCartPromotion = {
       id: String(a['id'] ?? a['Id'] ?? ''),
-      slug: (a['slug'] ?? a['Slug']) as string | undefined,
-      name: (a['name'] ?? a['Name']) as string | null | undefined,
-      discountType: numOpt(a['discountType'] ?? a['DiscountType']),
+      slug: strOpt(a['slug'] ?? a['Slug']),
+      name: strOpt(a['name'] ?? a['Name']),
+      description: strOpt(a['description'] ?? a['Description']),
+      imageKey: strOpt(a['imageKey'] ?? a['ImageKey']),
+      level: (a['level'] ?? a['Level']) as string | number | null | undefined,
+      discountType,
       discountValue: numOpt(a['discountValue'] ?? a['DiscountValue']),
+      startDate: strOpt(a['startDate'] ?? a['StartDate']),
+      endDate: strOpt(a['endDate'] ?? a['EndDate']),
+      isCoupon: boolOpt(a['isCoupon'] ?? a['IsCoupon']),
+      isPersonal: boolOpt(a['isPersonal'] ?? a['IsPersonal']),
+      couponCode: strOpt(a['couponCode'] ?? a['CouponCode']),
       maxUsages: numOrNull(a['maxUsages'] ?? a['MaxUsages']),
       usedCount: numOrNull(a['usedCount'] ?? a['UsedCount']),
       translations: (a['translations'] ?? a['Translations']) as AppliedCartPromotionDto['translations'],

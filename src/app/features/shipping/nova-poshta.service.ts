@@ -14,7 +14,13 @@ import {
 } from './nova-poshta.types';
 
 /**
- * Клієнт до `NovaPoshtaController` на бекенді (`/api/NovaPoshta/...`, Bearer JWT).
+ * Клієнт до `NovaPoshtaController` на бекенді (`/api/NovaPoshta/...`) — контролер під **[Authorize]**.
+ *
+ * **Порожній список міст на UI:** у DevTools подивіться саме **HTTP-статус** `GET …/api/NovaPoshta/cities/search`:
+ * - **401** — немає або прострочений JWT; глобальний інтерцептор додає `Authorization: Bearer …` лише якщо в `AuthService` є access token (зазвичай після логіну).
+ * - **200** і `[]` у тілі — логіка/відповідь НП на бекенді (див. fallback `getSettlements` у `SearchCitiesAsync`).
+ *
+ * **Локальна розробка:** `proxy.conf.json` має проксувати `/api` на хост ASP.NET (типово `http://localhost:8080`). Підставте свій порт/хост, якщо відрізняється.
  *
  * Ендпоінти:
  * - `GET .../cities/search?query=&limit=` — автокомпліт міст;
@@ -46,8 +52,9 @@ export class NovaPoshtaService {
     const url = `${this.base}/cities/search?query=${encQ}&limit=${encodeURIComponent(String(limit))}`;
     return this.api.get<unknown>(url).pipe(
       map((data) => dedupeByRef(normalizeSettlements(data))),
-      catchError((err) => {
-        console.warn('[NovaPoshta] searchCities failed', url, err);
+      catchError((err: { status?: number }) => {
+        const st = err?.status;
+        console.warn('[NovaPoshta] searchCities failed', st != null ? `(HTTP ${st})` : '', url, err);
         return of([]);
       }),
     );
@@ -114,7 +121,9 @@ export class NovaPoshtaService {
     this.fullSettlementsCache = null;
   }
 
-  /** Усі поштомати для обраного населеного пункту (`settlementRef` = `CityRef`). */
+  /**
+   * @param settlementRef Ref **міста доставки** (`deliveryCity` з відповіді `/cities/search`, на формі — `cityRef`), не settlement `ref`.
+   */
   getPostomatsBySettlement(settlementRef: string): Observable<NpWarehouseDto[]> {
     const ref = settlementRef.trim();
     if (!ref) return of([]);
@@ -128,6 +137,7 @@ export class NovaPoshtaService {
     );
   }
 
+  /** @param settlementRef Див. `getPostomatsBySettlement`. */
   searchPostomatsBySettlement(settlementRef: string, findByString: string): Observable<NpWarehouseDto[]> {
     const ref = settlementRef.trim();
     if (!ref) return of([]);
@@ -143,7 +153,7 @@ export class NovaPoshtaService {
     );
   }
 
-  /** Відділення (не поштомати) для населеного пункту. */
+  /** @param settlementRef Див. `getPostomatsBySettlement`. */
   getBranchesBySettlement(settlementRef: string): Observable<NpWarehouseDto[]> {
     const ref = settlementRef.trim();
     if (!ref) return of([]);
@@ -157,6 +167,7 @@ export class NovaPoshtaService {
     );
   }
 
+  /** @param settlementRef Див. `getPostomatsBySettlement`. */
   searchBranchesBySettlement(settlementRef: string, findByString: string): Observable<NpWarehouseDto[]> {
     const ref = settlementRef.trim();
     if (!ref) return of([]);
@@ -172,6 +183,7 @@ export class NovaPoshtaService {
     );
   }
 
+  /** @param settlementRef Ref населеного пункту з поля **`ref`** (на формі `settlementRef`), не `deliveryCity`. */
   searchStreetsBySettlement(settlementRef: string, query: string): Observable<NpStreetDto[]> {
     const ref = settlementRef.trim();
     const q = query.trim();
@@ -268,6 +280,21 @@ function dedupeByRef(items: NpSettlementOption[]): NpSettlementOption[] {
   return out;
 }
 
+function isLikelyCityAutocompleteRow(row: unknown): boolean {
+  if (!row || typeof row !== 'object') return false;
+  const r = row as Record<string, unknown>;
+  const id =
+    r['settlementRef'] ??
+    r['SettlementRef'] ??
+    r['ref'] ??
+    r['Ref'] ??
+    r['cityRef'] ??
+    r['CityRef'] ??
+    r['deliveryCityRef'] ??
+    r['DeliveryCityRef'];
+  return typeof id === 'string' && id.trim().length > 0;
+}
+
 function extractSettlementArrays(data: unknown, depth = 0): unknown[] {
   if (depth > 6 || data == null) return [];
   if (Array.isArray(data)) return data;
@@ -275,6 +302,8 @@ function extractSettlementArrays(data: unknown, depth = 0): unknown[] {
 
   const o = data as Record<string, unknown>;
   const keys = [
+    /** EF Core / System.Text.Json */
+    '$values',
     'data',
     'Data',
     'items',
@@ -289,6 +318,11 @@ function extractSettlementArrays(data: unknown, depth = 0): unknown[] {
     'Addresses',
     'cities',
     'Cities',
+    /** CityAutocompleteResponseDto / обгортки бекенду */
+    'suggestions',
+    'Suggestions',
+    'citySuggestions',
+    'CitySuggestions',
     'deliveryPoints',
     'DeliveryPoints',
     'points',
@@ -306,6 +340,17 @@ function extractSettlementArrays(data: unknown, depth = 0): unknown[] {
       if (nested.length > 0) return nested;
     }
   }
+
+  /** Будь-який масив «схожий на міста» якщо ключі DTO відрізняються від відомих. */
+  if (depth < 6) {
+    for (const v of Object.values(o)) {
+      if (!Array.isArray(v) || v.length === 0) continue;
+      if (isLikelyCityAutocompleteRow(v[0])) {
+        return v;
+      }
+    }
+  }
+
   return [];
 }
 
@@ -337,34 +382,55 @@ function normalizeSettlements(data: unknown): NpSettlementOption[] {
 function rowToSettlementOption(x: unknown): NpSettlementOption | null {
   if (!x || typeof x !== 'object') return null;
   const r = x as Record<string, unknown>;
+  /**
+   * `GET .../cities/search`: лише **settlementRef** (camelCase від `SettlementRef`).
+   * `GET .../settlements`: рядки довідника — **`ref`**.
+   */
   const ref = String(
-    r['ref'] ??
-      r['Ref'] ??
+    r['settlementRef'] ??
       r['SettlementRef'] ??
-      r['settlementRef'] ??
+      r['ref'] ??
+      r['Ref'] ??
       r['AddressRef'] ??
       r['CityRef'] ??
       r['cityRef'] ??
+      r['deliveryCityRef'] ??
+      r['DeliveryCityRef'] ??
       '',
   ).trim();
-  const description = String(
-    r['description'] ??
-      r['Description'] ??
-      r['Present'] ??
+  if (!ref) return null;
+  let description = String(
+    r['displayLabel'] ??
+      r['DisplayLabel'] ??
       r['present'] ??
+      r['Present'] ??
+      r['description'] ??
+      r['Description'] ??
       r['MainDescription'] ??
       r['mainDescription'] ??
-      r['deliveryCity'] ??
-      r['DeliveryCity'] ??
+      r['label'] ??
+      r['Label'] ??
       r['name'] ??
       r['Name'] ??
       '',
   ).trim();
-  if (ref && description) {
-    const deliveryCityRef = String(r['deliveryCity'] ?? r['DeliveryCity'] ?? '').trim() || null;
-    return { ref, description, deliveryCityRef };
+  const hint = String(r['warehouseCountHint'] ?? r['WarehouseCountHint'] ?? '').trim();
+  if (hint && !description.toLowerCase().includes(hint.toLowerCase())) {
+    description = description ? `${description} (${hint})` : hint;
   }
-  return null;
+  if (!description) {
+    description = ref;
+  }
+  /** Місто доставки НП (`deliveryCity` у JSON) — для branches/postomats; не змішувати з текстом option. */
+  const deliveryCityRef =
+    String(
+      r['deliveryCityRef'] ??
+        r['DeliveryCityRef'] ??
+        r['deliveryCity'] ??
+        r['DeliveryCity'] ??
+        '',
+    ).trim() || null;
+  return { ref, description, deliveryCityRef };
 }
 
 function normalizeStreets(data: unknown): NpStreetDto[] {
@@ -424,13 +490,16 @@ function normalizeWarehouses(data: unknown): NpWarehouseDto[] {
   for (const x of raw) {
     if (!x || typeof x !== 'object') continue;
     const r = x as Record<string, unknown>;
-    const ref = String(r['ref'] ?? r['Ref'] ?? '').trim();
+    const ref = String(
+      r['warehouseRef'] ?? r['WarehouseRef'] ?? r['ref'] ?? r['Ref'] ?? '',
+    ).trim();
     if (!ref) continue;
     out.push({
       ref,
       name: str(r['name'] ?? r['Name']),
       description: str(r['description'] ?? r['Description']),
       shortAddress: str(r['shortAddress'] ?? r['ShortAddress']),
+      number: str(r['number'] ?? r['Number']),
       typeOfWarehouse: str(r['typeOfWarehouse'] ?? r['TypeOfWarehouse']),
       typeOfWarehouseRef: str(r['typeOfWarehouseRef'] ?? r['TypeOfWarehouseRef']),
     });

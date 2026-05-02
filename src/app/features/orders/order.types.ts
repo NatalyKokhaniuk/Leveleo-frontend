@@ -20,7 +20,6 @@ export interface AdminOrderListFilterDto extends OrderListFilterDto {
   sortDirection?: 'asc' | 'desc' | string;
 }
 
-/** Елемент списку: GET my-orders, user/{id}, admin/all */
 export interface OrderListItemDto {
   id: string;
   number?: string | null;
@@ -49,6 +48,9 @@ export const ORDER_STATUS_VALUES = [
 ] as const;
 
 export type OrderStatus = (typeof ORDER_STATUS_VALUES)[number];
+
+/** Значення `status` із API або legacy-форма (JsonStringEnumConverter + allowIntegerValues). */
+export type OrderStatusApi = OrderStatus | string | number;
 
 /**
  * Відповідь POST /api/Orders (201).
@@ -88,14 +90,19 @@ export interface OrderSummaryDto extends OrderListItemDto {
   [key: string]: unknown;
 }
 
+/** Вкладено в замовлення; відповідає `AddressResponseDto` з `/api/Address`. */
 export interface OrderAddressDto {
   id: string;
   firstName: string;
   lastName: string;
   middleName: string;
   phoneNumber: string;
+  /** `Warehouse` | `Doors` | `Postomat` у JSON або legacy-число. */
   deliveryType: string | number;
   formattedAddress: string;
+  cityRef?: string | null;
+  warehouseRef?: string | null;
+  postomatRef?: string | null;
   cityName?: string | null;
   warehouseDescription?: string | null;
   street?: string | null;
@@ -105,6 +112,7 @@ export interface OrderAddressDto {
   isDefault?: boolean | null;
 }
 
+/** `PaymentResponseDto` — статус enum у JSON часто `"Pending"` | `"Success"` | …. */
 export interface OrderPaymentDto {
   id: string;
   orderId: string;
@@ -116,11 +124,17 @@ export interface OrderPaymentDto {
   updatedAt?: string | null;
 }
 
+/** `DeliveryResponseDto` */
 export interface OrderDeliveryDto {
   id: string;
   orderId?: string;
   trackingNumber?: string | null;
   status?: string | null;
+  estimatedDeliveryDate?: string | null;
+  actualDeliveryDate?: string | null;
+  novaPoshtaDocumentRef?: string | null;
+  deliveryCost?: number | null;
+  address?: OrderAddressDto | null;
   createdAt?: string | null;
   updatedAt?: string | null;
   [key: string]: unknown;

@@ -290,9 +290,10 @@ a.app-promo-badge:hover {
   max-width: min(100%, 18rem);
 }
 
-/* Список міст у діалозі адреси — поверх mat-dialog (overlay). */
+/* Список міст у діалозі адреси — панель автокомпліту через CDK; підняти над mat-dialog. */
+.cdk-overlay-pane.leo-city-autocomplete-panel,
 .leo-city-autocomplete-panel.mat-mdc-autocomplete-panel {
-  z-index: 10000 !important;
+  z-index: 10050 !important;
 }
 
 /* Підсвітка рядка після «адреса за замовчуванням» (діалог вибору, профіль). */

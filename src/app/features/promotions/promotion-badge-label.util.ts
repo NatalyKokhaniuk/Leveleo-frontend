@@ -49,7 +49,7 @@ export function formatCartLevelPromotionChip(
     promoName: string | null;
     promoSlug?: string | null;
     promoTranslations?: PromotionTranslationDto[] | null;
-    promoDiscountType: number | null;
+    promoDiscountType: unknown;
     promoDiscountValue: number | null;
   },
   lang: string,

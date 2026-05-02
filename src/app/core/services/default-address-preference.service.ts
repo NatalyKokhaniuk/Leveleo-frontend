@@ -4,8 +4,8 @@ import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 const STORAGE_KEY = 'leveleo.defaultShippingAddressId';
 
 /**
- * Поки бекенд не віддає прапорець «default» у AddressResponseDto, зберігаємо id обраної
- * «основної» адреси в localStorage і паралельно викликаємо POST /api/Address/{id}/default (AddressService.setDefault).
+ * Дублювання «улюбленої» адреси в локальному сховищі узгоджено з POST /api/Address/{id}/default;
+ * первинним джерелом є `AddressResponseDto.isDefault` із API після синхронізації.
  */
 @Injectable({ providedIn: 'root' })
 export class DefaultAddressPreferenceService {

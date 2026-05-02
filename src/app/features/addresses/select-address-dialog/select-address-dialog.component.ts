@@ -135,7 +135,11 @@ export class SelectAddressDialogComponent implements OnInit {
     this.loadError.set(false);
     this.addressApi.getMyAddresses().subscribe({
       next: (list) => {
-        this.addresses.set(reorderAddressListPreferredFirst(list, this.preference.getPreferredId()));
+        const stored = this.preference.getPreferredId()?.trim();
+        const fromServer = list.find((x) => x.isDefault === true)?.id?.trim();
+        const uiPref = stored || fromServer || null;
+        this.preferredIdUi.set(uiPref);
+        this.addresses.set(reorderAddressListPreferredFirst(list, uiPref));
         this.loading.set(false);
         const forDelivery = this.matchingForDeliveryType();
         let sel = this.pickedId();
@@ -229,6 +233,7 @@ export class SelectAddressDialogComponent implements OnInit {
   }
 
   isPreferredRow(a: AddressResponseDto): boolean {
+    if (a.isDefault === true) return true;
     const id = this.preferredIdUi();
     return id != null && id === a.id;
   }
@@ -236,10 +241,13 @@ export class SelectAddressDialogComponent implements OnInit {
   setAsDefault(a: AddressResponseDto, ev: Event): void {
     ev.stopPropagation();
     this.addressApi.setDefault(a.id).subscribe({
-      next: () => {
+      next: (updated) => {
         this.preference.setPreferredId(a.id);
         this.preferredIdUi.set(a.id);
-        this.addresses.update((prev) => reorderAddressListPreferredFirst(prev, a.id));
+        this.addresses.update((prev) => {
+          const next = prev.map((x) => ({ ...x, isDefault: x.id === updated.id ? true : false }));
+          return reorderAddressListPreferredFirst(next, a.id);
+        });
         this.highlightDefaultId.set(a.id);
         window.setTimeout(() => this.highlightDefaultId.set(null), 900);
         this.snack.open(this.translate.instant('ADDRESS.DEFAULT_SET'), 'OK', { duration: 2800 });

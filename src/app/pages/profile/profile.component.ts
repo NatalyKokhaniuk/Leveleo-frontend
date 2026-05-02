@@ -141,6 +141,13 @@ export class ProfileComponent {
     this.addressService.getMyAddresses().subscribe({
       next: (list) => {
         this.addresses.set(list);
+        if (!this.preferredAddressId()) {
+          const def = list.find((x) => x.isDefault === true);
+          if (def) {
+            this.addressPreference.setPreferredId(def.id);
+            this.preferredAddressId.set(def.id);
+          }
+        }
         this.addressesLoaded.set(true);
         this.addressesLoading.set(false);
       },
@@ -159,7 +166,14 @@ export class ProfileComponent {
     ref.afterClosed().subscribe((created) => {
       if (created) {
         this.addressesLoaded.set(true);
-        this.addresses.update((prev) => [created, ...prev]);
+        this.addresses.update((prev) => [
+          created,
+          ...prev.map((x) => ({ ...x, isDefault: created.isDefault === true ? false : x.isDefault })),
+        ]);
+        if (created.isDefault === true) {
+          this.addressPreference.setPreferredId(created.id);
+          this.preferredAddressId.set(created.id);
+        }
       }
     });
   }
@@ -177,16 +191,19 @@ export class ProfileComponent {
   }
 
   isPreferredAddress(a: AddressResponseDto): boolean {
-    return this.preferredAddressId() === a.id;
+    return a.isDefault === true || this.preferredAddressId() === a.id;
   }
 
   setDefaultAddress(a: AddressResponseDto): void {
     this.addressService.setDefault(a.id).subscribe({
-      next: () => {
+      next: (updated) => {
         this.addressPreference.setPreferredId(a.id);
         this.preferredAddressId.set(a.id);
         this.defaultHighlightId.set(a.id);
         window.setTimeout(() => this.defaultHighlightId.set(null), 900);
+        this.addresses.update((prev) =>
+          prev.map((x) => ({ ...x, isDefault: x.id === updated.id ? true : false })),
+        );
         this.snack.open(this.translate.instant('ADDRESS.DEFAULT_SET'), 'OK', { duration: 2800 });
       },
       error: () => {

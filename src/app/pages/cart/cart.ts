@@ -31,8 +31,10 @@ import {
   computePricingFromCartItems,
 } from '../../features/shopping-cart/cart-pricing.util';
 import {
-  ApplyCouponResult,
   CartLineView,
+  coerceApplyCouponResult,
+  isApplyCouponSuccess,
+  isApplyCouponUsageLimitExceeded,
   ShoppingCartDto,
   ShoppingCartItemDto,
 } from '../../features/shopping-cart/shopping-cart.types';
@@ -88,7 +90,8 @@ export class CartPage implements OnInit {
     promoName: string | null;
     promoSlug: string | null;
     promoTranslations: PromotionTranslationDto[] | null;
-    promoDiscountType: number | null;
+    /** Числовий або рядковий enum з API (`"Percentage"` тощо). */
+    promoDiscountType: unknown;
     promoDiscountValue: number | null;
     promoMaxUsages: number | null;
     promoUsedCount: number | null;
@@ -414,17 +417,14 @@ export class CartPage implements OnInit {
     this.couponBusy.set(true);
     this.cartApi.applyCoupon(code).subscribe({
       next: (cart) => {
-        const resultRaw = cart.couponApplyResult;
-        const parsed = resultRaw == null ? 0 : Number(resultRaw);
-        const resultNum = Number.isFinite(parsed) ? parsed : 0;
-        const applyOk = resultNum === ApplyCouponResult.Success;
+        const resultCode = coerceApplyCouponResult(cart.couponApplyResult);
+        const applyOk = isApplyCouponSuccess(cart.couponApplyResult);
         const serverMsg = cart.couponApplyMessage?.trim();
 
         if (!applyOk) {
-          const fallback =
-            resultNum === ApplyCouponResult.UsageLimitExceeded
+          const fallback = isApplyCouponUsageLimitExceeded(cart.couponApplyResult)
               ? this.translate.instant('CART.COUPON_USAGE_LIMIT_EXCEEDED')
-              : this.translate.instant('CART.COUPON_APPLY_FAILED_CODE', { code: resultNum });
+              : this.translate.instant('CART.COUPON_APPLY_FAILED_CODE', { code: resultCode });
           this.snack.open(serverMsg || fallback, 'OK', { duration: 5000 });
         } else {
           const applied = !!cart.appliedCartPromotion;

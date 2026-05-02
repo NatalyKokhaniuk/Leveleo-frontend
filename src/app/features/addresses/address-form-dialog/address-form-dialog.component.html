@@ -80,7 +80,7 @@
         }
         <mat-autocomplete #warehouseAuto="matAutocomplete" (optionSelected)="onWarehousePicked($event.option.value)">
           @for (opt of warehouseSearchResults(); track opt.ref) {
-            <mat-option [value]="opt.ref">{{ opt.name || opt.shortAddress || opt.description || opt.ref }}</mat-option>
+            <mat-option [value]="opt.ref">{{ warehouseOptionLabel(opt) }}</mat-option>
           }
         </mat-autocomplete>
       </mat-form-field>
@@ -125,7 +125,7 @@
         }
         <mat-autocomplete #postomatAuto="matAutocomplete" (optionSelected)="onPostomatPicked($event.option.value)">
           @for (opt of postomatSearchResults(); track opt.ref) {
-            <mat-option [value]="opt.ref">{{ opt.name || opt.shortAddress || opt.description || opt.ref }}</mat-option>
+            <mat-option [value]="opt.ref">{{ warehouseOptionLabel(opt) }}</mat-option>
           }
         </mat-autocomplete>
       </mat-form-field>

@@ -1,4 +1,5 @@
 import {
+  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
@@ -36,6 +37,7 @@ import {
   map,
   of,
   switchMap,
+  take,
   tap,
 } from 'rxjs';
 import { AuthService } from '../../../core/auth/services/auth.service';
@@ -112,15 +114,13 @@ export class AddressFormDialogComponent implements OnInit {
   /** Щоб не показувати тисячі пунктів до першого фокусу на полі. */
   cityFieldEverFocused = signal(false);
   /**
-   * Порожній рядок після фокусу — усі пункти з довідника (+ збережені адреси);
-   * якщо є введення — лише ті, що містять підрядок (без урахування регістру).
+   * Список для автокомпліту: результати вже відфільтровані бекендом по `query` —
+   * додатковий substring-фільтр на клієнті прибирає валідні відповіді (трансліт, регістр, «Чернівці» vs «чернівці»).
    */
   displayedCityOptions = computed(() => {
-    const q = this.citySearchText().trim().toLowerCase();
     const raw = this.settlementSearchResults();
     if (!this.cityFieldEverFocused()) return [];
-    if (!q) return raw;
-    return raw.filter((o) => o.description.toLowerCase().includes(q));
+    return raw;
   });
   directoryLoading = signal(false);
   streetSearchResults = signal<NpStreetDto[]>([]);
@@ -130,14 +130,27 @@ export class AddressFormDialogComponent implements OnInit {
   warehouseLoading = signal(false);
   postomatLoading = signal(false);
 
+  private cdr = inject(ChangeDetectorRef);
+
   constructor() {
     effect(() => {
       const opts = this.displayedCityOptions();
       const loading = this.directoryLoading();
       if (loading || opts.length === 0) return;
-      untracked(() => queueMicrotask(() => this.cityTrigger?.openPanel()));
+      untracked(() => this.scheduleOpenCityPanel());
     });
   }
+
+  /** Після HTTP CDK-панель і `@for (options)` мають відмалюватись перед `openPanel()`. */
+  private scheduleOpenCityPanel(): void {
+    setTimeout(() => {
+      this.cdr.detectChanges();
+      this.cityTrigger?.openPanel();
+    }, 0);
+  }
+
+  /** Перша збережена адреса — бек робить її основною; узгоджено з setAsPrimary у CreateAddressDto. */
+  firstAddressCreatesPrimaryDefault = signal(false);
 
   /** Останній вибір зі списку (щоб скинути ref при ручній зміні тексту). */
   private lastPicked: NpSettlementOption | null = null;
@@ -231,9 +244,23 @@ export class AddressFormDialogComponent implements OnInit {
       )
       .subscribe((results) => {
         this.settlementSearchResults.set(results);
+        if (results.length > 0) {
+          this.scheduleOpenCityPanel();
+        }
       });
 
     const a = this.data.address;
+
+    if (!a) {
+      this.addressApi
+        .getMyAddresses()
+        .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (list) => this.firstAddressCreatesPrimaryDefault.set((list ?? []).length === 0),
+          error: () => this.firstAddressCreatesPrimaryDefault.set(false),
+        });
+    }
+
     if (this.data.addressFieldsOnly) {
       this.form.get('firstName')?.clearValidators();
       this.form.get('lastName')?.clearValidators();
@@ -267,7 +294,7 @@ export class AddressFormDialogComponent implements OnInit {
           deliveryType: deliveryForForm,
           citySearch: cityName,
           cityRef: a.cityRef ?? '',
-          settlementRef: '',
+          settlementRef: a.settlementRef?.trim() ?? '',
           cityName,
           warehouseName: a.warehouseDescription ?? a.warehouseRef ?? '',
           warehouseRef: a.warehouseRef ?? '',
@@ -308,6 +335,8 @@ export class AddressFormDialogComponent implements OnInit {
                 },
                 { emitEvent: false },
               );
+            } else if (results.length > 0) {
+              this.scheduleOpenCityPanel();
             }
           });
       }
@@ -326,7 +355,7 @@ export class AddressFormDialogComponent implements OnInit {
     this.cityFieldEverFocused.set(true);
     const t = this.citySearchText().trim();
     if (t.length < 1) {
-      queueMicrotask(() => this.cityTrigger?.openPanel());
+      this.scheduleOpenCityPanel();
       return;
     }
     if (this.directoryLoading()) return;
@@ -339,7 +368,9 @@ export class AddressFormDialogComponent implements OnInit {
       )
       .subscribe((results) => {
         this.settlementSearchResults.set(results);
-        queueMicrotask(() => this.cityTrigger?.openPanel());
+        if (results.length > 0) {
+          this.scheduleOpenCityPanel();
+        }
       });
   }
 
@@ -378,6 +409,28 @@ export class AddressFormDialogComponent implements OnInit {
         /* ігноруємо — форма лишається з полями з профілю */
       },
     });
+  }
+
+  /**
+   * Ідентифікатор у шляху `GET …/settlements/{ref}/branches|postomats` на бекенді.
+   * Для Нової пошти це **місто доставки** (`deliveryCity` у відповіді міста), у формі — **`cityRef`**.
+   * Для вулиць використовується окремо **`settlementRef`** (поле `ref` населеного пункту).
+   */
+  private npSettlementRefForWarehouses(): string {
+    return (
+      this.form.get('cityRef')?.value?.trim() ||
+      this.lastPicked?.deliveryCityRef?.trim() ||
+      this.lastPicked?.ref?.trim() ||
+      this.form.get('settlementRef')?.value?.trim() ||
+      ''
+    );
+  }
+
+  warehouseOptionLabel(opt: NpWarehouseDto): string {
+    const n = opt.number?.trim();
+    const rest =
+      opt.name?.trim() || opt.shortAddress?.trim() || opt.description?.trim() || opt.ref.trim();
+    return n ? `${n} — ${rest}` : rest;
   }
 
   onCityPicked(ref: string): void {
@@ -475,6 +528,8 @@ export class AddressFormDialogComponent implements OnInit {
       }
     }
 
+    const existing = this.data.address;
+
     const dto: CreateAddressDto = {
       firstName,
       lastName,
@@ -495,6 +550,10 @@ export class AddressFormDialogComponent implements OnInit {
       postomatDescription: null,
     };
 
+    if (!existing) {
+      dto.setAsPrimary = this.firstAddressCreatesPrimaryDefault();
+    }
+
     if (deliveryType === DeliveryType.Warehouse) {
       dto.warehouseRef = v.warehouseRef?.trim() || null;
       dto.warehouseDescription = v.warehouseName?.trim() || null;
@@ -504,7 +563,6 @@ export class AddressFormDialogComponent implements OnInit {
     }
 
     this.busy = true;
-    const existing = this.data.address;
     const req = existing
       ? this.addressApi.update(existing.id, dto)
       : this.addressApi.create(dto);
@@ -601,14 +659,14 @@ export class AddressFormDialogComponent implements OnInit {
         map((q) => String(q ?? '').trim()),
         distinctUntilChanged(),
         switchMap((t) => {
-          const cityRef = this.form.get('cityRef')?.value?.trim() || '';
-          if (!cityRef || t.length < 1) {
+          const settlementRef = this.npSettlementRefForWarehouses();
+          if (!settlementRef || t.length < 1) {
             this.warehouseSearchResults.set([]);
             return of<NpWarehouseDto[]>([]);
           }
           this.warehouseLoading.set(true);
           return this.np
-            .searchBranchesBySettlement(cityRef, t)
+            .searchBranchesBySettlement(settlementRef, t)
             .pipe(finalize(() => this.warehouseLoading.set(false)));
         }),
         takeUntilDestroyed(this.destroyRef),
@@ -633,14 +691,14 @@ export class AddressFormDialogComponent implements OnInit {
         map((q) => String(q ?? '').trim()),
         distinctUntilChanged(),
         switchMap((t) => {
-          const cityRef = this.form.get('cityRef')?.value?.trim() || '';
-          if (!cityRef || t.length < 1) {
+          const settlementRef = this.npSettlementRefForWarehouses();
+          if (!settlementRef || t.length < 1) {
             this.postomatSearchResults.set([]);
             return of<NpWarehouseDto[]>([]);
           }
           this.postomatLoading.set(true);
           return this.np
-            .searchPostomatsBySettlement(cityRef, t)
+            .searchPostomatsBySettlement(settlementRef, t)
             .pipe(finalize(() => this.postomatLoading.set(false)));
         }),
         takeUntilDestroyed(this.destroyRef),

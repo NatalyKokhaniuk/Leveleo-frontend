@@ -1,10 +1,19 @@
-/** Елемент списку населених пунктів (Нова Пошта / бекенд-проксі). */
+/**
+ * Населений пункт у списках НП від бекенду.
+ *
+ * `/NovaPoshta/cities/search`: `CityAutocompleteResponseDto` — ключ ідентифікатора лише **`settlementRef`**;
+ * текст для option — **`displayLabel`** (на бекенді: `present` або fallback на `mainDescription`).
+ * `/NovaPoshta/settlements`: у рядках довідника приходить **`ref`** того ж смислу, що й `settlementRef` у пошуку міст.
+ */
 export interface NpSettlementOption {
-  /** Ref населеного пункту для пошуку вулиць. */
+  /** Settlement ref (`ref` / `settlementRef`) — для пошуку **вулиць** (`…/streets/search`). Не підставляти в branches/postomats, якщо є `deliveryCityRef`. */
   ref: string;
-  /** Ref міста доставки (`deliveryCity`) для пошуку відділень/поштоматів і `POST /api/Address.cityRef`. */
+  /**
+   * Місто доставки НП з поля **`deliveryCity`** (або `deliveryCityRef`) у відповіді міста.
+   * Для **`/settlements/{ref}/branches`** та **`/postomats`** у шлях підставляють саме його, а не settlement **`ref`**.
+   */
   deliveryCityRef?: string | null;
-  /** Повна назва для відображення. */
+  /** Рядок для `mat-option` / підказки — за наявності збігається з `displayLabel` із API. */
   description: string;
 }
 
@@ -25,21 +34,29 @@ export interface NpSettlementsPageDto {
   hasMore: boolean;
 }
 
-/** Рядок довідника НП (узгоджено з `SettlementDirectoryDto` на бекенді). */
+/** `SettlementDirectoryDto` — `GET /NovaPoshta/settlements`. */
 export interface NpSettlementDirectoryDto {
   ref: string;
   description: string;
-  /** Опційні поля регіону — для відображення у списку. */
+  descriptionRu?: string | null;
   area?: string | null;
+  areaDescription?: string | null;
   region?: string | null;
+  regionsDescription?: string | null;
+  settlementType?: string | null;
+  warehouse?: string | null;
+  index?: string | null;
 }
 
 /** Відділення / поштомат (`WarehouseDto` на бекенді). */
 export interface NpWarehouseDto {
+  /** Уніфіковано з warehouseRef у WarehouseAutocompleteResponseDto (внутрішньо — ref для mat-option). */
   ref: string;
   name?: string | null;
   description?: string | null;
   shortAddress?: string | null;
+  /** Номер відділення / поштомату з НП. */
+  number?: string | null;
   typeOfWarehouse?: string | null;
   typeOfWarehouseRef?: string | null;
 }
