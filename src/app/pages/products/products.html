@@ -186,7 +186,9 @@
   } @else if (loadError()) {
     <p class="text-center text-on-surface/80 py-12">{{ 'PRODUCTS.LOAD_ERROR' | translate }}</p>
   } @else if (items().length === 0) {
-    <p class="text-center text-on-surface/80 py-12">{{ 'PRODUCTS.EMPTY' | translate }}</p>
+    <p class="text-center text-on-surface/80 py-12">
+      {{ (hasCatalogSearch() ? 'PRODUCTS.SEARCH_EMPTY' : 'PRODUCTS.EMPTY') | translate }}
+    </p>
   } @else {
     <div class="flex flex-col gap-6 w-full min-w-0">
       <div

@@ -49,10 +49,9 @@ export function resolveCartLineUnitPrices(
   );
 
   const disc = product?.discountedPrice;
-  const hasProductDiscount =
-    disc != null && !Number.isNaN(Number(disc)) && Number(disc) < catalog - PRICE_EPS;
 
-  if (hasProductDiscount) {
+  if (catalog > 0) {
+    /** Не опускаємо «повну» ціну за рядок нижче каталожного прайсу товару — для знижок і Σ по рядках. */
     unitListPrice = Math.max(unitListPrice, catalog);
   }
 
@@ -115,6 +114,36 @@ export function computePricingFromCartItems(
     totalProductDiscount += Math.max(0, listUnit - afterProductUnit) * qApply;
     subtotalAfterProductPromotions += afterProductUnit * qApply;
     totalCartDiscountFromLines += Math.max(0, afterProductUnit - afterCartUnit) * qApply;
+  }
+
+  return {
+    totalCatalogList,
+    totalProductDiscount,
+    subtotalAfterProductPromotions,
+    totalCartDiscountFromLines,
+  };
+}
+
+/**
+ * Підсумки з уже зібраних рядків (після GET /products/:id) — узгоджено з цінами на картках.
+ * Не використовувати сирі `cart.items` без актуального каталогу: знижка на товар не потрапить у Σ.
+ */
+export function computePricingFromLineViews(lines: CartLineView[] | null | undefined): CartPricingFromItems {
+  let totalCatalogList = 0;
+  let totalProductDiscount = 0;
+  let subtotalAfterProductPromotions = 0;
+  let totalCartDiscountFromLines = 0;
+
+  for (const row of lines ?? []) {
+    const q = row.quantityApplyingToTotals;
+    if (q <= 0) continue;
+    const list = row.unitListPrice;
+    const afterP = row.unitAfterProductPromotion;
+    const afterC = row.unitAfterCartPromotion;
+    totalCatalogList += list * q;
+    totalProductDiscount += Math.max(0, list - afterP) * q;
+    subtotalAfterProductPromotions += afterP * q;
+    totalCartDiscountFromLines += Math.max(0, afterP - afterC) * q;
   }
 
   return {

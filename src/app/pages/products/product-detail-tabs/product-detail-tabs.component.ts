@@ -17,7 +17,7 @@ import { MatSelectChange, MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 import { brandLocalizedName } from '../../../features/brands/brand-display-i18n';
 import { BrandService } from '../../../features/brands/brand.service';
 import { BrandResponseDto } from '../../../features/brands/brand.types';
@@ -35,7 +35,10 @@ import {
   productLocalizedDescription,
   productLocalizedName,
 } from '../../../features/products/product-display-i18n';
-import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
+import {
+  productPromotionLinkSlug,
+  productPromotionNameBadgeText,
+} from '../../../features/promotions/promotion-badge-label.util';
 import { ProductMediaService } from '../../../features/products/product-media.service';
 import { ProductResponseDto, ProductVideoDto } from '../../../features/products/product.types';
 import { OrderItemReviewFormComponent } from '../../../shared/components/order-item-review-form/order-item-review-form.component';
@@ -103,6 +106,8 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
 
   imageUrl = signal<string | null>(null);
   mediaItems = signal<ProductMediaItem[]>([]);
+  /** Стрілки превʼю / lightbox — лише якщо після збирання списку є ≥2 пункти (унікальні ключі, без дубля main із галереєю). */
+  showCarouselNavigation = computed(() => this.mediaItems().length > 1);
   activeMediaIndex = signal(0);
   lightboxOpen = signal(false);
   imageLoading = signal(false);
@@ -174,51 +179,36 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
     if (!this.product) {
       return;
     }
-    this.loadImage();
-    this.loadMediaGallery();
+    this.loadVisualMedia();
     this.loadReviews();
     this.loadCategoryBreadcrumbs();
     this.loadBrand();
     this.loadAttributes();
   }
 
-  private loadImage(): void {
-    const direct = this.product.mainImageUrl?.trim();
-    if (direct) {
-      this.imageUrl.set(direct);
-      this.imageLoading.set(false);
+  /**
+   * Головне фото й галерея збираються в одному циклі: раніше `loadImage` і `loadMediaGallery`
+   * гнались паралельно й головний URL часто був ще null, тож при одній картці тільки в main (без рядків галереї) `mediaItems` лишалось порожнім.
+   */
+  private loadVisualMedia(): void {
+    const p = this.product;
+    if (!p?.id) {
+      this.loadVisualMediaWithoutProductId(p);
       return;
     }
-    const key = this.product.mainImageKey?.trim();
-    if (!key) {
-      this.imageUrl.set(null);
-      this.imageLoading.set(false);
-      return;
-    }
-    this.imageLoading.set(true);
-    this.mediaUrlCache.getUrl(key).subscribe({
-      next: (url) => {
-        this.imageUrl.set(url);
-        this.imageLoading.set(false);
-      },
-      error: () => {
-        this.imageUrl.set(null);
-        this.imageLoading.set(false);
-      },
-    });
-  }
 
-  private loadMediaGallery(): void {
-    if (!this.product?.id) {
-      this.mediaItems.set([]);
-      this.activeMediaIndex.set(0);
-      return;
-    }
+    const productId = p.id;
+    this.imageLoading.set(true);
 
     forkJoin({
-      images: this.productMedia.getImages(this.product.id).pipe(catchError(() => of([]))),
-      videos: this.productMedia.getVideos(this.product.id).pipe(catchError(() => of([] as ProductVideoDto[]))),
-    }).subscribe(({ images, videos }) => {
+      mainUrl: this.resolveMainImageUrl$(p),
+      images: this.productMedia.getImages(productId).pipe(catchError(() => of([]))),
+      videos: this.productMedia.getVideos(productId).pipe(catchError(() => of([] as ProductVideoDto[]))),
+    }).subscribe(({ mainUrl, images, videos }) => {
+      if (!this.product || this.product.id !== productId) {
+        return;
+      }
+
       const sortedImages = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
       const sortedVideos = [...videos].sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -229,16 +219,29 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
         this.mediaUrlCache.getUrl(v.videoKey).pipe(catchError(() => of(null))),
       );
 
-      forkJoin([...imageReqs, ...videoReqs]).subscribe((resolved) => {
-        const items: ProductMediaItem[] = [];
+      /* forkJoin([]) лише complete без next — головне фото без галереї/відео ніколи не зʼявлялося б. */
+      const urlTasks = [...imageReqs, ...videoReqs];
+      const resolved$ =
+        urlTasks.length > 0 ? forkJoin(urlTasks) : of([] as (string | null)[]);
 
-        const mainImage = this.imageUrl();
-        if (mainImage) {
+      resolved$.subscribe((resolved) => {
+        if (!this.product || this.product.id !== productId) {
+          return;
+        }
+
+        const items: ProductMediaItem[] = [];
+        const mainKeyNorm = p.mainImageKey?.trim() || null;
+        const seenGalleryKeys = new Set<string>();
+        if (mainKeyNorm) {
+          seenGalleryKeys.add(mainKeyNorm);
+        }
+
+        if (mainUrl) {
           items.push({
             kind: 'image',
-            url: mainImage,
-            thumbUrl: mainImage,
-            key: `main-${this.product.id}`,
+            url: mainUrl,
+            thumbUrl: mainUrl,
+            key: mainKeyNorm ? `main-key-${mainKeyNorm}` : `main-${productId}`,
           });
         }
 
@@ -246,21 +249,103 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
         for (const img of sortedImages) {
           const url = resolved[idx++] as string | null;
           if (!url) continue;
-          if (mainImage && url === mainImage) continue;
+          const galleryKey = img.imageKey?.trim() || '';
+          if (!galleryKey) continue;
+          if (seenGalleryKeys.has(galleryKey)) continue;
+          if (mainUrl && url === mainUrl) continue;
+          seenGalleryKeys.add(galleryKey);
           items.push({ kind: 'image', url, thumbUrl: url, key: `img-${img.id}` });
         }
+
+        const seenVideoKeys = new Set<string>();
         for (const v of sortedVideos) {
           const url = resolved[idx++] as string | null;
           if (!url) continue;
+          const videoKey = v.videoKey?.trim() || '';
+          if (videoKey) {
+            if (seenVideoKeys.has(videoKey)) continue;
+            seenVideoKeys.add(videoKey);
+          }
           items.push({ kind: 'video', url, thumbUrl: url, key: `vid-${v.id}` });
         }
 
         this.mediaItems.set(items);
-        const currentIndex = items.findIndex((m) => m.url === this.imageUrl());
-        const nextIndex = currentIndex >= 0 ? currentIndex : 0;
-        this.activeMediaIndex.set(nextIndex);
+        this.activeMediaIndex.set(0);
+
+        if (items.length === 0) {
+          this.imageUrl.set(null);
+          this.imageLoading.set(false);
+          return;
+        }
+
         this.applyActiveMedia();
+        this.imageLoading.set(false);
       });
+    });
+  }
+
+  private resolveMainImageUrl$(p: ProductResponseDto): Observable<string | null> {
+    const direct = p.mainImageUrl?.trim();
+    if (direct) {
+      return of(direct);
+    }
+    const key = p.mainImageKey?.trim();
+    if (!key) {
+      return of(null);
+    }
+    return this.mediaUrlCache.getUrl(key).pipe(catchError(() => of(null)));
+  }
+
+  private loadVisualMediaWithoutProductId(p: ProductResponseDto | undefined): void {
+    if (!p) return;
+    const direct = p.mainImageUrl?.trim();
+    if (direct) {
+      this.mediaItems.set([
+        {
+          kind: 'image',
+          url: direct,
+          thumbUrl: direct,
+          key: 'main-orphan',
+        },
+      ]);
+      this.activeMediaIndex.set(0);
+      this.applyActiveMedia();
+      this.imageLoading.set(false);
+      return;
+    }
+    const key = p.mainImageKey?.trim();
+    if (!key) {
+      this.mediaItems.set([]);
+      this.imageUrl.set(null);
+      this.imageLoading.set(false);
+      return;
+    }
+    this.imageLoading.set(true);
+    this.mediaUrlCache.getUrl(key).subscribe({
+      next: (url) => {
+        if (!url) {
+          this.mediaItems.set([]);
+          this.imageUrl.set(null);
+          this.imageLoading.set(false);
+          return;
+        }
+        this.mediaItems.set([
+          {
+            kind: 'image',
+            url,
+            thumbUrl: url,
+            key: 'main-orphan',
+          },
+        ]);
+        this.activeMediaIndex.set(0);
+        this.applyActiveMedia();
+        this.imageLoading.set(false);
+      },
+      error: () => {
+        this.mediaItems.set([]);
+        this.imageUrl.set(null);
+        this.imageLoading.set(false);
+      },
     });
   }
 
@@ -309,7 +394,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
       return;
     }
 
-    if (this.mediaItems().length <= 1) {
+    if (!this.showCarouselNavigation()) {
       return;
     }
 
@@ -369,6 +454,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
     this.mediaUrlCache.refreshUrl(key).subscribe({
       next: (url) => {
         this.imageUrl.set(url);
+        this.patchActiveRasterMediaUrl(url);
         this.imageLoading.set(false);
       },
       error: () => {
@@ -376,6 +462,18 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
         this.imageLoading.set(false);
       },
     });
+  }
+
+  /** Після refresh пресайнутого URL синхронізуємо рядок у `mediaItems`, інакше зображення лишиться зі старим url. */
+  private patchActiveRasterMediaUrl(url: string | null): void {
+    if (!url) return;
+    const i = this.activeMediaIndex();
+    const list = this.mediaItems();
+    const cur = list[i];
+    if (cur?.kind !== 'image') return;
+    const nextList = [...list];
+    nextList[i] = { ...cur, url, thumbUrl: url };
+    this.mediaItems.set(nextList);
   }
 
   private loadReviews(): void {
@@ -525,13 +623,14 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
     return Number(disc) < list - 0.01;
   }
 
-  promotionLabel(): string | null {
-    return formatAppliedPromotionBadgeLabel(this.product.appliedPromotion, this.lang());
+  promotionNameBadge(): string | null {
+    return productPromotionNameBadgeText(this.product, this.lang(), this.translate.instant('PRODUCTS.PROMO_BADGE_FALLBACK'), {
+      hideCartLevel: true,
+    });
   }
 
   promotionSlug(): string | null {
-    const slug = this.product.appliedPromotion?.slug?.trim();
-    return slug || null;
+    return productPromotionLinkSlug(this.product, { hideCartLevel: true });
   }
 
   reviewStars(rating: number, index: number): boolean {

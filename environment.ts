@@ -1,5 +1,12 @@
 export const environment = {
   production: false,
+  /**
+   * GET /api/admin/Statistics/promotions — блок «Ефективність акцій» у адмінці.
+   * Помилка 42703 через неіснуючі колонки на бекенді більше не очікується.
+   * Для акцій рівня кошика метрики в API можуть бути 0 (немає прив’язки замовлення до промо в БД) — це нормально.
+   * Ставте `false`, лише якщо потрібно приховати блок (наприклад, тимчасово).
+   */
+  adminPromotionStatisticsEnabled: true,
   googleClientId: '473086035072-0aton30pklt9ccvj0pq53qjke9f8egv5.apps.googleusercontent.com',
   facebookAppId: '1574880827165492',
   /**

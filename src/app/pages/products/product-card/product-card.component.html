@@ -37,23 +37,23 @@
           }
         </div>
 
-        @if (promotionLabel(); as promoName) {
+        @if (promotionNameBadge(); as promoTitle) {
           @if (promotionSlug(); as slug) {
             <a
               class="app-promo-badge app-promo-badge--corner app-promo-badge--tr product-card__promo truncate text-center"
               [routerLink]="['/promotions']"
               [queryParams]="{ slug: slug }"
-              [title]="promoName"
+              [title]="promoTitle"
               (click)="$event.stopPropagation()"
             >
-              {{ promoName }}
+              {{ promoTitle }}
             </a>
           } @else {
             <span
               class="app-promo-badge app-promo-badge--corner app-promo-badge--tr product-card__promo truncate text-center pointer-events-none"
-              [title]="promoName"
+              [title]="promoTitle"
             >
-              {{ promoName }}
+              {{ promoTitle }}
             </span>
           }
         }
@@ -119,14 +119,19 @@
           }
         </div>
 
-        <div class="flex flex-wrap items-baseline gap-2">
-          <span class="text-lg font-semibold text-primary">
-            {{ displayPrice() | number: '1.2-2' }}
-            {{ 'PRODUCTS.CURRENCY' | translate }}
-          </span>
+        <div class="flex flex-wrap items-baseline gap-2 gap-x-2.5">
           @if (hasDiscount()) {
-            <span class="text-sm text-on-surface/50 line-through">
+            <span class="text-sm text-on-surface/50 line-through shrink-0 order-1">
               {{ listPrice() | number: '1.2-2' }}
+              {{ 'PRODUCTS.CURRENCY' | translate }}
+            </span>
+            <span class="product-card__price-sale text-lg font-semibold shrink-0 order-2">
+              {{ displayPrice() | number: '1.2-2' }}
+              {{ 'PRODUCTS.CURRENCY' | translate }}
+            </span>
+          } @else {
+            <span class="text-lg font-semibold text-primary">
+              {{ displayPrice() | number: '1.2-2' }}
               {{ 'PRODUCTS.CURRENCY' | translate }}
             </span>
           }

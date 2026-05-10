@@ -376,10 +376,26 @@
   max-height: min(32vh, 220px);
 }
 
-.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__img {
-  width: 100%;
+/* Quick view / квадратна зона: кнопка без висоти ламає height:100% у <img> (циклічне обчислення → 0px). */
+.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__media {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__img-open-btn {
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
-  max-height: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
 }
 
@@ -512,4 +528,8 @@
 
 .product-detail-tabs__attrs {
   box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.product-detail-tabs__price-sale {
+  color: var(--mat-sys-error);
 }

@@ -12,6 +12,7 @@ import {
   OrderUpdateDto,
   PagedResultDto,
 } from './order.types';
+import { normalizeCreateOrderResultDto } from './order-create-response.util';
 
 function toQuery(params: Record<string, string | number | undefined | null>): string {
   const query = Object.entries(params)
@@ -41,8 +42,18 @@ export class OrderService {
   /** OrdersController: /api/Orders */
   private readonly base = '/Orders';
 
+  /**
+   * POST /api/Orders — тіло: `userAddressId` (id з GET /api/Address/myaddresses).
+   * Дублюємо `UserAddressId` (PascalCase) для бекендів, де camelCase не мапиться на DTO.
+   */
   create(dto: OrderCreateDto): Observable<CreateOrderResultDto> {
-    return this.api.post<CreateOrderResultDto>(this.base, dto);
+    const id = String(dto.userAddressId ?? '').trim();
+    if (!id) {
+      return throwError(() => new Error('userAddressId is required'));
+    }
+    return this.api.post<unknown>(this.base, { userAddressId: id, UserAddressId: id }).pipe(
+      map((raw) => normalizeCreateOrderResultDto(raw)),
+    );
   }
 
   /** GET /api/Orders/my-orders?startDate=&endDate= → OrderListItemDto[] */

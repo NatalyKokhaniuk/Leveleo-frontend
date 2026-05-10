@@ -15,20 +15,24 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, of } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { MediaUrlCacheService } from '../../../core/services/media-url-cache.service';
 import { CartStateService } from '../../../core/shopping-cart/cart-state.service';
 import { brandLocalizedName } from '../../../features/brands/brand-display-i18n';
 import { BrandService } from '../../../features/brands/brand.service';
 import { productLocalizedName } from '../../../features/products/product-display-i18n';
-import { formatAppliedPromotionBadgeLabel } from '../../../features/promotions/promotion-badge-label.util';
+import {
+  productPromotionLinkSlug,
+  productPromotionNameBadgeText,
+} from '../../../features/promotions/promotion-badge-label.util';
 import {
   catalogStateBadgeKey,
   isCatalogPurchaseBlocked,
   resolveProductCatalogDisplayState,
 } from '../../../features/products/product-catalog-display';
-import { ProductResponseDto } from '../../../features/products/product.types';
+import { ProductMediaService } from '../../../features/products/product-media.service';
+import { ProductImageDto, ProductResponseDto } from '../../../features/products/product.types';
 
 @Component({
   selector: 'app-product-card',
@@ -39,6 +43,7 @@ import { ProductResponseDto } from '../../../features/products/product.types';
 })
 export class ProductCardComponent implements OnInit, OnChanges {
   private mediaUrlCache = inject(MediaUrlCacheService);
+  private productMedia = inject(ProductMediaService);
   private brands = inject(BrandService);
   private translate = inject(TranslateService);
   readonly auth = inject(AuthService);
@@ -133,22 +138,50 @@ export class ProductCardComponent implements OnInit, OnChanges {
       return;
     }
     const key = this.product.mainImageKey?.trim();
-    if (!key) {
+    if (key) {
+      this.imageLoading.set(true);
+      this.mediaUrlCache.getUrl(key).subscribe({
+        next: (url) => {
+          this.imageUrl.set(url);
+          this.imageLoading.set(false);
+        },
+        error: () => {
+          this.imageUrl.set(null);
+          this.imageLoading.set(false);
+        },
+      });
+      return;
+    }
+
+    const id = this.product.id?.trim();
+    if (!id) {
       this.imageUrl.set(null);
       this.imageLoading.set(false);
       return;
     }
+
     this.imageLoading.set(true);
-    this.mediaUrlCache.getUrl(key).subscribe({
-      next: (url) => {
+    this.productMedia
+      .getImages(id)
+      .pipe(
+        take(1),
+        catchError(() => of([] as ProductImageDto[])),
+        switchMap((images) => {
+          const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
+          const galleryKey = sorted[0]?.imageKey?.trim();
+          if (!galleryKey) {
+            return of(null);
+          }
+          return this.mediaUrlCache.getUrl(galleryKey).pipe(catchError(() => of(null)));
+        }),
+      )
+      .subscribe((url) => {
+        if (this.product?.id?.trim() !== id) {
+          return;
+        }
         this.imageUrl.set(url);
         this.imageLoading.set(false);
-      },
-      error: () => {
-        this.imageUrl.set(null);
-        this.imageLoading.set(false);
-      },
-    });
+      });
   }
 
   /** Pre-signed URL прострочився в браузері, а кеш ще вважав його валідним — запитуємо новий. */
@@ -291,12 +324,14 @@ export class ProductCardComponent implements OnInit, OnChanges {
     return Number(disc) < list - 0.01;
   }
 
-  promotionLabel(): string | null {
-    return formatAppliedPromotionBadgeLabel(this.product.appliedPromotion, this.lang());
+  /** Текст червоної плашки: лише локалізована назва акції. */
+  promotionNameBadge(): string | null {
+    return productPromotionNameBadgeText(this.product, this.lang(), this.translate.instant('PRODUCTS.PROMO_BADGE_FALLBACK'), {
+      hideCartLevel: true,
+    });
   }
 
   promotionSlug(): string | null {
-    const slug = this.product.appliedPromotion?.slug?.trim();
-    return slug || null;
+    return productPromotionLinkSlug(this.product, { hideCartLevel: true });
   }
 }

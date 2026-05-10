@@ -1,7 +1,12 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import { encodeProductFilters } from './product-filter.encode';
+import {
+  normalizePagedProductResult,
+  normalizeProductResponseDto,
+} from './product-response-normalize.util';
 import {
   CreateProductDto,
   PagedResultDto,
@@ -27,11 +32,13 @@ export class ProductService {
   /** Список з фільтрами: GET /products?filters=Base64(JSON). Текстовий пошук — окремий метод {@link search}. */
   getPaged(filter: ProductFilterDto): Observable<PagedResultDto<ProductResponseDto>> {
     const filters = encodeURIComponent(encodeProductFilters(filter));
-    return this.api.get<PagedResultDto<ProductResponseDto>>(`${this.base}?filters=${filters}`);
+    return this.api
+      .get<unknown>(`${this.base}?filters=${filters}`)
+      .pipe(map(normalizePagedProductResult));
   }
 
   /**
-   * Акційні товари (product-акції з валідними датами), без кошикових акцій.
+   * Зарезервовано під бекенд з окремим маршрутом. Каталог вітрини використовує {@link getPaged} з `onlyWithActiveProductPromotion`.
    * GET /products/promotional?page=&pageSize=&sortBy=&categoryId=&brandId=
    */
   getPromotional(params: {
@@ -54,30 +61,36 @@ export class ProductService {
     if (br) {
       qs.push(`brandId=${encodeURIComponent(br)}`);
     }
-    return this.api.get<PagedResultDto<ProductResponseDto>>(`${this.base}/promotional?${qs.join('&')}`);
+    return this.api
+      .get<unknown>(`${this.base}/promotional?${qs.join('&')}`)
+      .pipe(map(normalizePagedProductResult));
   }
 
   search(query: string, page = 1, pageSize = 20): Observable<PagedResultDto<ProductResponseDto>> {
     const q = encodeURIComponent(query.trim());
-    return this.api.get<PagedResultDto<ProductResponseDto>>(
-      `${this.base}/search?query=${q}&page=${page}&pageSize=${pageSize}`,
-    );
+    return this.api
+      .get<unknown>(`${this.base}/search?query=${q}&page=${page}&pageSize=${pageSize}`)
+      .pipe(map(normalizePagedProductResult));
   }
 
   getById(productId: string): Observable<ProductResponseDto> {
-    return this.api.get<ProductResponseDto>(`${this.base}/${productId}`);
+    return this.api
+      .get<unknown>(`${this.base}/${productId}`)
+      .pipe(map(normalizeProductResponseDto));
   }
 
   getBySlug(slug: string): Observable<ProductResponseDto> {
-    return this.api.get<ProductResponseDto>(`${this.base}/slug/${encodeURIComponent(slug)}`);
+    return this.api
+      .get<unknown>(`${this.base}/slug/${encodeURIComponent(slug)}`)
+      .pipe(map(normalizeProductResponseDto));
   }
 
   create(dto: CreateProductDto): Observable<ProductResponseDto> {
-    return this.api.post<ProductResponseDto>(this.base, dto);
+    return this.api.post<unknown>(this.base, dto).pipe(map(normalizeProductResponseDto));
   }
 
   update(productId: string, dto: UpdateProductDto): Observable<ProductResponseDto> {
-    return this.api.put<ProductResponseDto>(`${this.base}/${productId}`, dto);
+    return this.api.put<unknown>(`${this.base}/${productId}`, dto).pipe(map(normalizeProductResponseDto));
   }
 
   delete(productId: string): Observable<void> {

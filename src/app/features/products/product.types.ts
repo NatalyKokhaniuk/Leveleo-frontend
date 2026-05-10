@@ -28,8 +28,7 @@ export interface ProductFilterDto {
   sortBy: ProductSortBy;
   promotionId?: string | null;
   /**
-   * Лише товари з активною product-акцією (`OnlyWithActiveProductPromotion` у Base64-фільтрі на бекенді).
-   * На UI «Лише акційні» використовує окремий {@link ProductService.getPromotional}, коли це true.
+   * Лише товари з активною product-акцією (`OnlyWithActiveProductPromotion` у Base64-фільтрі GET /products?filters=).
    */
   onlyWithActiveProductPromotion?: boolean | null;
   page: number;
@@ -69,7 +68,10 @@ export interface AppliedPromotionDto {
   name: string;
   description?: string | null;
   imageKey?: string | null;
-  discountType?: number;
+  /** Як у JSON від API: 0 / `"Product"` = товар, 1 / `"Cart"` = кошик (на картці товару показуємо лише product-level). */
+  level?: unknown;
+  /** Число (0|1), рядок enum (`Percentage`) або сумісний варіант з ASP.NET. */
+  discountType?: unknown;
   discountValue?: number;
   /** Підказки про ліміт (кошик / вітрина з бекенду). */
   maxUsages?: number | null;
@@ -131,6 +133,7 @@ export interface UpdateProductDto {
   translations?: ProductTranslationDto[] | null;
 }
 
+/** Рядок таблиці ProductImages; список: GET `/api/products/{productId}/media/images`. */
 export interface ProductImageDto {
   id: string;
   productId: string;
@@ -140,6 +143,7 @@ export interface ProductImageDto {
   updatedAt: string;
 }
 
+/** Рядок ProductVideos; список: GET `/api/products/{productId}/media/videos`. */
 export interface ProductVideoDto {
   id: string;
   productId: string;

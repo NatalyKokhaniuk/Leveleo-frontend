@@ -55,7 +55,9 @@ export type OrderStatusApi = OrderStatus | string | number;
 /**
  * Відповідь POST /api/Orders (201).
  * Успіх з оплатою LiqPay: разом `orderId`, пара для checkout — `data`/`payload` (той самий base64) і `signature`
- * (GenerateSignature від того ж payload). Помилка / зміна кошика: `shoppingCart`, `message`, без валідного `orderId` або без пари data+signature.
+ * (GenerateSignature від того ж payload). Клієнт має POST на `/api/3/checkout` LiqPay; не відкривати вручну GET `/checkout/…` з адресного рядка (часто 403).
+ * Пара може лежати на корені, у `payload` або вкладено в `payment`/`checkout`/аналогічні об’єкти — усе це парсить `extractLiqPayCheckoutParams`.
+ * Помилка / зміна кошика: `shoppingCart`, `message`, без валідного `orderId` або без пари data+signature.
  */
 export interface CreateOrderResultDto {
   /**

@@ -1,10 +1,18 @@
 <main class="admin-stats pt-28 px-4 md:px-10 max-w-7xl mx-auto pb-16 flex flex-col gap-6">
   <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
     <div class="flex flex-col gap-2">
+      <a
+        routerLink="/admin"
+        class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
+      >
+        <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
+        {{ 'ADMIN.BACK' | translate }}
+      </a>
       <h1 class="text-2xl md:text-3xl font-bold text-primary m-0">
         {{ 'ADMIN.STATISTICS' | translate }}
       </h1>
       <p class="opacity-80 m-0">{{ 'ADMIN.STATS.DESCRIPTION' | translate }}</p>
+      <p class="text-xs text-on-surface/60 m-0 max-w-3xl">{{ 'ADMIN.STATS.UTC_RANGE_HINT' | translate }}</p>
     </div>
     <div class="flex items-center gap-2 shrink-0">
       @if (partialBusy()) {
@@ -67,6 +75,15 @@
           <p>{{ d.completedOrders }}</p>
         </article>
       </section>
+
+      @if (d.pendingOrders + d.processingOrders + d.shippedOrders + d.completedOrders > 0) {
+        <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-3">
+          <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.ORDER_STATUS_DIST' | translate }}</h2>
+          <div class="admin-stats__chart-wrap admin-stats__chart-wrap--donut">
+            <canvas #orderStatusCanvas></canvas>
+          </div>
+        </section>
+      }
 
       <div class="flex flex-wrap gap-3 items-center">
         <a matButton="filled" routerLink="/admin/reviews" class="!no-underline">
@@ -132,6 +149,18 @@
 
     <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
       <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.DAILY_SALES' | translate }}</h2>
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="text-sm text-on-surface/80 mr-1">{{ 'ADMIN.STATS.DATE_PRESETS' | translate }}</span>
+        <button matButton="outlined" type="button" (click)="applyDailyPreset('7d')" [disabled]="partialBusy()">
+          {{ 'ADMIN.STATS.PRESET_7D' | translate }}
+        </button>
+        <button matButton="outlined" type="button" (click)="applyDailyPreset('30d')" [disabled]="partialBusy()">
+          {{ 'ADMIN.STATS.PRESET_30D' | translate }}
+        </button>
+        <button matButton="outlined" type="button" (click)="applyDailyPreset('month')" [disabled]="partialBusy()">
+          {{ 'ADMIN.STATS.PRESET_MONTH' | translate }}
+        </button>
+      </div>
       <div class="flex flex-wrap items-end gap-3">
         <mat-form-field appearance="outline" class="admin-stats__date-field" subscriptSizing="dynamic">
           <mat-label>{{ 'ADMIN.STATS.DATE_FROM' | translate }}</mat-label>
@@ -158,12 +187,30 @@
       <div class="flex flex-wrap items-center justify-between gap-3">
         <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.TOP_SELLING' | translate }}</h2>
         <div class="flex flex-wrap items-end gap-2">
+          <mat-form-field appearance="outline" class="admin-stats__filter-field min-w-[10rem]" subscriptSizing="dynamic">
+            <mat-label>{{ 'ADMIN.STATS.FILTER_CATEGORY' | translate }}</mat-label>
+            <mat-select [value]="topCategoryId()" (selectionChange)="topCategoryId.set($event.value)">
+              <mat-option value="">{{ 'ADMIN.STATS.FILTER_ALL' | translate }}</mat-option>
+              @for (c of filterCategories(); track c.id) {
+                <mat-option [value]="c.id">{{ c.fullPath }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="admin-stats__filter-field min-w-[9rem]" subscriptSizing="dynamic">
+            <mat-label>{{ 'ADMIN.STATS.FILTER_BRAND' | translate }}</mat-label>
+            <mat-select [value]="topBrandId()" (selectionChange)="topBrandId.set($event.value)">
+              <mat-option value="">{{ 'ADMIN.STATS.FILTER_ALL' | translate }}</mat-option>
+              @for (b of filterBrands(); track b.id) {
+                <mat-option [value]="b.id">{{ b.name }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
           <mat-form-field appearance="outline" class="admin-stats__top-field" subscriptSizing="dynamic">
             <mat-label>{{ 'ADMIN.STATS.TOP_N' | translate }}</mat-label>
             <input matInput type="number" min="3" max="50" [value]="topCount()" (change)="setTopCount($event)" />
           </mat-form-field>
-          <button matButton="outlined" type="button" (click)="applyTopCount()" [disabled]="partialBusy()">
-            {{ 'ADMIN.STATS.APPLY_TOP' | translate }}
+          <button matButton="filled" type="button" (click)="applyTopFilters()" [disabled]="partialBusy()">
+            {{ 'ADMIN.STATS.APPLY_FILTERS_TOP' | translate }}
           </button>
         </div>
       </div>
@@ -172,6 +219,34 @@
       } @else {
         <div class="admin-stats__chart-wrap admin-stats__chart-wrap--top">
           <canvas #topSellingCanvas></canvas>
+        </div>
+        <div class="admin-stats__table-wrap mt-4">
+          <table class="admin-stats__table">
+            <thead>
+              <tr>
+                <th>{{ 'ADMIN.STATS.COL_PRODUCT' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_UNITS' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_REVENUE' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_AVG_PRICE' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_STOCK' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of topSelling(); track r.productId) {
+                <tr>
+                  <td class="min-w-0 max-w-[14rem]">
+                    <a [routerLink]="['/admin/products', r.productId]" class="text-primary hover:underline truncate block">{{
+                      r.productName
+                    }}</a>
+                  </td>
+                  <td class="text-right tabular-nums">{{ r.unitsSold }}</td>
+                  <td class="text-right tabular-nums">{{ r.totalRevenue | number: '1.2-2' }}</td>
+                  <td class="text-right tabular-nums">{{ r.averagePrice | number: '1.4-4' }}</td>
+                  <td class="text-right tabular-nums">{{ r.currentStock }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </section>
@@ -189,23 +264,91 @@
         <div class="admin-stats__chart-wrap admin-stats__chart-wrap--donut">
           <canvas #stockCanvas></canvas>
         </div>
-      }
-    </section>
-
-    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.PROMOTIONS' | translate }}</h2>
-        <mat-slide-toggle [checked]="promoActiveOnly()" (change)="onPromoActiveToggle($event.checked)">
-          {{ 'ADMIN.STATS.PROMO_ACTIVE_ONLY' | translate }}
-        </mat-slide-toggle>
-      </div>
-      @if (promotions().length === 0) {
-        <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
-      } @else {
-        <div class="admin-stats__chart-wrap admin-stats__chart-wrap--promo">
-          <canvas #promotionsCanvas></canvas>
+        <div class="admin-stats__table-wrap mt-4">
+          <table class="admin-stats__table">
+            <thead>
+              <tr>
+                <th>{{ 'ADMIN.STATS.COL_PRODUCT' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_STOCK_CURRENT' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_RESERVED' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.COL_AVAILABLE' | translate }}</th>
+                <th class="text-center">{{ 'ADMIN.STATS.COL_LOW_FLAG' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of stockStatus(); track r.productId) {
+                <tr>
+                  <td class="min-w-0 max-w-[14rem]">
+                    <a [routerLink]="['/admin/products', r.productId]" class="text-primary hover:underline truncate block">{{
+                      r.productName
+                    }}</a>
+                  </td>
+                  <td class="text-right tabular-nums">{{ r.currentStock }}</td>
+                  <td class="text-right tabular-nums">{{ r.reservedQuantity }}</td>
+                  <td class="text-right tabular-nums">{{ r.availableStock }}</td>
+                  <td class="text-center">{{ r.isLowStock ? ('ADMIN.STATS.SHORT_YES' | translate) : '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
         </div>
       }
     </section>
+
+    @if (promotionStatsEnabled) {
+      <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.PROMOTIONS' | translate }}</h2>
+          <mat-slide-toggle [checked]="promoActiveOnly()" (change)="onPromoActiveToggle($event.checked)">
+            {{ 'ADMIN.STATS.PROMO_ACTIVE_ONLY' | translate }}
+          </mat-slide-toggle>
+        </div>
+        <p class="text-xs text-on-surface/65 m-0 max-w-4xl">{{ 'ADMIN.STATS.PROMO_METRICS_NOTE' | translate }}</p>
+        @if (promotions().length === 0) {
+          <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
+        } @else {
+          <div class="admin-stats__chart-wrap admin-stats__chart-wrap--promo">
+            <canvas #promotionsCanvas></canvas>
+          </div>
+          <p class="text-xs text-on-surface/60 m-0">{{ 'ADMIN.STATS.PROMO_SORT_HINT' | translate }}</p>
+          <div class="admin-stats__table-wrap mt-2">
+            <table class="admin-stats__table">
+              <thead>
+                <tr>
+                  <th>{{ 'ADMIN.STATS.COL_PROMOTION' | translate }}</th>
+                  <th class="text-center">{{ 'ADMIN.STATS.COL_NOW_ACTIVE' | translate }}</th>
+                  <th class="text-right">{{ 'ADMIN.STATS.COL_PROMO_REVENUE' | translate }}</th>
+                  <th class="text-right">{{ 'ADMIN.STATS.COL_PROMO_ORDERS' | translate }}</th>
+                  <th class="text-right">{{ 'ADMIN.STATS.COL_DISCOUNT_SUM' | translate }}</th>
+                  <th class="text-right">{{ 'ADMIN.STATS.COL_UNIQUE_BUYERS' | translate }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of promotions(); track p.promotionId) {
+                  <tr>
+                    <td class="max-w-[14rem]">
+                      <div class="font-medium">{{ p.promotionName }}</div>
+                      @if (p.summary) {
+                        <div class="text-xs text-on-surface/65 mt-0.5 whitespace-normal">{{ p.summary }}</div>
+                      }
+                    </td>
+                    <td class="text-center">{{ p.isActive ? ('ADMIN.STATS.SHORT_YES' | translate) : '—' }}</td>
+                    <td class="text-right tabular-nums">{{ p.totalRevenueWithPromotion | number: '1.2-2' }}</td>
+                    <td class="text-right tabular-nums">{{ p.ordersWithPromotion }}</td>
+                    <td class="text-right tabular-nums">{{ p.totalDiscountGiven | number: '1.2-2' }}</td>
+                    <td class="text-right tabular-nums">{{ p.uniqueCustomers }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </section>
+    } @else {
+      <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6">
+        <h2 class="text-lg font-semibold m-0 mb-2">{{ 'ADMIN.STATS.PROMOTIONS' | translate }}</h2>
+        <p class="text-sm text-on-surface/80 m-0">{{ 'ADMIN.STATS.PROMO_DISABLED_HINT' | translate }}</p>
+      </section>
+    }
   }
 </main>

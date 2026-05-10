@@ -5,6 +5,10 @@
 
 /* Колір плашки — глобальні класи .app-promo-badge у styles.scss */
 
+.cart-page__unit-price-sale {
+  color: var(--mat-sys-error);
+}
+
 .cart-page__summary {
   box-sizing: border-box;
 }

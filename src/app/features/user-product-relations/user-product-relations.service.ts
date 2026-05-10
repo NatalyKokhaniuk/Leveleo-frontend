@@ -1,6 +1,8 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
+import { normalizeProductResponseDto } from '../products/product-response-normalize.util';
 import { ProductResponseDto } from '../products/product.types';
 
 /** Відповідь POST/DELETE favourites (бекенд може повертати додаткові поля). */
@@ -23,7 +25,11 @@ export class UserProductRelationsService {
   private base = '/UserProductRelations';
 
   getMyFavorites(): Observable<ProductResponseDto[]> {
-    return this.api.get<ProductResponseDto[]>(`${this.base}/favorites/me`);
+    return this.api.get<unknown>(`${this.base}/favorites/me`).pipe(
+      map((raw) =>
+        Array.isArray(raw) ? raw.map(normalizeProductResponseDto) : ([] as ProductResponseDto[]),
+      ),
+    );
   }
 
   addToFavorites(productId: string): Observable<ProductRelationResultDto> {
@@ -35,7 +41,11 @@ export class UserProductRelationsService {
   }
 
   getMyComparison(): Observable<ProductResponseDto[]> {
-    return this.api.get<ProductResponseDto[]>(`${this.base}/comparison/me`);
+    return this.api.get<unknown>(`${this.base}/comparison/me`).pipe(
+      map((raw) =>
+        Array.isArray(raw) ? raw.map(normalizeProductResponseDto) : ([] as ProductResponseDto[]),
+      ),
+    );
   }
 
   addToComparison(productId: string): Observable<ProductRelationResultDto> {

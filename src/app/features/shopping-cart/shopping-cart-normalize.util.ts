@@ -5,6 +5,7 @@ import {
   type ShoppingCartItemDto,
 } from './shopping-cart.types';
 import type { ProductResponseDto } from '../products/product.types';
+import { normalizeProductResponseDto } from '../products/product-response-normalize.util';
 
 function numOpt(v: unknown): number | undefined {
   if (v == null) return undefined;
@@ -46,7 +47,8 @@ export function normalizeShoppingCartItem(raw: unknown): ShoppingCartItemDto {
   const o = raw as Record<string, unknown>;
   const qty = Number(o['quantity'] ?? o['Quantity']) || 0;
   const productRaw = (o['product'] ?? o['Product']) as ProductResponseDto | null | undefined;
-  const product = typeof productRaw === 'object' && productRaw ? productRaw : undefined;
+  const product =
+    typeof productRaw === 'object' && productRaw ? normalizeProductResponseDto(productRaw) : undefined;
   const pidRaw = (o['productId'] ?? o['ProductId']) as string | undefined;
 
   const qApply = numOpt(o['quantityApplyingToTotals'] ?? o['QuantityApplyingToTotals']);

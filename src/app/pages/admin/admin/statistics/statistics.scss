@@ -70,3 +70,33 @@
 .admin-stats__top-field {
   width: 5.5rem;
 }
+
+.admin-stats__table-wrap {
+  width: 100%;
+  max-height: min(50vh, 420px);
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
+}
+
+.admin-stats__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.admin-stats__table th,
+.admin-stats__table td {
+  padding: 0.5rem 0.65rem;
+  vertical-align: top;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 35%, transparent);
+}
+
+.admin-stats__table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--mat-sys-surface-container) 92%, transparent);
+  font-weight: 600;
+  text-align: left;
+}

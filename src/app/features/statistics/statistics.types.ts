@@ -1,3 +1,7 @@
+/**
+ * DTO під GET /api/admin/Statistics/* (camelCase як у ASP.NET Core).
+ */
+
 export interface DashboardStatsDto {
   totalOrders: number;
   totalRevenue: number;
@@ -22,12 +26,14 @@ export interface PendingReviewDto {
   createdAt: string;
 }
 
+/** Активний товар у сповіщенні про залишок: { id, name, stockQuantity }. */
 export interface StockAlertProductDto {
   id: string;
   name: string;
   stockQuantity: number;
 }
 
+/** Місячний звіт: лише Completed, рік UTC; лише місяці з даними. monthName — uk-UA. */
 export interface MonthlySalesReportDto {
   year: number;
   month: number;
@@ -37,6 +43,7 @@ export interface MonthlySalesReportDto {
   averageOrderValue: number;
 }
 
+/** Денний звіт: Completed, діапазон по createdAt UTC; date зазвичай YYYY-MM-DD. */
 export interface DailySalesReportDto {
   date: string;
   ordersCount: number;
@@ -44,7 +51,20 @@ export interface DailySalesReportDto {
   averageOrderValue: number;
 }
 
-export interface TopSellingProductDto {
+/** Query до top-selling як SalesReportFilterDto + top (flat у query-string). */
+export interface SalesReportFilterDto {
+  startDate?: string;
+  endDate?: string;
+  categoryId?: string;
+  brandId?: string;
+  top?: number;
+}
+
+/**
+ * Продуктовий топ: completed замовлення, групування по товару.
+ * averagePrice = totalRevenue / unitsSold (округлення на бекенді, часто до 4 знаків).
+ */
+export interface ProductSalesStatsDto {
   productId: string;
   productName: string;
   productSlug: string;
@@ -54,7 +74,10 @@ export interface TopSellingProductDto {
   currentStock: number;
 }
 
-export interface ProductStockStatusDto {
+/**
+ * Залишки й резерв: лише активні товари, сорт availableStock ↑.
+ */
+export interface ProductStockHistoryDto {
   productId: string;
   productName: string;
   currentStock: number;
@@ -64,7 +87,11 @@ export interface ProductStockStatusDto {
   lowStockThreshold: number;
 }
 
-export interface PromotionStatisticsDto {
+/**
+ * Рядок промо-статистики; порядок з бекенду — за totalRevenueWithPromotion ↓.
+ * Для cart-level акцій без знімка в замовленні числові поля можуть бути 0 — бекенд може дати пояснення в `summary`.
+ */
+export interface PromotionStatsDto {
   promotionId: string;
   promotionName: string;
   isActive: boolean;
@@ -74,4 +101,6 @@ export interface PromotionStatisticsDto {
   totalDiscountGiven: number;
   totalRevenueWithPromotion: number;
   uniqueCustomers: number;
+  /** Текст від API (узгодженість звіту, саммарі по рядку). */
+  summary?: string | null;
 }

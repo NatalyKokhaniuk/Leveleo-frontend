@@ -22,32 +22,38 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { RouterLink } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { Chart, registerables, type ChartConfiguration } from 'chart.js';
+import { environment } from '../../../../../../environment';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { BrandService } from '../../../../features/brands/brand.service';
+import { BrandResponseDto } from '../../../../features/brands/brand.types';
+import { CategoryService } from '../../../../features/categories/category.service';
+import { CategoryResponseDto } from '../../../../features/categories/category.types';
 import { StatisticsService } from '../../../../features/statistics/statistics.service';
 import {
   DailySalesReportDto,
   DashboardStatsDto,
   MonthlySalesReportDto,
-  ProductStockStatusDto,
-  PromotionStatisticsDto,
-  TopSellingProductDto,
+  ProductSalesStatsDto,
+  ProductStockHistoryDto,
+  PromotionStatsDto,
 } from '../../../../features/statistics/statistics.types';
 
 Chart.register(...registerables);
 
-function formatYmd(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
+/** Обчислення пресетів за UTC-календарем (узгоджено з підказкою по API). */
+function formatYmdUtc(d: Date): string {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 }
 
-function ymdToStartIso(ymd: string): string {
+function ymdToStartIsoUtc(ymd: string): string {
   return `${ymd}T00:00:00.000Z`;
 }
 
-function ymdToEndIso(ymd: string): string {
+function ymdToEndIsoUtc(ymd: string): string {
   return `${ymd}T23:59:59.999Z`;
 }
 
@@ -77,6 +83,8 @@ function cssColor(varName: string, fallback: string): string {
 })
 export class AdminStatisticsComponent implements OnInit, OnDestroy {
   private api = inject(StatisticsService);
+  private categoryApi = inject(CategoryService);
+  private brandApi = inject(BrandService);
   private injector = inject(Injector);
   private destroyRef = inject(DestroyRef);
   private translate = inject(TranslateService);
@@ -86,6 +94,7 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
   topSellingCanvas = viewChild<ElementRef<HTMLCanvasElement>>('topSellingCanvas');
   stockCanvas = viewChild<ElementRef<HTMLCanvasElement>>('stockCanvas');
   promotionsCanvas = viewChild<ElementRef<HTMLCanvasElement>>('promotionsCanvas');
+  orderStatusCanvas = viewChild<ElementRef<HTMLCanvasElement>>('orderStatusCanvas');
 
   loading = signal(true);
   loadError = signal(false);
@@ -94,32 +103,49 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
   dashboard = signal<DashboardStatsDto | null>(null);
   monthly = signal<MonthlySalesReportDto[]>([]);
   daily = signal<DailySalesReportDto[]>([]);
-  topSelling = signal<TopSellingProductDto[]>([]);
-  stockStatus = signal<ProductStockStatusDto[]>([]);
-  promotions = signal<PromotionStatisticsDto[]>([]);
+  topSelling = signal<ProductSalesStatsDto[]>([]);
+  stockStatus = signal<ProductStockHistoryDto[]>([]);
+  promotions = signal<PromotionStatsDto[]>([]);
 
-  selectedYear = signal(new Date().getFullYear());
+  selectedYear = signal(new Date().getUTCFullYear());
   yearOptions = signal<number[]>([]);
 
   dailyStartYmd = signal('');
   dailyEndYmd = signal('');
   topCount = signal(10);
+  topCategoryId = signal('');
+  topBrandId = signal('');
+  filterCategories = signal<CategoryResponseDto[]>([]);
+  filterBrands = signal<BrandResponseDto[]>([]);
   promoActiveOnly = signal(false);
+
+  /** З `environment`: вимкнути блок промо-статистики (наприклад, для релізу без ендпоїнта). */
+  readonly promotionStatsEnabled = environment.adminPromotionStatisticsEnabled;
 
   private chartMonthly: Chart | null = null;
   private chartDaily: Chart | null = null;
   private chartTop: Chart | null = null;
   private chartStock: Chart | null = null;
   private chartPromo: Chart | null = null;
+  private chartOrderStatus: Chart | null = null;
 
   ngOnInit(): void {
-    const y = new Date().getFullYear();
+    const y = new Date().getUTCFullYear();
     this.yearOptions.set([y - 2, y - 1, y, y + 1]);
     const end = new Date();
-    const start = new Date();
-    start.setDate(start.getDate() - 30);
-    this.dailyStartYmd.set(formatYmd(start));
-    this.dailyEndYmd.set(formatYmd(end));
+    const start = new Date(end.getTime());
+    start.setUTCDate(start.getUTCDate() - 30);
+    this.dailyStartYmd.set(formatYmdUtc(start));
+    this.dailyEndYmd.set(formatYmdUtc(end));
+    forkJoin({
+      cats: this.categoryApi.getAll().pipe(catchError(() => of([] as CategoryResponseDto[]))),
+      brands: this.brandApi.getAll().pipe(catchError(() => of([] as BrandResponseDto[]))),
+    }).subscribe(({ cats, brands }) => {
+      this.filterCategories.set(
+        [...cats].sort((a, b) => a.fullPath.localeCompare(b.fullPath, undefined, { sensitivity: 'base' })),
+      );
+      this.filterBrands.set([...brands].sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })));
+    });
     this.reloadAll();
     this.translate.onLangChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       if (!this.loading()) this.queueCharts();
@@ -134,18 +160,18 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.loadError.set(false);
     const year = this.selectedYear();
-    const ds = ymdToStartIso(this.dailyStartYmd());
-    const de = ymdToEndIso(this.dailyEndYmd());
-    const top = this.topCount();
+    const topQ = this.topSellingQuery();
     const promoOnly = this.promoActiveOnly();
 
     forkJoin({
       dashboard: this.api.getDashboardStats().pipe(catchError(() => of(null))),
-      monthly: this.api.getMonthlySales(year).pipe(catchError(() => of([] as MonthlySalesReportDto[]))),
-      daily: this.api.getDailySales(ds, de).pipe(catchError(() => of([] as DailySalesReportDto[]))),
-      topSelling: this.api.getTopSelling({ startDate: ds, endDate: de, top }).pipe(catchError(() => of([]))),
-      stock: this.api.getStockStatus().pipe(catchError(() => of([] as ProductStockStatusDto[]))),
-      promotions: this.api.getPromotions(promoOnly).pipe(catchError(() => of([] as PromotionStatisticsDto[]))),
+      monthly: this.api.getSalesMonthly(year).pipe(catchError(() => of([] as MonthlySalesReportDto[]))),
+      daily: this.api.getSalesDaily(topQ.startDate, topQ.endDate).pipe(catchError(() => of([] as DailySalesReportDto[]))),
+      topSelling: this.api.getProductsTopSelling(topQ).pipe(catchError(() => of([]))),
+      stock: this.api.getProductsStockStatus().pipe(catchError(() => of([] as ProductStockHistoryDto[]))),
+      promotions: this.promotionStatsEnabled
+        ? this.api.getPromotionStats(promoOnly).pipe(catchError(() => of([] as PromotionStatsDto[])))
+        : of([] as PromotionStatsDto[]),
     }).subscribe((res) => {
       if (res.dashboard === null) this.loadError.set(true);
       this.dashboard.set(res.dashboard);
@@ -180,7 +206,7 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     if (!Number.isFinite(y)) return;
     this.selectedYear.set(y);
     this.partialBusy.set(true);
-    this.api.getMonthlySales(y).subscribe({
+    this.api.getSalesMonthly(y).subscribe({
       next: (rows) => {
         this.monthly.set(rows ?? []);
         this.partialBusy.set(false);
@@ -195,14 +221,11 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
   }
 
   applyDailyRange(): void {
-    const ds = ymdToStartIso(this.dailyStartYmd());
-    const de = ymdToEndIso(this.dailyEndYmd());
+    const q = this.topSellingQuery();
     this.partialBusy.set(true);
     forkJoin({
-      daily: this.api.getDailySales(ds, de).pipe(catchError(() => of([] as DailySalesReportDto[]))),
-      topSelling: this.api
-        .getTopSelling({ startDate: ds, endDate: de, top: this.topCount() })
-        .pipe(catchError(() => of([]))),
+      daily: this.api.getSalesDaily(q.startDate, q.endDate).pipe(catchError(() => of([] as DailySalesReportDto[]))),
+      topSelling: this.api.getProductsTopSelling(q).pipe(catchError(() => of([]))),
     }).subscribe((res) => {
       this.daily.set(res.daily ?? []);
       this.topSelling.set(res.topSelling ?? []);
@@ -211,11 +234,25 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     });
   }
 
-  applyTopCount(): void {
-    const ds = ymdToStartIso(this.dailyStartYmd());
-    const de = ymdToEndIso(this.dailyEndYmd());
+  /** Швидкий вибір періоду (календарні межі через UTC-добу, узгоджено з шпаркалою). */
+  applyDailyPreset(preset: '7d' | '30d' | 'month'): void {
+    const end = new Date();
+    const start = new Date(end.getTime());
+    if (preset === '7d') {
+      start.setUTCDate(start.getUTCDate() - 6);
+    } else if (preset === '30d') {
+      start.setUTCDate(start.getUTCDate() - 30);
+    } else {
+      start.setUTCFullYear(end.getUTCFullYear(), end.getUTCMonth(), 1);
+    }
+    this.dailyStartYmd.set(formatYmdUtc(start));
+    this.dailyEndYmd.set(formatYmdUtc(end));
+    this.applyDailyRange();
+  }
+
+  applyTopFilters(): void {
     this.partialBusy.set(true);
-    this.api.getTopSelling({ startDate: ds, endDate: de, top: this.topCount() }).subscribe({
+    this.api.getProductsTopSelling(this.topSellingQuery()).subscribe({
       next: (rows) => {
         this.topSelling.set(rows ?? []);
         this.partialBusy.set(false);
@@ -229,10 +266,34 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     });
   }
 
+  private topSellingQuery(): {
+    startDate: string;
+    endDate: string;
+    top: number;
+    categoryId?: string;
+    brandId?: string;
+  } {
+    const startDate = ymdToStartIsoUtc(this.dailyStartYmd());
+    const endDate = ymdToEndIsoUtc(this.dailyEndYmd());
+    const q: {
+      startDate: string;
+      endDate: string;
+      top: number;
+      categoryId?: string;
+      brandId?: string;
+    } = { startDate, endDate, top: this.topCount() };
+    const cid = this.topCategoryId().trim();
+    const bid = this.topBrandId().trim();
+    if (cid) q.categoryId = cid;
+    if (bid) q.brandId = bid;
+    return q;
+  }
+
   onPromoActiveToggle(value: boolean): void {
+    if (!this.promotionStatsEnabled) return;
     this.promoActiveOnly.set(value);
     this.partialBusy.set(true);
-    this.api.getPromotions(value).subscribe({
+    this.api.getPromotionStats(value).subscribe({
       next: (rows) => {
         this.promotions.set(rows ?? []);
         this.partialBusy.set(false);
@@ -248,7 +309,7 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
 
   refreshStock(): void {
     this.partialBusy.set(true);
-    this.api.getStockStatus().subscribe({
+    this.api.getProductsStockStatus().subscribe({
       next: (rows) => {
         this.stockStatus.set(rows ?? []);
         this.partialBusy.set(false);
@@ -277,6 +338,7 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     this.destroyCharts();
     this.buildMonthlyChart();
     this.buildDailyChart();
+    this.buildOrderStatusChart();
     this.buildTopSellingChart();
     this.buildStockChart();
     this.buildPromotionsChart();
@@ -287,6 +349,8 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     this.chartMonthly = null;
     this.chartDaily?.destroy();
     this.chartDaily = null;
+    this.chartOrderStatus?.destroy();
+    this.chartOrderStatus = null;
     this.chartTop?.destroy();
     this.chartTop = null;
     this.chartStock?.destroy();
@@ -411,6 +475,51 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     this.chartDaily = new Chart(canvas, cfg);
   }
 
+  private buildOrderStatusChart(): void {
+    const canvas = this.orderStatusCanvas()?.nativeElement;
+    const d = this.dashboard();
+    if (!canvas || !d) return;
+    const values = [d.pendingOrders, d.processingOrders, d.shippedOrders, d.completedOrders];
+    if (values.every((v) => v === 0)) return;
+
+    const labels = [
+      this.translate.instant('ADMIN.STATS.PENDING_ORDERS'),
+      this.translate.instant('ADMIN.STATS.PROCESSING_ORDERS'),
+      this.translate.instant('ADMIN.STATS.SHIPPED_ORDERS'),
+      this.translate.instant('ADMIN.STATS.COMPLETED_ORDERS'),
+    ];
+    const c0 = cssColor('--mat-sys-primary', '#6750a4');
+    const c1 = cssColor('--mat-sys-secondary', '#625b71');
+    const c2 = cssColor('--mat-sys-tertiary', '#7d5260');
+    const c3 = cssColor('--mat-sys-primary-fixed-dim', '#4f378b');
+
+    const cfg: ChartConfiguration<'doughnut'> = {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [
+          {
+            data: values,
+            backgroundColor: [
+              colorWithAlpha(c0, 0.85),
+              colorWithAlpha(c1, 0.85),
+              colorWithAlpha(c2, 0.85),
+              colorWithAlpha(c3, 0.85),
+            ],
+            borderColor: [c0, c1, c2, c3],
+            borderWidth: 1,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+      },
+    };
+    this.chartOrderStatus = new Chart(canvas, cfg);
+  }
+
   private buildTopSellingChart(): void {
     const canvas = this.topSellingCanvas()?.nativeElement;
     const rows = this.topSelling();
@@ -452,29 +561,40 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     const rows = this.stockStatus();
     if (!canvas || rows.length === 0) return;
 
+    let out = 0;
     let low = 0;
     let ok = 0;
     for (const r of rows) {
-      if (r.isLowStock) low += 1;
+      const avail = Number(r.availableStock) || 0;
+      if (avail <= 0) out += 1;
+      else if (r.isLowStock) low += 1;
       else ok += 1;
     }
-    if (low === 0 && ok === 0) return;
 
     const errorC = cssColor('--mat-sys-error', '#b3261e');
+    const tertiary = cssColor('--mat-sys-tertiary', '#7d5260');
     const primary = cssColor('--mat-sys-primary', '#6750a4');
+
+    const counts = [out, low, ok];
+    if (counts.every((n) => n === 0)) return;
 
     const cfg: ChartConfiguration<'doughnut'> = {
       type: 'doughnut',
       data: {
         labels: [
+          this.translate.instant('ADMIN.STATS.STOCK_OUT'),
           this.translate.instant('ADMIN.STATS.STOCK_LOW'),
           this.translate.instant('ADMIN.STATS.STOCK_OK'),
         ],
         datasets: [
           {
-            data: [low, ok],
-            backgroundColor: [colorWithAlpha(errorC, 0.85), colorWithAlpha(primary, 0.75)],
-            borderColor: [errorC, primary],
+            data: counts,
+            backgroundColor: [
+              colorWithAlpha(errorC, 0.88),
+              colorWithAlpha(tertiary, 0.82),
+              colorWithAlpha(primary, 0.75),
+            ],
+            borderColor: [errorC, tertiary, primary],
             borderWidth: 1,
           },
         ],
@@ -488,6 +608,7 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
     this.chartStock = new Chart(canvas, cfg);
   }
 
+  /** Відповідність бекенду: сортування масиву за totalRevenueWithPromotion (↓). */
   private buildPromotionsChart(): void {
     const canvas = this.promotionsCanvas()?.nativeElement;
     const rows = this.promotions();
@@ -502,8 +623,8 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
         labels,
         datasets: [
           {
-            label: this.translate.instant('ADMIN.STATS.CHART_ORDERS'),
-            data: rows.map((r) => Number(r.ordersWithPromotion) || 0),
+            label: this.translate.instant('ADMIN.STATS.CHART_PROMO_REVENUE'),
+            data: rows.map((r) => Number(r.totalRevenueWithPromotion) || 0),
             backgroundColor: colorWithAlpha(tertiary, 0.75),
             borderColor: tertiary,
             borderWidth: 1,
@@ -514,7 +635,7 @@ export class AdminStatisticsComponent implements OnInit, OnDestroy {
         responsive: true,
         maintainAspectRatio: false,
         scales: {
-          y: { beginAtZero: true, ticks: { precision: 0 } },
+          y: { beginAtZero: true },
           x: { ticks: { maxRotation: 60, minRotation: 0 } },
         },
         plugins: { legend: { display: false } },

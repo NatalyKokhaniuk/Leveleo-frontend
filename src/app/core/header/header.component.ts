@@ -125,17 +125,23 @@ export class HeaderComponent {
   }
 
   onEnterPress() {
-    const query = this.searchForm.get('searchString')?.value;
+    const query = this.searchForm.get('searchString')?.value?.trim();
     if (query && query.length >= 3) {
-      this.router.navigate(['/search-results'], {
+      void this.router.navigate(['/products'], {
         queryParams: { searchString: query },
       });
+      this.isSearchOpen.set(false);
+      this.searchForm.reset();
     }
   }
 
   onSubmitSearchButton() {
-    this.router.navigate(['search-results'], {
-      queryParams: this.searchForm.value,
+    const query = String(this.searchForm.get('searchString')?.value ?? '').trim();
+    if (!this.searchForm.valid || query.length < 3) {
+      return;
+    }
+    void this.router.navigate(['/products'], {
+      queryParams: { searchString: query },
     });
     this.isSearchOpen.set(false);
     this.searchForm.reset();

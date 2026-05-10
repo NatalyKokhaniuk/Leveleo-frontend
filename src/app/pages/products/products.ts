@@ -111,6 +111,8 @@ export class Products implements OnInit {
   promotionId = signal<string | null>(null);
   /** Лише товари з акцією; у URL як `onSale=1`. */
   onlyPromotional = signal(false);
+  /** Текст пошуку з `?searchString=` або `?query=` → GET /api/Products/search. */
+  catalogSearchQuery = signal('');
 
   /** Slug з маршруту `/products/brand/:slug` та `/products/category/:slug`. */
   routeBrandSlug = signal<string | null>(null);
@@ -132,6 +134,8 @@ export class Products implements OnInit {
    */
   hideRootCategoryFilters = computed(() => !!this.routeCategorySlug() || !!this.promotionId());
   hideBrandFilter = computed(() => !!this.routeBrandSlug() || !!this.promotionId());
+
+  hasCatalogSearch = computed(() => this.catalogSearchQuery().trim().length > 0);
 
   /** Прямі дочірні категорії для поточної категорії з маршруту (наступний рівень вкладеності). */
   routeCategoryDirectChildren = computed(() => {
@@ -274,6 +278,7 @@ export class Products implements OnInit {
     const promo = opts?.omitPromotionId ? null : query.get('promotionId');
     const pg = query.get('page');
     const onSale = query.get('onSale');
+    const search = (query.get('searchString') ?? query.get('query'))?.trim();
     if (s !== null && s !== '') {
       o['sort'] = s;
     }
@@ -294,6 +299,9 @@ export class Products implements OnInit {
       if (!Number.isNaN(n) && n > 1) {
         o['page'] = pg;
       }
+    }
+    if (search) {
+      o['searchString'] = search;
     }
     return o;
   }
@@ -426,6 +434,8 @@ export class Products implements OnInit {
       this.onlyPromotional.set(onSale === '1' || onSale === 'true');
     }
     this.syncCategorySelectors(categoryId);
+    const searchRaw = query.get('searchString') ?? query.get('query');
+    this.catalogSearchQuery.set(String(searchRaw ?? '').trim());
     this.applySortAndPriceFromQuery(query);
     this.applyPageFromQuery(query);
   }
@@ -532,6 +542,7 @@ export class Products implements OnInit {
 
   private load(): void {
     this.loadError.set(false);
+    const searchQ = this.catalogSearchQuery().trim();
     const filter = defaultProductFilter({
       includeInactive: false,
       sortBy: this.sortBy(),
@@ -543,7 +554,7 @@ export class Products implements OnInit {
       onlyWithActiveProductPromotion: this.promotionId() ? false : this.onlyPromotional(),
       priceFrom: parseOptionalFloat(this.priceFromStr()),
       priceTo: parseOptionalFloat(this.priceToStr()),
-      searchQuery: null,
+      searchQuery: searchQ.length ? searchQ : null,
     });
 
     if (!this.catalogState.isFreshCache(filter)) {
@@ -748,6 +759,7 @@ export class Products implements OnInit {
     return false;
   }
 
+
   private navigateToProducts(state: {
     brandId: string | null;
     categoryId: string | null;
@@ -787,6 +799,10 @@ export class Products implements OnInit {
     }
     if (page > 1) {
       query['page'] = String(page);
+    }
+    const searchQ = this.catalogSearchQuery().trim();
+    if (searchQ) {
+      query['searchString'] = searchQ;
     }
 
     if (promo && promoSlug) {

@@ -183,6 +183,12 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/catalog/catalog').then((m) => m.CatalogPage),
     data: docPage('CATALOG.TITLE'),
   },
+  /** Застарілі посилання з хедера; той самий екран каталогу + GET /products/search через query. */
+  {
+    path: 'search-results',
+    loadComponent: () => import('./pages/products/products').then((m) => m.Products),
+    data: docPage('PRODUCTS.TITLE'),
+  },
   {
     path: 'promotions',
     loadComponent: () => import('./pages/promotions/promotions').then((m) => m.PromotionsPage),

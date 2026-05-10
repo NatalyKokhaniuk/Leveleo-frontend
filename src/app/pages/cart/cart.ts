@@ -28,7 +28,7 @@ import {
 import { cartAppliedPromotionDisplayName } from '../../features/promotions/promotion-display-i18n';
 import {
   buildCartLineView,
-  computePricingFromCartItems,
+  computePricingFromLineViews,
 } from '../../features/shopping-cart/cart-pricing.util';
 import {
   CartLineView,
@@ -208,46 +208,15 @@ export class CartPage implements OnInit {
   }
 
   private mapCartToRows(cart: ShoppingCartDto) {
-    const fromItems = computePricingFromCartItems(cart.items);
-
-    /**
-     * Повна ціна / після товарних акцій / товарна знижка — лише з рядків (it.price, priceAfterProductPromotion),
-     * щоб не зрівнювати «Повна» і «Після товарів», коли API дає totalProductDiscount = 0 при наявних line-полях.
-     * Знижка кошика та totalPayable — з бекенду, якщо передано.
-     */
-    const apiCartDisc = cart.totalCartDiscount;
-    const apiPayable = cart.totalPayable;
-
-    let totalCartDiscount = fromItems.totalCartDiscountFromLines;
-    if (apiCartDisc != null && Number.isFinite(Number(apiCartDisc)) && Number(apiCartDisc) >= 0) {
-      totalCartDiscount = Number(apiCartDisc);
-    }
-
-    let totalPayable = Math.max(0, fromItems.subtotalAfterProductPromotions - totalCartDiscount);
-    if (apiPayable != null && Number.isFinite(Number(apiPayable))) {
-      totalPayable = Number(apiPayable);
-    }
-
-    const acp = cart.appliedCartPromotion;
-    this.cartTotals.set({
-      totalCatalogList: fromItems.totalCatalogList,
-      totalProductDiscount: fromItems.totalProductDiscount,
-      subtotalAfterProductPromotions: fromItems.subtotalAfterProductPromotions,
-      totalCartDiscount,
-      totalPayable,
-      promoName: acp?.name?.trim() || null,
-      promoSlug: acp?.slug?.trim() || null,
-      promoTranslations: acp?.translations ?? null,
-      promoDiscountType: acp?.discountType ?? null,
-      promoDiscountValue: acp?.discountValue ?? null,
-      promoMaxUsages:
-        acp?.maxUsages != null && Number.isFinite(Number(acp.maxUsages)) ? Number(acp.maxUsages) : null,
-      promoUsedCount:
-        acp?.usedCount != null && Number.isFinite(Number(acp.usedCount)) ? Number(acp.usedCount) : null,
-    });
-    this.couponCode.set(String(cart.couponCode ?? ''));
     const raw = cart.items ?? [];
+    this.couponCode.set(String(cart.couponCode ?? ''));
     if (raw.length === 0) {
+      this.applyCartPageTotalsFromPricing(cart, {
+        totalCatalogList: 0,
+        totalProductDiscount: 0,
+        subtotalAfterProductPromotions: 0,
+        totalCartDiscountFromLines: 0,
+      });
       return of({ lines: [] as CartLineView[], unavailableNames: [] as string[] });
     }
     const lang = this.lang();
@@ -263,13 +232,60 @@ export class CartPage implements OnInit {
             unavailableNames.push(p.unavailableLabel);
           }
         }
+        const fromLines = computePricingFromLineViews(lines);
+        this.applyCartPageTotalsFromPricing(cart, fromLines);
         return { lines, unavailableNames };
       }),
     );
   }
 
   /**
-   * Один рядок кошика: показуємо лише активні товари; для знятих з продажу / помилки завантаження — накопичуємо підпис для банера.
+   * «Повна ціна» / знижка на товари / після товарних акцій — з рядків після актуального каталогу.
+   * Знижка кошика та сума до сплати: з API кошика, якщо передано (узгоджено з бекендом).
+   */
+  private applyCartPageTotalsFromPricing(
+    cart: ShoppingCartDto,
+    fromLines: ReturnType<typeof computePricingFromLineViews>,
+  ): void {
+    let totalCatalogList = fromLines.totalCatalogList;
+    let totalProductDiscount = fromLines.totalProductDiscount;
+    let subtotalAfterProductPromotions = fromLines.subtotalAfterProductPromotions;
+
+    const apiCartDisc = cart.totalCartDiscount;
+    const apiPayable = cart.totalPayable;
+
+    let totalCartDiscount = fromLines.totalCartDiscountFromLines;
+    if (apiCartDisc != null && Number.isFinite(Number(apiCartDisc)) && Number(apiCartDisc) >= 0) {
+      totalCartDiscount = Number(apiCartDisc);
+    }
+
+    let totalPayable = Math.max(0, subtotalAfterProductPromotions - totalCartDiscount);
+    if (apiPayable != null && Number.isFinite(Number(apiPayable))) {
+      totalPayable = Number(apiPayable);
+    }
+
+    const acp = cart.appliedCartPromotion;
+    this.cartTotals.set({
+      totalCatalogList,
+      totalProductDiscount,
+      subtotalAfterProductPromotions,
+      totalCartDiscount,
+      totalPayable,
+      promoName: acp?.name?.trim() || null,
+      promoSlug: acp?.slug?.trim() || null,
+      promoTranslations: acp?.translations ?? null,
+      promoDiscountType: acp?.discountType ?? null,
+      promoDiscountValue: acp?.discountValue ?? null,
+      promoMaxUsages:
+        acp?.maxUsages != null && Number.isFinite(Number(acp.maxUsages)) ? Number(acp.maxUsages) : null,
+      promoUsedCount:
+        acp?.usedCount != null && Number.isFinite(Number(acp.usedCount)) ? Number(acp.usedCount) : null,
+    });
+  }
+
+  /**
+   * Один рядок кошика: актуальні ціни та акції з каталогу (`GET /products/:id`).
+   * Вкладений `product` у GET /ShoppingCart/me часто без `discountedPrice` / `appliedPromotion` — тоді знижки не видно.
    */
   private resolveCartLineItem(
     it: ShoppingCartItemDto,
@@ -279,15 +295,6 @@ export class CartPage implements OnInit {
     if (!id) {
       return of({ line: null, unavailableLabel: null });
     }
-    if (it.product) {
-      if (!it.product.isActive) {
-        return of({
-          line: null,
-          unavailableLabel: productLocalizedName(it.product, lang),
-        });
-      }
-      return of({ line: buildCartLineView(it, it.product), unavailableLabel: null });
-    }
     return this.products.getById(id).pipe(
       map((p) => {
         if (!p.isActive) {
@@ -295,14 +302,18 @@ export class CartPage implements OnInit {
         }
         return { line: buildCartLineView(it, p), unavailableLabel: null };
       }),
-      catchError(() =>
-        of({
+      catchError(() => {
+        const emb = it.product;
+        if (emb?.isActive) {
+          return of({ line: buildCartLineView(it, emb), unavailableLabel: null });
+        }
+        return of({
           line: null,
           unavailableLabel: this.translate.instant('CART.UNAVAILABLE_ITEM_FALLBACK', {
             id: id.length > 12 ? `${id.slice(0, 8)}...` : id,
           }),
-        }),
-      ),
+        });
+      }),
     );
   }
 
@@ -561,28 +572,23 @@ export class CartPage implements OnInit {
     return this.imageUrls().get(productId) ?? null;
   }
 
-  /** Фінальна ціна за одиницю (після товарної та кошикової знижки на рядок). */
-  lineUnitFinal(row: CartLineView): number {
-    return row.unitAfterCartPromotion;
-  }
-
-  /** Сума до сплати по рядку — TotalPrice або unit × QuantityApplyingToTotals. */
-  linePayableTotal(row: CartLineView): number {
-    if (row.lineTotalPrice != null && Number.isFinite(row.lineTotalPrice)) {
-      return Math.max(0, row.lineTotalPrice);
-    }
-    return Math.max(0, row.unitAfterCartPromotion * row.quantityApplyingToTotals);
-  }
-
   /**
-   * Закреслення каталожної ціни, якщо фактична ціна за одиницю нижча — після товарної акції та/або знижки кошика.
+   * Ціна за одиницю на картці рядка — лише після товарних акцій; знижку кошика показуємо лише в блоці підсумків.
    */
-  lineShowStrikethroughListPrice(row: CartLineView): boolean {
-    return row.unitAfterCartPromotion < row.unitListPrice - 0.01;
+  lineUnitDisplayedOnRow(row: CartLineView): number {
+    return row.unitAfterProductPromotion;
+  }
+
+  /** Закреслення каталожної ціни лише через товарну/каталожну знижку (без ефекту акції кошика). */
+  lineShowProductDiscountStrikethrough(row: CartLineView): boolean {
+    return row.unitAfterProductPromotion < row.unitListPrice - 0.01;
   }
 
   linePromotionLabel(p: ProductResponseDto): string | null {
-    return formatAppliedPromotionBadgeLabel(p.appliedPromotion, this.lang());
+    return formatAppliedPromotionBadgeLabel(p.appliedPromotion, this.lang(), {
+      hideCartLevel: true,
+      nameFallback: this.translate.instant('PRODUCTS.PROMO_BADGE_FALLBACK'),
+    });
   }
 
   linePurchaseBlocked(row: CartLineView): boolean {

@@ -60,16 +60,12 @@ export class ProductCatalogStateService {
       });
     }
 
-    const promo = !!filter.onlyWithActiveProductPromotion;
-    const req$ = promo
-      ? this.productService.getPromotional({
-          page: filter.page,
-          pageSize: filter.pageSize,
-          sortBy: filter.sortBy,
-          categoryId: filter.categoryId,
-          brandId: filter.brandId,
-        })
-      : this.productService.getPaged(filter);
+    /** Текстовий пошук — лише GET /products/search?query=… (бекенд SearchAsync). Інакше каталог із filters=. */
+    const q = filter.searchQuery?.trim() ?? '';
+    const req$ =
+      q.length > 0
+        ? this.productService.search(q, Math.max(1, filter.page), Math.max(1, filter.pageSize))
+        : this.productService.getPaged(filter);
 
     return req$.pipe(
       tap((res) => {

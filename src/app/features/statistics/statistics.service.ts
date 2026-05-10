@@ -5,53 +5,58 @@ import {
   DailySalesReportDto,
   DashboardStatsDto,
   MonthlySalesReportDto,
-  ProductStockStatusDto,
-  PromotionStatisticsDto,
-  TopSellingProductDto,
+  ProductSalesStatsDto,
+  ProductStockHistoryDto,
+  PromotionStatsDto,
+  SalesReportFilterDto,
 } from './statistics.types';
 
-/** Відповідає GET /api/admin/Statistics/... */
+/**
+ * Адмінська статистика LeveLEO — базовий шлях GET /api/admin/Statistics/…
+ * (через ApiService з префіксом /api). Авторизація — як у додатку (cookie / Bearer).
+ */
 @Injectable({ providedIn: 'root' })
 export class StatisticsService {
   private api = inject(ApiService);
   private readonly base = '/admin/Statistics';
 
+  /** DashboardStatsDto. */
   getDashboardStats(): Observable<DashboardStatsDto> {
     return this.api.get<DashboardStatsDto>(`${this.base}/dashboard`);
   }
 
-  getMonthlySales(year: number): Observable<MonthlySalesReportDto[]> {
+  /** MonthlySalesReportDto[]. year = 0 або без параметра на бекенді — поточний рік UTC. */
+  getSalesMonthly(year: number): Observable<MonthlySalesReportDto[]> {
     return this.api.get<MonthlySalesReportDto[]>(
       `${this.base}/sales/monthly?year=${encodeURIComponent(String(year))}`,
     );
   }
 
-  getDailySales(startDateIso: string, endDateIso: string): Observable<DailySalesReportDto[]> {
+  /** DailySalesReportDto[]. Діапазон у query — ISO DateTimeOffset (наприклад …Z). */
+  getSalesDaily(startDateIso: string, endDateIso: string): Observable<DailySalesReportDto[]> {
     const q = `startDate=${encodeURIComponent(startDateIso)}&endDate=${encodeURIComponent(endDateIso)}`;
     return this.api.get<DailySalesReportDto[]>(`${this.base}/sales/daily?${q}`);
   }
 
-  getTopSelling(params: {
-    startDate?: string;
-    endDate?: string;
-    categoryId?: string;
-    brandId?: string;
-    top?: number;
-  }): Observable<TopSellingProductDto[]> {
-    const parts = [`top=${encodeURIComponent(String(params.top ?? 10))}`];
-    if (params.startDate) parts.push(`StartDate=${encodeURIComponent(params.startDate)}`);
-    if (params.endDate) parts.push(`EndDate=${encodeURIComponent(params.endDate)}`);
-    if (params.categoryId) parts.push(`CategoryId=${encodeURIComponent(params.categoryId)}`);
-    if (params.brandId) parts.push(`BrandId=${encodeURIComponent(params.brandId)}`);
-    return this.api.get<TopSellingProductDto[]>(`${this.base}/products/top-selling?${parts.join('&')}`);
+  /** ProductSalesStatsDto[]. Query flat (camelCase): top, startDate, endDate, categoryId, brandId. */
+  getProductsTopSelling(filter: SalesReportFilterDto): Observable<ProductSalesStatsDto[]> {
+    const top = filter.top ?? 10;
+    const parts = [`top=${encodeURIComponent(String(top))}`];
+    if (filter.startDate) parts.push(`startDate=${encodeURIComponent(filter.startDate)}`);
+    if (filter.endDate) parts.push(`endDate=${encodeURIComponent(filter.endDate)}`);
+    if (filter.categoryId) parts.push(`categoryId=${encodeURIComponent(filter.categoryId)}`);
+    if (filter.brandId) parts.push(`brandId=${encodeURIComponent(filter.brandId)}`);
+    return this.api.get<ProductSalesStatsDto[]>(`${this.base}/products/top-selling?${parts.join('&')}`);
   }
 
-  getStockStatus(): Observable<ProductStockStatusDto[]> {
-    return this.api.get<ProductStockStatusDto[]>(`${this.base}/products/stock-status`);
+  /** ProductStockHistoryDto[] без параметрів. */
+  getProductsStockStatus(): Observable<ProductStockHistoryDto[]> {
+    return this.api.get<ProductStockHistoryDto[]>(`${this.base}/products/stock-status`);
   }
 
-  getPromotions(activeOnly: boolean): Observable<PromotionStatisticsDto[]> {
-    return this.api.get<PromotionStatisticsDto[]>(
+  /** PromotionStatsDto[], activeOnly у query-string. */
+  getPromotionStats(activeOnly: boolean): Observable<PromotionStatsDto[]> {
+    return this.api.get<PromotionStatsDto[]>(
       `${this.base}/promotions?activeOnly=${activeOnly ? 'true' : 'false'}`,
     );
   }

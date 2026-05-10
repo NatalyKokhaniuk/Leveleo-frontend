@@ -12,12 +12,21 @@ export function encodeProductFilters(filter: ProductFilterDto): string {
   const payload: ProductFilterDto & {
     SearchQuery?: string | null;
     OnlyWithActiveProductPromotion?: boolean;
+    PromotionId?: string | null;
+    CategoryId?: string | null;
+    BrandId?: string | null;
   } = {
     ...filter,
     searchQuery: q,
     SearchQuery: q,
     onlyWithActiveProductPromotion: promoOnly,
     OnlyWithActiveProductPromotion: promoOnly,
+    promotionId: filter.promotionId,
+    PromotionId: filter.promotionId ?? null,
+    categoryId: filter.categoryId,
+    CategoryId: filter.categoryId ?? null,
+    brandId: filter.brandId,
+    BrandId: filter.brandId ?? null,
   };
   const json = JSON.stringify(payload);
   return btoa(unescape(encodeURIComponent(json)));

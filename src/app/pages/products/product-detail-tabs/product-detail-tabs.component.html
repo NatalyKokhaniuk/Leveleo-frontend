@@ -29,7 +29,7 @@
               [src]="media.url"
               [alt]="displayName()"
               class="product-detail-tabs__img"
-              loading="lazy"
+              [attr.loading]="dialogLayout ? 'eager' : 'lazy'"
               (error)="onImageError()"
             />
           </button>
@@ -40,12 +40,12 @@
         </div>
       }
     </div>
-    @if (mediaItems().length > 1) {
+    @if (showCarouselNavigation()) {
       <button
         type="button"
         class="product-detail-tabs__nav-btn product-detail-tabs__nav-btn--prev"
         (click)="prevMedia()"
-        aria-label="Previous media"
+        [attr.aria-label]="'PRODUCTS.MEDIA_LIGHTBOX_PREV' | translate"
       >
         <mat-icon>chevron_left</mat-icon>
       </button>
@@ -53,7 +53,7 @@
         type="button"
         class="product-detail-tabs__nav-btn product-detail-tabs__nav-btn--next"
         (click)="nextMedia()"
-        aria-label="Next media"
+        [attr.aria-label]="'PRODUCTS.MEDIA_LIGHTBOX_NEXT' | translate"
       >
         <mat-icon>chevron_right</mat-icon>
       </button>
@@ -77,22 +77,22 @@
         </div>
       }
     }
-    @if (promotionLabel(); as promoName) {
+    @if (promotionNameBadge(); as promoTitle) {
       @if (promotionSlug(); as slug) {
         <a
           class="app-promo-badge app-promo-badge--corner app-promo-badge--tr product-detail-tabs__promo truncate"
           [routerLink]="['/promotions']"
           [queryParams]="{ slug: slug }"
-          [title]="promoName"
+          [title]="promoTitle"
         >
-          {{ promoName }}
+          {{ promoTitle }}
         </a>
       } @else {
         <span
           class="app-promo-badge app-promo-badge--corner app-promo-badge--tr product-detail-tabs__promo truncate"
-          [title]="promoName"
+          [title]="promoTitle"
         >
-          {{ promoName }}
+          {{ promoTitle }}
         </span>
       }
     }
@@ -132,13 +132,17 @@
             }
           </div>
 
-          <div class="flex flex-wrap items-baseline gap-2 min-w-0">
-            <span class="text-xl font-semibold text-primary break-words">
-              {{ displayPrice() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
-            </span>
+          <div class="flex flex-wrap items-baseline gap-2 gap-x-2.5 min-w-0">
             @if (hasDiscount()) {
-              <span class="text-sm text-on-surface/50 line-through">
+              <span class="text-sm text-on-surface/50 line-through shrink-0">
                 {{ listPrice() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+              </span>
+              <span class="product-detail-tabs__price-sale text-xl font-semibold break-words">
+                {{ displayPrice() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
+              </span>
+            } @else {
+              <span class="text-xl font-semibold text-primary break-words">
+                {{ displayPrice() | number: '1.2-2' }} {{ 'PRODUCTS.CURRENCY' | translate }}
               </span>
             }
           </div>
@@ -325,7 +329,7 @@
     >
       <mat-icon>close</mat-icon>
     </button>
-    @if (mediaItems().length > 1) {
+    @if (showCarouselNavigation()) {
       <button
         type="button"
         class="product-detail-tabs__lightbox-nav product-detail-tabs__lightbox-nav--prev"
@@ -347,7 +351,13 @@
       @if (lb.kind === 'video') {
         <video class="product-detail-tabs__lightbox-video" [src]="lb.url" controls preload="metadata"></video>
       } @else {
-        <img [src]="lb.url" [alt]="displayName()" class="product-detail-tabs__lightbox-img" />
+        <img
+          [src]="lb.url"
+          [alt]="displayName()"
+          class="product-detail-tabs__lightbox-img"
+          loading="eager"
+          decoding="async"
+        />
       }
     </div>
   </div>
