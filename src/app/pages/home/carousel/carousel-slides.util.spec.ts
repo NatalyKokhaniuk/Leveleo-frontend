@@ -1,7 +1,9 @@
 import { PromotionLevel, PromotionResponseDto } from '../../../features/promotions/promotion.types';
 import type { HomeCarouselSlide } from './carousel';
 import {
+  buildCarouselCartSnapshotFromQtyMap,
   isCarouselEligiblePromotion,
+  isCartPromotionVisibleForSnapshot,
   mergeCategoryAndPromotionCarouselSlides,
   pickPromotionsForCarousel,
 } from './carousel-slides.util';
@@ -65,5 +67,34 @@ describe('isCarouselEligiblePromotion', () => {
     expect(
       isCarouselEligiblePromotion({ ...promo('c'), level: PromotionLevel.Cart }),
     ).toBe(true);
+  });
+});
+
+describe('cart-level carousel visibility', () => {
+  it('shows unconditional cart promotion even when cart is empty', () => {
+    const p = { ...promo('cart-open'), level: PromotionLevel.Cart };
+    const empty = buildCarouselCartSnapshotFromQtyMap(new Map());
+    expect(isCartPromotionVisibleForSnapshot(p, empty)).toBe(true);
+    expect(pickPromotionsForCarousel([p], 'uk').map((x) => x.id)).toEqual(['cart-open']);
+  });
+
+  it('hides cart promotion when min quantity is not met (snapshot helper)', () => {
+    const p = {
+      ...promo('cart-qty'),
+      level: PromotionLevel.Cart,
+      cartConditions: { minQuantity: 3 },
+    };
+    const cart = buildCarouselCartSnapshotFromQtyMap(new Map([['p1', 2]]));
+    expect(isCartPromotionVisibleForSnapshot(p, cart)).toBe(false);
+  });
+
+  it('prioritizes cart-level promotions when limiting to 6', () => {
+    const list = [
+      ...Array.from({ length: 6 }, (_, i) => promo(`p${i}`)),
+      { ...promo('cart1'), level: PromotionLevel.Cart },
+    ];
+    const picked = pickPromotionsForCarousel(list, 'uk');
+    expect(picked[0].id).toBe('cart1');
+    expect(picked.length).toBe(6);
   });
 });

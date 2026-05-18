@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { forkJoin, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { catchError } from 'rxjs/operators';
 import { MediaUrlCacheService } from '../../core/services/media-url-cache.service';
 import {
   promotionLocalizedDescription,
@@ -19,7 +19,7 @@ import { PromotionLevel } from '../../features/promotions/promotion.types';
   selector: 'app-promotions-page',
   standalone: true,
   imports: [TranslateModule, RouterLink, MatIconModule, DatePipe],
-  templateUrl: './promotions.html',
+  templateUrl: './promotions.html',
 })
 export class PromotionsPage {
   private promotionsApi = inject(PromotionService);
@@ -44,23 +44,7 @@ export class PromotionsPage {
   private load(): void {
     this.loading.set(true);
     this.loadError.set(false);
-    /** API `GET /promotions/active` повертає лише id/slug/дати; повні картки — через `getById`. */
-    this.promotionsApi
-      .getActive()
-      .pipe(
-        switchMap((list) => {
-          const arr = list ?? [];
-          if (arr.length === 0) {
-            return of([] as PromotionResponseDto[]);
-          }
-          return forkJoin(
-            arr.map((p) =>
-              this.promotionsApi.getById(p.id).pipe(catchError(() => of(p))),
-            ),
-          );
-        }),
-      )
-      .subscribe({
+    this.promotionsApi.loadActiveWithDetails().subscribe({
         next: (list) => {
           this.rows.set(list);
           this.loadImages(list);

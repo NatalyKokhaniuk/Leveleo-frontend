@@ -12,7 +12,7 @@ import { OrderService } from '../../features/orders/order.service';
   selector: 'app-checkout',
   standalone: true,
   imports: [TranslateModule, RouterLink, MatButtonModule, MatFormFieldModule, MatInputModule],
-  templateUrl: './checkout.html',
+  templateUrl: './checkout.html',
 })
 export class CheckoutPage implements OnInit {
   private orders = inject(OrderService);
@@ -60,13 +60,13 @@ export class CheckoutPage implements OnInit {
       error: (err) => {
         this.busy.set(false);
         if (err?.status === 409) {
-          const message = err?.error?.message || this.translate.instant('CART.CART_CHANGED');
-          this.snack.open(message, 'OK', { duration: 3500 });
+          this.snack.open(this.translate.instant('CART.CART_CHANGED'), 'OK', { duration: 3500 });
           this.router.navigateByUrl('/cart');
           return;
         }
-        const message = err?.error?.message || this.translate.instant('CART.CHECKOUT_ERROR');
-        this.snack.open(message, 'OK', { duration: 3500 });
+        this.snack.open(this.translate.instant('ORDER_CHECKOUT.ORDER_CREATE_FAILED'), 'OK', {
+          duration: 3500,
+        });
       },
     });
   }

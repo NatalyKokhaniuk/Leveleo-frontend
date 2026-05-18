@@ -20,10 +20,9 @@ import { categoryLocalizedName } from '../../../features/categories/category-dis
 import { CategoryService } from '../../../features/categories/category.service';
 import { CategoryResponseDto } from '../../../features/categories/category.types';
 import { promotionLocalizedName } from '../../../features/promotions/promotion-display-i18n';
-import { toPromotionLevel } from '../../../features/promotions/promotion-enum.util';
 import { PromotionService } from '../../../features/promotions/promotion.service';
-import { PromotionLevel, PromotionResponseDto } from '../../../features/promotions/promotion.types';
-
+import { PromotionResponseDto } from '../../../features/promotions/promotion.types';
+import { pickPromotionsForCarousel } from './carousel-slides.util';
 
 export type HomeCarouselSlide =
   | { kind: 'category'; category: CategoryResponseDto; imageUrl: string }
@@ -33,7 +32,7 @@ export type HomeCarouselSlide =
   selector: 'app-carousel',
   standalone: true,
   imports: [CommonModule, RouterLink, TranslateModule, MatIconModule, MatProgressSpinnerModule],
-  templateUrl: './carousel.html',
+  templateUrl: './carousel.html',
 })
 export class CarouselComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
@@ -56,6 +55,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.translate.onLangChange.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.lang.set(this.translate.currentLang || 'uk');
+      this.loadSlides();
     });
     this.loadSlides();
   }
@@ -105,7 +105,6 @@ export class CarouselComponent implements OnInit, OnDestroy {
     });
   }
 
-  
   private interleaveCategoryAndPromotionSlides(
     categories: HomeCarouselSlide[],
     promotions: HomeCarouselSlide[],
@@ -137,7 +136,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
           return of([] as CategoryResponseDto[]);
         }),
       ),
-      promotions: this.promotionsApi.getActive({ guestEligibleOnly: true }).pipe(
+      promotions: this.promotionsApi.loadActiveWithDetails().pipe(
         catchError(() => of([] as PromotionResponseDto[])),
       ),
     })
@@ -149,19 +148,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
             .filter((c) => c.isActive && !!(c.imageKey ?? '').trim())
             .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
-          const productPromosGuest = (promotions ?? []).filter(
-            (p) =>
-              p.isActive &&
-              toPromotionLevel(p.level) === PromotionLevel.Product &&
-              !!(p.imageKey ?? '').trim() &&
-              !p.isCoupon &&
-              !p.isPersonal,
-          );
-          productPromosGuest.sort((a, b) =>
-            promotionLocalizedName(a, lang).localeCompare(promotionLocalizedName(b, lang), undefined, {
-              sensitivity: 'base',
-            }),
-          );
+          const carouselPromos = pickPromotionsForCarousel(promotions ?? [], lang);
 
           const urlTasks: Observable<HomeCarouselSlide | null>[] = [
             ...withKeyCats.map((c) =>
@@ -173,7 +160,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
                 ),
               ),
             ),
-            ...productPromosGuest.map((p) =>
+            ...carouselPromos.map((p) =>
               this.mediaUrlCache.getUrl(p.imageKey!).pipe(
                 map((url) =>
                   url
@@ -191,7 +178,6 @@ export class CarouselComponent implements OnInit, OnDestroy {
             });
           }
 
-          /** Один провалений URL не має «вішати» весь forkJoin (раніше loading лишався true). */
           const safeTasks = urlTasks.map((obs) =>
             obs.pipe(catchError(() => of(null as HomeCarouselSlide | null))),
           );

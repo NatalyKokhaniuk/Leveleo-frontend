@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../../environment';
 import { ApiService } from '../../services/api.service';
 
@@ -15,6 +16,7 @@ declare global {
 export class FacebookAuthService {
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
+  private translate = inject(TranslateService);
   private platformId = inject(PLATFORM_ID);
 
   private sdkReady: Promise<void> | null = null;
@@ -68,7 +70,10 @@ export class FacebookAuthService {
             .post<{ redirectUrl: string }>('/auth/social/facebook', { accessToken })
             .subscribe({
               next: (res) => (window.location.href = res.redirectUrl),
-              error: () => this.snack.open('Facebook login failed', 'OK', { duration: 3000 }),
+              error: () =>
+                this.snack.open(this.translate.instant('AUTH.SOCIAL_LOGIN_FACEBOOK_FAILED'), 'OK', {
+                  duration: 3000,
+                }),
             });
         },
         { scope: 'email' },

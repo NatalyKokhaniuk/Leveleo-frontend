@@ -69,6 +69,11 @@ export class CartStateService {
     return this.cartApi.removeItem(productId).pipe(switchMap(() => this.reloadFromServer()));
   }
 
+  /** Оновити бейдж у хедері з уже завантаженого GET /ShoppingCart/me. */
+  syncFromCartDto(cart: ShoppingCartDto): void {
+    this.applyDto(cart);
+  }
+
   private applyDto(cart: ShoppingCartDto): void {
     const m = new Map<string, number>();
     for (const it of cart.items ?? []) {

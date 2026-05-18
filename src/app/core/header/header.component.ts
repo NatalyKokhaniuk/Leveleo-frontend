@@ -12,7 +12,6 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { MatBadgeModule } from '@angular/material/badge';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
@@ -45,10 +44,9 @@ import { UserMenuComponent } from './user-menu/user-menu.component';
     ReactiveFormsModule,
     UserMenuComponent,
     AuthButtonsComponent,
-    MatBadgeModule,
     MatSnackBarModule,
   ],
-  templateUrl: './header.component.html',
+  templateUrl: './header.component.html',
 })
 export class HeaderComponent {
   themeService = inject(ThemeService);
@@ -60,6 +58,14 @@ export class HeaderComponent {
 
   
   cartItemsCount = this.cartState.totalUnits;
+
+  /** 2+ одиниці в кошику; для 1 — лише червона крапка в шаблоні. */
+  cartBadgeLabel(): string {
+    const n = this.cartItemsCount();
+    if (n <= 1) return '';
+    return n > 99 ? '99+' : String(n);
+  }
+
   private elementRef = inject(ElementRef);
   private platformId = inject(PLATFORM_ID);
   private el = inject(ElementRef);

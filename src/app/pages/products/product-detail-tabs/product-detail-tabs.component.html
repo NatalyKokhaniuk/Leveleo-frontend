@@ -148,7 +148,10 @@
           </div>
 
           @if (breadcrumbs().length > 0) {
-            <nav class="text-xs text-on-surface/70 flex flex-wrap items-center gap-1" aria-label="Breadcrumbs">
+            <nav
+              class="text-xs text-on-surface/70 flex flex-wrap items-center gap-1"
+              [attr.aria-label]="'PRODUCTS.BREADCRUMB_LABEL' | translate"
+            >
               @for (b of breadcrumbs(); track b.slug; let isLast = $last) {
                 <a
                   [routerLink]="['/products', 'category', b.slug]"

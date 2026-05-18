@@ -31,6 +31,7 @@ import {
   computePricingFromLineViews,
 } from '../../features/shopping-cart/cart-pricing.util';
 import {
+  ApplyCouponResultString,
   CartLineViewDto,
   coerceApplyCouponResult,
   isApplyCouponSuccess,
@@ -180,6 +181,7 @@ export class CartPage implements OnInit {
         this.loading.set(false);
         if (!this.loadError()) {
           this.refreshRemovalNotices(result.cart, rows);
+          this.cartState.syncFromCartDto(result.cart);
         }
       });
   }
@@ -419,6 +421,22 @@ export class CartPage implements OnInit {
     this.couponCode.set(value);
   }
 
+  private couponApplyFailureMessage(result: ApplyCouponResultString): string {
+    if (isApplyCouponUsageLimitExceeded(result)) {
+      return this.translate.instant('CART.COUPON_USAGE_LIMIT_EXCEEDED');
+    }
+    switch (result) {
+      case 'Invalid':
+        return this.translate.instant('CART.COUPON_INVALID');
+      case 'NotEligible':
+        return this.translate.instant('CART.COUPON_NOT_ELIGIBLE');
+      case 'BetterPromotionExists':
+        return this.translate.instant('CART.COUPON_BETTER_PROMO');
+      default:
+        return this.translate.instant('CART.COUPON_ERROR');
+    }
+  }
+
   applyCoupon(): void {
     const code = this.couponCode().trim();
     if (!code || this.couponBusy()) return;
@@ -427,23 +445,17 @@ export class CartPage implements OnInit {
       next: (cart) => {
         const resultCode = coerceApplyCouponResult(cart.couponApplyResult);
         const applyOk = isApplyCouponSuccess(cart.couponApplyResult);
-        const serverMsg = cart.couponApplyMessage?.trim();
-
         if (!applyOk) {
-          const fallback = isApplyCouponUsageLimitExceeded(cart.couponApplyResult)
-              ? this.translate.instant('CART.COUPON_USAGE_LIMIT_EXCEEDED')
-              : this.translate.instant('CART.COUPON_APPLY_FAILED_CODE', { code: resultCode });
-          this.snack.open(serverMsg || fallback, 'OK', { duration: 5000 });
+          const fallback = this.couponApplyFailureMessage(resultCode);
+          this.snack.open(fallback, 'OK', { duration: 5000 });
         } else {
           const applied = !!cart.appliedCartPromotion;
           const hasCartDiscount =
             cart.totalCartDiscount != null && Number(cart.totalCartDiscount) > 0;
           if (!applied && !hasCartDiscount) {
-            this.snack.open(
-              serverMsg || this.translate.instant('CART.COUPON_NOT_ACTIVE'),
-              'OK',
-              { duration: 4000 },
-            );
+            this.snack.open(this.translate.instant('CART.COUPON_NOT_ACTIVE'), 'OK', {
+              duration: 4000,
+            });
           }
         }
 

@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import {
   CreatePromotionDto,
   PromotionResponseDto,
@@ -49,6 +50,24 @@ export class PromotionService {
   getActive(opts?: { guestEligibleOnly?: boolean }): Observable<PromotionResponseDto[]> {
     const qs = opts?.guestEligibleOnly === true ? '?guestEligibleOnly=true' : '';
     return this.api.get<PromotionResponseDto[]>(`${this.base}/active${qs}`);
+  }
+
+  /**
+   * Список активних акцій + повний DTO кожної (як на `/promotions`).
+   * `GET /active` часто повертає лише id/slug/дати — без `imageKey` і `level`.
+   */
+  loadActiveWithDetails(): Observable<PromotionResponseDto[]> {
+    return this.getActive().pipe(
+      switchMap((list) => {
+        const arr = list ?? [];
+        if (arr.length === 0) {
+          return of([] as PromotionResponseDto[]);
+        }
+        return forkJoin(
+          arr.map((p) => this.getById(p.id).pipe(catchError(() => of(p)))),
+        );
+      }),
+    );
   }
 
   addTranslation(

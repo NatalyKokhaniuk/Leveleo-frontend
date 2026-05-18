@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from '@angular/common';
 import { Injectable, PLATFORM_ID, inject } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../../environment';
 import { ApiService } from '../../services/api.service';
 
@@ -15,6 +16,7 @@ declare global {
 export class GoogleAuthService {
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
+  private translate = inject(TranslateService);
   private platformId = inject(PLATFORM_ID);
 
   private sdkReady: Promise<void> | null = null;
@@ -55,7 +57,10 @@ export class GoogleAuthService {
       .post<{ redirectUrl: string }>('/auth/social/google', { accessToken: idToken })
       .subscribe({
         next: (res) => (window.location.href = res.redirectUrl),
-        error: () => this.snack.open('Google login failed', 'OK', { duration: 3000 }),
+        error: () =>
+          this.snack.open(this.translate.instant('AUTH.SOCIAL_LOGIN_GOOGLE_FAILED'), 'OK', {
+            duration: 3000,
+          }),
       });
   }
 
@@ -73,11 +78,9 @@ export class GoogleAuthService {
           );
           
 
-          this.snack.open(
-            'Увімкніть popup для входу через Google або використайте email',
-            'OK',
-            { duration: 4000 },
-          );
+          this.snack.open(this.translate.instant('AUTH.SOCIAL_LOGIN_GOOGLE_POPUP'), 'OK', {
+            duration: 4000,
+          });
         }
       });
     });

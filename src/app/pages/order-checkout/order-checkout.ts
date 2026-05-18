@@ -42,7 +42,7 @@ import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.type
     MatProgressSpinnerModule,
     MatRadioModule,
   ],
-  templateUrl: './order-checkout.html',
+  templateUrl: './order-checkout.html',
 })
 export class OrderCheckoutPage implements OnInit {
   private auth = inject(AuthService);
@@ -391,8 +391,6 @@ export class OrderCheckoutPage implements OnInit {
         message = this.translate.instant('ORDER_CHECKOUT.CONFLICT_ORDER_CREATION_FAILED');
       } else if (this.isBackendCartChangedMessage(raw)) {
         message = this.translate.instant('CART.CART_CHANGED');
-      } else if (raw) {
-        message = raw;
       } else {
         message = this.translate.instant('ORDER_CHECKOUT.ORDER_CREATE_FAILED');
       }
@@ -425,7 +423,7 @@ export class OrderCheckoutPage implements OnInit {
       return;
     }
 
-    const message = err.error?.message || this.translate.instant('CART.CHECKOUT_ERROR');
+    const message = this.translate.instant('ORDER_CHECKOUT.ORDER_CREATE_FAILED');
     this.orderPlacementError.set(message);
     this.snack.open(message, 'OK', { duration: 4500 });
   }

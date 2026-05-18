@@ -78,14 +78,22 @@
       <button
         matIconButton
         type="button"
-        class="shrink-0"
+        class="header-cart-btn shrink-0"
         (click)="openShoppingCart()"
-        [matBadge]="cartItemsCount() > 0 ? ' ' : ''"
-        [matBadgeHidden]="cartItemsCount() === 0"
-        matBadgeColor="warn"
-        matBadgeSize="small"
+        [attr.aria-label]="'HEADER.SHOPPNG_CART' | translate"
       >
         <mat-icon>shopping_cart_checkout</mat-icon>
+        @if (cartItemsCount() > 0) {
+          <span
+            class="header-cart-badge"
+            [class.header-cart-badge--dot]="cartItemsCount() === 1"
+            aria-hidden="true"
+          >
+            @if (cartItemsCount() > 1) {
+              {{ cartBadgeLabel() }}
+            }
+          </span>
+        }
       </button>
 
       <!-- MOBILE MENU -->
