@@ -82,7 +82,7 @@ export class ProductCatalogStateService {
     );
   }
 
-  /** Примусово наступне завантаження піде в мережу. */
+  
   invalidate(): void {
     this.filterKey.set(null);
     this.fetchedAt.set(null);

@@ -18,7 +18,7 @@ export function isAppliedPromotionCartLevel(level: unknown): boolean {
   return false;
 }
 
-/** Slug посилання «всі акції» з фильтром, якщо є товарна акція й не помилково cart-level у payload. */
+
 export function productPromotionLinkSlug(
   product: { appliedPromotion?: AppliedPromotionDto | null },
   options?: { hideCartLevel?: boolean },
@@ -69,9 +69,7 @@ export function productPromotionNameBadgeText(
   return nameFallback.trim() || null;
 }
 
-/**
- * Суфікс знижки для плашки: відсоток або фіксована сума з ₴.
- */
+
 export function formatPromotionDiscountSuffix(
   discountType: unknown,
   discountValue: number | null | undefined,

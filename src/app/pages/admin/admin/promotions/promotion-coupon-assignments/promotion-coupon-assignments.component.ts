@@ -31,7 +31,7 @@ import type { PromotionCouponAssignmentDto } from '../../../../../features/promo
   templateUrl: './promotion-coupon-assignments.component.html',
 })
 export class PromotionCouponAssignmentsComponent implements OnInit {
-  /** Активна лише для адміна (батьківський шаблон передає лише тоді). */
+  
   promotionId = input.required<string>();
 
   private usersApi = inject(UserService);

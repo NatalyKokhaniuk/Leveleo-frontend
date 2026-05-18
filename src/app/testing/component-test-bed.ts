@@ -26,7 +26,7 @@ export function componentTestProviders(
   ];
 }
 
-/** Стандартне оточення для smoke-тестів standalone-компонентів. */
+
 export async function configureComponentTestBed(
   component: Type<unknown>,
   extra?: { imports?: unknown[]; providers?: (Provider | EnvironmentProviders)[] },

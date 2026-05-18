@@ -24,7 +24,7 @@ import { toPromotionLevel } from '../../../features/promotions/promotion-enum.ut
 import { PromotionService } from '../../../features/promotions/promotion.service';
 import { PromotionLevel, PromotionResponseDto } from '../../../features/promotions/promotion.types';
 
-/** Слайд каруселі: категорія або товарна акція без купона (для гостей). */
+
 export type HomeCarouselSlide =
   | { kind: 'category'; category: CategoryResponseDto; imageUrl: string }
   | { kind: 'promotion'; promotion: PromotionResponseDto; imageUrl: string };
@@ -105,10 +105,7 @@ export class CarouselComponent implements OnInit, OnDestroy {
     });
   }
 
-  /**
-   * Чергування: категорія, акція, категорія, акція… залишок — підряд.
-   * Так акції опиняються «між» слайдами категорій.
-   */
+  
   private interleaveCategoryAndPromotionSlides(
     categories: HomeCarouselSlide[],
     promotions: HomeCarouselSlide[],

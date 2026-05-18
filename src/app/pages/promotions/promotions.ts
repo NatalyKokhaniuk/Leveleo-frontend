@@ -30,7 +30,7 @@ export class PromotionsPage {
   loadError = signal(false);
   rows = signal<PromotionResponseDto[]>([]);
   imageUrls = signal<Map<string, string | null>>(new Map());
-  /** Оновлюється при зміні мови, щоб перерахувати назви/описи з translations. */
+  
   private langTick = signal(0);
 
   readonly DiscountType = DiscountType;

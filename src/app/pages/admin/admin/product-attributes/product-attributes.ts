@@ -62,7 +62,7 @@ export class ProductAttributesComponent {
   readonly pageSize = 10;
 
   search = signal('');
-  /** Порожній рядок — усі групи (як «Усі ролі» у користувачах). */
+  
   filterGroupId = signal('');
   sortKey = signal<ProductAttributeSortKey | null>(null);
   sortDir = signal<'asc' | 'desc'>('asc');

@@ -33,7 +33,7 @@ export class OrderItemReviewFormComponent implements OnInit {
   private translate = inject(TranslateService);
   private dialogRef = inject(MatDialogRef<unknown>, { optional: true });
 
-  /** Order line this review is tied to. */
+  
   orderItemId = input.required<string>();
 
   saved = output<void>();

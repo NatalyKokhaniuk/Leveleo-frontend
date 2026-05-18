@@ -22,7 +22,7 @@ export interface AddressResponseDto {
   additionalInfo: string | null;
   /** Основна адреса користувача (поле БД IsDefault). */
   isDefault?: boolean;
-  /** Якщо бекенд додасть у відповідь — для редагування без повторного вводу ref. */
+  
   cityRef?: string | null;
   /** Ref населеного пункту НП для `GET …/settlements/{ref}/branches|postomats`. */
   settlementRef?: string | null;
@@ -50,7 +50,7 @@ export interface CreateAddressDto {
   flat: string | null;
   floor: string | null;
   additionalInfo: string | null;
-  /** Якщо бекенд підтримує поштомат. */
+  
   postomatRef?: string | null;
   postomatDescription?: string | null;
   /** Явно позначити як основну (разом із POST …/address/{id}/default). */

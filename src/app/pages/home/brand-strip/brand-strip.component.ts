@@ -54,10 +54,10 @@ export class HomeBrandStripComponent implements OnInit {
   loading = signal(true);
   expanded = signal(false);
 
-  /** Скільки карток у одному рядку залежно від ширини вікна. */
+  
   rowCount = signal(5);
 
-  /** Відповідає grid-cols-2 / sm:3 / md:4 / lg:5 / xl:6 у шаблоні. */
+  
   private updateRowCount(): void {
     if (typeof window === 'undefined') {
       return;

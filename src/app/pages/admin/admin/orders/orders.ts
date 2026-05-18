@@ -62,7 +62,7 @@ export class AdminOrdersComponent {
   page = signal(1);
   readonly pageSize = 20;
 
-  /** Порожній рядок = усі статуси */
+  
   statusFilter = signal<string>('');
   startDate = signal('');
   endDate = signal('');

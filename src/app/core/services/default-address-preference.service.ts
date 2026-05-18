@@ -30,7 +30,7 @@ export class DefaultAddressPreferenceService {
     try {
       localStorage.setItem(STORAGE_KEY, id);
     } catch {
-      /* quota / private mode */
+      
     }
   }
 
@@ -41,7 +41,7 @@ export class DefaultAddressPreferenceService {
     try {
       localStorage.removeItem(STORAGE_KEY);
     } catch {
-      /* */
+      
     }
   }
 }

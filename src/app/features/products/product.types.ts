@@ -61,7 +61,7 @@ export interface ProductTranslationResponseDto {
   description?: string | null;
 }
 
-/** Мінімальні поля акції з бекенду (розширювано за потреби). */
+
 export interface AppliedPromotionDto {
   id: string;
   slug: string;
@@ -73,7 +73,7 @@ export interface AppliedPromotionDto {
   /** Число (0|1), рядок enum (`Percentage`) або сумісний варіант з ASP.NET. */
   discountType?: unknown;
   discountValue?: number;
-  /** Підказки про ліміт (кошик / вітрина з бекенду). */
+  
   maxUsages?: number | null;
   usedCount?: number | null;
   /** Переклади назви/опису — узгоджено з `AppliedPromotionDto` на API. */

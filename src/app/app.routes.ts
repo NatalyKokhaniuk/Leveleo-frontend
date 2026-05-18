@@ -3,11 +3,10 @@ import { adminGuard } from './core/guards/admin.guard';
 import { adminOrModeratorGuard } from './core/guards/admin-moderator.guard';
 import { authGuard } from './core/guards/auth.guard';
 
-/** Заголовок вкладки: лише «Leveleo». */
 const docBrand = { docTitle: 'brand' as const };
 /** Заголовок вкладки: «404» (сторінка помилки сервера). */
 const doc404 = { docTitle: '404' as const };
-/** «Leveleo — …» через i18n-ключ назви сторінки. */
+
 const docPage = (docTitleKey: string) => ({ docTitle: 'suffix' as const, docTitleKey });
 
 export const routes: Routes = [

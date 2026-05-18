@@ -17,7 +17,7 @@ import { AuthService } from '../services/auth.service';
 export type TwoFactorMethod = 'Email' | 'Sms' | 'Totp';
 
 export interface TwoFactorSetupDialogData {
-  /** якщо передано — режим заміни методу */
+  
   currentMethod?: TwoFactorMethod | null;
 }
 
@@ -51,7 +51,8 @@ export class TwoFactorSetupDialogComponent {
   // ── Кроки: 'method' → 'verify' → 'backup' ──────────────────────
   step = signal<'method' | 'verify' | 'backup'>('method');
 
-  // ── Форми ────────────────────────────────────────────────────────
+  
+
   methodForm = this.fb.group({
     method: ['Email' as TwoFactorMethod, Validators.required],
   });
@@ -60,7 +61,8 @@ export class TwoFactorSetupDialogComponent {
     code: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(8)]],
   });
 
-  // ── Стан ─────────────────────────────────────────────────────────
+  
+
   isLoading = signal(false);
   error = signal<string | null>(null);
 
@@ -104,7 +106,8 @@ export class TwoFactorSetupDialogComponent {
 
   secretCopied = signal(false);
 
-  // ── Крок 1: ініціювати setup ──────────────────────────────────────
+  
+
   initiateSetup(): void {
     const method = this.selectedMethod();
     if (!method) return;
@@ -125,7 +128,8 @@ export class TwoFactorSetupDialogComponent {
     });
   }
 
-  // ── Крок 2: підтвердити код ───────────────────────────────────────
+  
+
   confirmSetup(): void {
     if (this.codeForm.invalid) return;
 
@@ -142,7 +146,8 @@ export class TwoFactorSetupDialogComponent {
       })
       .subscribe({
         next: () => {
-          // Після успішного підтвердження — отримуємо бекап коди
+          
+
           this.auth.getBackupCodes().subscribe({
             next: (bc) => {
               this.backupCodes.set(bc.codes);
@@ -150,7 +155,8 @@ export class TwoFactorSetupDialogComponent {
               this.step.set('backup');
             },
             error: () => {
-              // Навіть якщо коди не завантажилися — 2FA увімкнена
+              
+
               this.isLoading.set(false);
               this.step.set('backup');
             },
@@ -163,7 +169,8 @@ export class TwoFactorSetupDialogComponent {
       });
   }
 
-  // ── Допоміжні ────────────────────────────────────────────────────
+  
+
   copySecret(): void {
     const secret = this.totpSecret();
     if (!secret) return;

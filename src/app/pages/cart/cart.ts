@@ -77,11 +77,11 @@ export class CartPage implements OnInit {
   /** Порядок як у відповіді кошика; ціни з рядка GET /me + quantityApplyingToTotals / totalPrice. */
   lines = signal<CartLineViewDto[]>([]);
   cartTotals = signal<{
-    /** Σ каталожних цін — для узгодженості з рядками. */
+    
     totalCatalogList: number;
     /** З рядків: (list − після товарної акції) × qty. */
     totalProductDiscount: number;
-    /** Після товарних знижок, до знижки кошика. */
+    
     subtotalAfterProductPromotions: number;
     /** З API; якщо 0 — fallback з сумою по рядках. */
     totalCartDiscount: number;
@@ -316,9 +316,7 @@ export class CartPage implements OnInit {
     );
   }
 
-  /**
-   * Для відображуваного рядка: залишок на складі 0 або кількість у кошику більша за доступну.
-   */
+  
   lineStockIssueKey(row: CartLineViewDto): 'out_of_stock' | 'exceeds' | null {
     const q = row.quantityInCart;
     if (q <= 0) {
@@ -342,7 +340,7 @@ export class CartPage implements OnInit {
     return !!t && t.totalCartDiscount > 0;
   }
 
-  /** Банер зверху кошика: акція на кошик (назва + % або сума). */
+  
   showCartPromotionBanner(): boolean {
     const t = this.cartTotals();
     if (!t) return false;
@@ -371,7 +369,7 @@ export class CartPage implements OnInit {
     );
   }
 
-  /** Відсоток або фіксована знижка (рядок без мінуса — додається в шаблоні). */
+  
   cartPromotionDiscountLabel(): string | null {
     const t = this.cartTotals();
     if (!t) return null;
@@ -512,7 +510,7 @@ export class CartPage implements OnInit {
     try {
       sessionStorage.setItem(this.CART_SNAPSHOT_STORAGE_KEY, JSON.stringify({ names }));
     } catch {
-      /* ignore quota / private mode */
+      
     }
   }
 
@@ -571,14 +569,12 @@ export class CartPage implements OnInit {
     return this.imageUrls().get(productId) ?? null;
   }
 
-  /**
-   * Ціна за одиницю на картці рядка — лише після товарних акцій; знижку кошика показуємо лише в блоці підсумків.
-   */
+  
   lineUnitDisplayedOnRow(row: CartLineViewDto): number {
     return row.unitAfterProductPromotion;
   }
 
-  /** Закреслення каталожної ціни лише через товарну/каталожну знижку (без ефекту акції кошика). */
+  
   lineShowProductDiscountStrikethrough(row: CartLineViewDto): boolean {
     return row.unitAfterProductPromotion < row.unitListPrice - 0.01;
   }

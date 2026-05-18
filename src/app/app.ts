@@ -15,7 +15,8 @@ export class App implements OnInit {
   private translate = inject(TranslateService);
 
   async ngOnInit(): Promise<void> {
-    // Мова: читаємо збережену або беремо з браузера
+    
+
     const saved = typeof localStorage !== 'undefined' ? localStorage.getItem('lang') : null;
     const browserLang = this.translate.getBrowserLang();
     const lang = saved ?? (browserLang?.match(/en|uk/) ? browserLang : 'uk');

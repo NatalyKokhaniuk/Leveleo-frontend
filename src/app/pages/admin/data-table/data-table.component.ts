@@ -15,7 +15,7 @@ export interface TableColumnSelectOption {
 
 export interface TableColumn {
   key: keyof UserDto;
-  /** i18n key for column header and mobile field label */
+  
   labelKey: string;
   sortable?: boolean;
   filterable?: boolean;
@@ -57,20 +57,23 @@ export class DataTableComponent {
 
   sortKey = signal<keyof UserDto | null>(null);
   sortDir = signal<'asc' | 'desc'>('asc');
-  // пошук
+  
+
   onSearch(event: Event) {
     const value = (event.target as HTMLInputElement).value;
     this.search.set(value);
     this.page.set(1);
   }
 
-  // фільтр по ролях
+  
+
   onRoleFilterChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
     this.setFilter('roles', value); // 'roles' тут ключ для фільтру
   }
 
-  // головна функція фільтру + пошуку + сорту
+  
+
   filteredData = computed(() => {
     let result = [...this.data()];
 
@@ -116,16 +119,21 @@ export class DataTableComponent {
   //     result = result.filter((row) =>
   //       [row.firstName, row.lastName, row.email].some((v) =>
   //         v.toLowerCase().includes(this.search().toLowerCase()),
-  //       ),
-  //     );
-  //   }
+  
+
+  
+
+  
+
 
   //   const f = this.filters();
   //   Object.keys(f).forEach((key) => {
   //     if (f[key] !== '...') {
   //       result = result.filter((row: any) => row.roles[0] === f[key]);
-  //     }
-  //   });
+  
+
+  
+
 
   //   if (this.sortKey()) {
   //     result.sort((a, b) => {
@@ -136,11 +144,14 @@ export class DataTableComponent {
   //       if (valB == null) return -1;
 
   //       return this.sortDir() === 'asc' ? (valA > valB ? 1 : -1) : valA < valB ? 1 : -1;
-  //     });
-  //   }
+  
+
+  
+
 
   //   return result;
-  // });
+  
+
 
   paginatedData = computed(() => {
     const start = (this.page() - 1) * this.pageSize;
@@ -167,7 +178,8 @@ export class DataTableComponent {
 
   // SELECT CHANGE
   onSelectChange(row: UserDto, key: keyof UserDto, value: string) {
-    // створюємо новий об'єкт з оновленою роллю
+    
+
     const updatedRow: UserDto = { ...row, [key]: [value] };
     this.emitAction('select', updatedRow);
   }

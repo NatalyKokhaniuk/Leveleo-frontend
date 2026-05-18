@@ -2,8 +2,8 @@
 @theme {
   --font-inter: 'Inter', system-ui, sans-serif;
   --font-fixel: 'Fixel Display', system-ui, sans-serif;
-  /* Кольори — тягнуться з Material теми автоматично */
-  /* primary */
+  
+  
   --color-primary: var(--mat-sys-primary);
   --color-on-primary: var(--mat-sys-on-primary);
   --color-primary-container: var(--mat-sys-primary-container);
@@ -19,7 +19,7 @@
   --color-primary-70: var(--color-primary-70);
   --color-primary-80: var(--color-primary-80);
   --color-primary-90: var(--color-primary-90);
-  /* secondary */
+  
   --color-secondary: var(--mat-sys-secondary);
   --color-on-secondary: var(--mat-sys-on-secondary);
 	  --color-secondary-container: var(--mat-sys-secondary-container);
@@ -36,7 +36,7 @@
   --color-secondary-80: var(--color-secondary-80);
   --color-secondary-90: var(--color-secondary-90);
 
-  /* tertiary */
+  
   --color-tertiary: var(--mat-sys-tertiary);
   --color-on-tertiary: var(--mat-sys-on-tertiary);
   --color-tertiary-container: var(--mat-sys-tertiary-container);
@@ -65,11 +65,11 @@
   --color-error: var(--mat-sys-error);
   --color-on-error: var(--mat-sys-on-error);
 
-  /* Жовтий лев — статичний */
+  
   --color-leo: rgb(246 161 55);
   --color-leo-container: rgb(255 221 187);
 
-  /* Анімації */
+  
   --animate-fade-in: fadeIn 0.5s ease-in-out;
   --animate-slide-up: slideUp 0.5s ease-in-out;
   --animate-slide-left: slideLeft 0.5s ease-in-out;

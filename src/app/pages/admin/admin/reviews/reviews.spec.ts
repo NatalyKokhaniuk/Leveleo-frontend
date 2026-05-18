@@ -1,7 +1,5 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateModule } from '@ngx-translate/core';
+import { configureComponentTestBed } from '../../../../testing/component-test-bed';
 import { AdminReviewsComponent } from './reviews';
 
 describe('AdminReviewsComponent', () => {
@@ -9,17 +7,12 @@ describe('AdminReviewsComponent', () => {
   let fixture: ComponentFixture<AdminReviewsComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AdminReviewsComponent, TranslateModule.forRoot()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(AdminReviewsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    await configureComponentTestBed(AdminReviewsComponent);
   });
 
   it('should create', () => {
+    fixture = TestBed.createComponent(AdminReviewsComponent);
+    component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 });

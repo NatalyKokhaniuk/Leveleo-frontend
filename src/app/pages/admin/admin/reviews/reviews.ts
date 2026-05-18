@@ -92,12 +92,12 @@ export class AdminReviewsComponent {
   /** Розгорнуті коментарі (id відгуку). */
   expandedCommentIds = signal<ReadonlySet<string>>(new Set());
 
-  /** Коментарі, де виміряно переповнення одного рядка (показ «…ще» / «сховати»). */
+  
   private commentOverflowIds = signal<ReadonlySet<string>>(new Set());
 
   displayedColumns: string[] = ['productName', 'rating', 'comment', 'createdAt', 'actions'];
 
-  /** Сортування на поточній сторінці (після клієнтських фільтрів). */
+  
   sortState = signal<{ active: SortColumn; direction: 'asc' | 'desc' }>({
     active: 'createdAt',
     direction: 'desc',
@@ -207,12 +207,12 @@ export class AdminReviewsComponent {
     return s === 'cancelled';
   }
 
-  /** Очікує рішення модератора (не опубліковано й не відхилено). */
+  
   isPendingModeration(r: ReviewDto): boolean {
     return !r.isApproved && !this.isRejectedReview(r);
   }
 
-  /** Вже схвалено або відхилено — лише видалення. */
+  
   isModeratedFinal(r: ReviewDto): boolean {
     return r.isApproved || this.isRejectedReview(r);
   }
@@ -327,7 +327,7 @@ export class AdminReviewsComponent {
     return (r.comment ?? '').trim();
   }
 
-  /** Не вміщується в один рядок (виміряно на згорнутому тексті). */
+  
   commentNeedsToggle(r: { id: string; comment: string | null }): boolean {
     return this.commentBody(r) !== '' && this.commentOverflowIds().has(r.id);
   }

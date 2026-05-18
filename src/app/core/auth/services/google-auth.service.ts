@@ -65,12 +65,14 @@ export class GoogleAuthService {
     this.waitForSdk().then(() => {
       window.google.accounts.id.prompt((notification: any) => {
         if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
-          // One Tap заблокований браузером — відкриваємо popup
+          
+
           window.google.accounts.id.renderButton(
             document.createElement('div'),
             { theme: 'outline', size: 'large' },
           );
-          // Альтернатива: показати кастомну кнопку або повідомлення
+          
+
           this.snack.open(
             'Увімкніть popup для входу через Google або використайте email',
             'OK',

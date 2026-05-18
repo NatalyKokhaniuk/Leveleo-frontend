@@ -72,7 +72,7 @@ export class HorizontalDragScrollDirective {
     try {
       host.releasePointerCapture(e.pointerId);
     } catch {
-      /* already released */
+      
     }
   }
 }

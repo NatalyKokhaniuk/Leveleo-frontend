@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
+import {
+  configureComponentTestBed,
+  matDialogTestProviders,
+} from '../../../testing/component-test-bed';
 import { AuthDialogComponent } from './auth-dialog.component';
 
 describe('AuthDialogComponent', () => {
@@ -7,17 +10,14 @@ describe('AuthDialogComponent', () => {
   let fixture: ComponentFixture<AuthDialogComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AuthDialogComponent]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(AuthDialogComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    await configureComponentTestBed(AuthDialogComponent, {
+      providers: matDialogTestProviders({}),
+    });
   });
 
   it('should create', () => {
+    fixture = TestBed.createComponent(AuthDialogComponent);
+    component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 });

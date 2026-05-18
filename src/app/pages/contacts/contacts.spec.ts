@@ -1,26 +1,18 @@
-import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { TranslateModule } from '@ngx-translate/core';
-
+import { configureComponentTestBed } from '../../testing/component-test-bed';
 import { ContactsComponent } from './contacts';
 
-describe('Contacts', () => {
+describe('ContactsComponent', () => {
   let component: ContactsComponent;
   let fixture: ComponentFixture<ContactsComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [ContactsComponent, TranslateModule.forRoot()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(ContactsComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    await configureComponentTestBed(ContactsComponent);
   });
 
   it('should create', () => {
+    fixture = TestBed.createComponent(ContactsComponent);
+    component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 });

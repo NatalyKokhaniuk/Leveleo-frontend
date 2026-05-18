@@ -78,7 +78,7 @@ export class AuthHandlerService {
     });
   }
 
-  // ── 2FA ──────────────────────────────────────────────────────────
+  
 
   openTwoFactorSetup(): void {
     import('../two-factor-setup-dialog/two-factor-setup-dialog.component').then(
@@ -93,7 +93,8 @@ export class AuthHandlerService {
           .afterClosed()
           .subscribe((result) => {
             if (result === 'success') {
-              // Оновлюємо дані користувача після увімкнення 2FA
+              
+
               this.auth.restoreSession().pipe(take(1)).subscribe();
             }
           });
@@ -118,13 +119,15 @@ export class AuthHandlerService {
             if (!result) return;
 
             if (result === 'disabled') {
-              // Оновлюємо стан після відключення 2FA
+              
+
               this.auth.restoreSession().pipe(take(1)).subscribe();
               this.translate.get('PROFILE.TWO_FA_DISABLED_SNACK').subscribe((msg) => {
                 this.snack.open(msg, undefined, { duration: 2500 });
               });
             } else if (result === 'switch') {
-              // Відкриваємо setup заново
+              
+
               this.openTwoFactorSetup();
             } else if (result?.action === 'view-backup') {
               this.openBackupCodes(result.codes);
@@ -134,7 +137,7 @@ export class AuthHandlerService {
     );
   }
 
-  // ── Існуючі методи ───────────────────────────────────────────────
+  
 
   private openEmailConfirmed(): void {
     import('../auth-result-dialog/auth-result-dialog.component').then(

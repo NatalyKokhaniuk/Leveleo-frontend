@@ -39,7 +39,7 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
 
 const UNGROUPED_ATTRIBUTE_KEY = '__ungrouped__';
 
-/** Клітинка таблиці порівняння: текст, булеві іконки або відсутнє значення. */
+
 export type ComparisonAttrCell =
   | { kind: 'missing' }
   | { kind: 'text'; text: string }
@@ -59,7 +59,7 @@ export interface ComparisonAttributeGroupSection {
   rows: ComparisonAttributeValueRow[];
 }
 
-/** Фільтр рядків атрибутів у таблиці порівняння. */
+
 export type ComparisonAttrFilterMode = 'all' | 'matching' | 'different' | 'allFilled';
 
 @Component({
@@ -102,7 +102,7 @@ export class ComparisonPage implements OnInit {
   attributeGroupsById = signal<Map<string, AttributeGroupResponseDto>>(new Map());
   valuesByProduct = signal<Map<string, ProductAttributeValueResponseDto[]>>(new Map());
   lang = signal(this.translate.currentLang || 'uk');
-  /** Режим відображення атрибутів у табличному порівнянні. */
+  
   attrFilterMode = signal<ComparisonAttrFilterMode>('all');
 
   grouped = computed(() => {
@@ -183,14 +183,14 @@ export class ComparisonPage implements OnInit {
     }));
   });
 
-  /** Підпис активної категорії для підзаголовка таблиці. */
+  
   activeCategoryLabel = computed(() => {
     const id = this.activeCategoryId();
     if (!id) return null;
     return this.grouped().find((g) => g.categoryId === id)?.categoryName ?? null;
   });
 
-  /** Атрибутні групи з урахуванням обраного фільтра. */
+  
   filteredAttributeRowGroups = computed((): ComparisonAttributeGroupSection[] => {
     const groups = this.attributeRowGroups();
     const mode = this.attrFilterMode();

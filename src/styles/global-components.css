@@ -67,7 +67,7 @@ main {
 }
 
 /* --- src/app/core/header/header.component.scss --- */
-/* Вирівнювання перемикача теми та мови по одній горизонтальній осі (центр іконок). */
+
 .theme-lang-cluster {
   display: flex;
   align-items: center;
@@ -91,7 +91,7 @@ main {
   object-fit: contain;
 }
 
-/* Стабільний рендер іконок у хедері (особливо на вузьких екранах). */
+
 app-header ::ng-deep button[matIconButton] .mat-icon,
 app-header ::ng-deep button[matIconButton] mat-icon {
   width: 22px;
@@ -141,7 +141,7 @@ app-header ::ng-deep button[matIconButton] mat-icon {
   z-index: 0;
 }
 
-/* Leaflet у всередині Mat Dialog */
+
 app-select-delivery-map-dialog ::ng-deep .leaflet-container {
   font-family: inherit;
 }
@@ -159,7 +159,7 @@ app-admin-confirm-delete-dialog {
 }
 
 /* --- src/app/pages/admin/admin/products/product-detail/product-detail.scss --- */
-/* Дві кнопки залишку — однакова ширина (орієнтир — перша, «Застосувати зміну»). */
+
 .stock-action-btn {
   box-sizing: border-box;
   width: 13rem;
@@ -489,7 +489,7 @@ app-cart {
   width: 100%;
 }
 
-/* Колір плашки — глобальні класи .app-promo-badge у styles.scss */
+
 
 .cart-page__unit-price-sale {
   color: var(--mat-sys-error);
@@ -499,7 +499,7 @@ app-cart {
   box-sizing: border-box;
 }
 
-/* Підсумки на всю ширину картки; симетричні відступи. */
+
 .cart-page__price-summary {
   padding-block: 0.875rem;
   padding-inline: 1rem;
@@ -526,7 +526,7 @@ app-comparison {
   width: 100%;
 }
 
-/** Чергування фону рядків атрибутів за групою (таблиця порівняння). */
+
 .comparison-attr-stripe-a > td {
   background-color: color-mix(in srgb, var(--mat-sys-surface-container-high) 38%, transparent);
 }
@@ -547,7 +547,7 @@ app-comparison {
   line-height: 1.25rem;
 }
 
-/** Рядок кнопок фільтра може переноситись без обрізання. */
+
 .comparison-attr-filter {
   flex-wrap: wrap;
 }
@@ -635,7 +635,7 @@ app-home-brand-strip {
 .carousel-frame {
   width: 100%;
   aspect-ratio: 21 / 9;
-  /* Якщо зображення не підвантажились або aspect-ratio не застосувався — блок не зникає по висоті */
+  
   min-height: clamp(10rem, 30vw, calc(1330px * 9 / 21));
 }
 
@@ -673,7 +673,7 @@ app-home-brand-strip {
   hyphens: auto;
   color: #fff;
   font-size: clamp(2.125rem, 7vw, 4rem);
-  /* Читабельність на фото: м’які тіні замість text-stroke */
+  
   text-shadow:
     0 1px 2px rgb(0 0 0 / 0.95),
     0 2px 6px rgb(0 0 0 / 0.65),
@@ -843,7 +843,7 @@ app-product-card {
   max-width: 100%;
 }
 
-/* Як іконки в адмінці: легкий підйом і тінь при наведенні */
+
 .product-card--interactive {
   transition:
     transform 0.2s cubic-bezier(0.2, 0, 0, 1),
@@ -928,14 +928,14 @@ app-product-card {
   pointer-events: none;
 }
 
-/* Квадратна зона зображення; трохи вище за старий 4:3 за рахунок квадрата в сітці */
+
 .product-card__media {
   aspect-ratio: 1 / 1;
   max-width: 100%;
   min-height: 0;
 }
 
-/* Вертикальна прокрутка лише коли контент вищий за видиму ширину блоку (портретні фото тощо) */
+
 .product-card__media-scroll {
   box-sizing: border-box;
   width: 100%;
@@ -961,7 +961,7 @@ app-product-card {
   vertical-align: middle;
 }
 
-/* Рейтинг: достатньо висоти й міжзіркового інтервалу */
+
 .product-card__rating {
   min-height: 2.125rem;
   padding-top: 4px;
@@ -1038,7 +1038,7 @@ app-product-detail-tabs {
   gap: 0.75rem;
 }
 
-/* Quick view на вузькому екрані: квадратне фото */
+
 @media (max-width: 767.98px) {
   .product-detail-tabs--dialog .product-detail-tabs__media-outer.product-detail-tabs__media--square {
     width: min(100%, 280px);
@@ -1109,7 +1109,7 @@ app-product-detail-tabs {
   min-width: 0;
 }
 
-/* Для сторінки конкретного товару: медіа-картка щонайменше квадратна. */
+
 .product-detail-tabs__root--square-media .product-detail-tabs__media-outer {
   aspect-ratio: 1 / 1;
 }
@@ -1440,7 +1440,7 @@ app-product-detail-tabs {
   margin-bottom: 0.15rem;
 }
 
-/* Список відгуків не розтягує картку/сторінку — прокрутка всередині блоку. */
+
 .product-detail-tabs__reviews-list-scroll {
   max-height: min(62vh, 36rem);
   overflow-y: auto;
@@ -1522,7 +1522,7 @@ app-product-page {
   display: block;
 }
 
-/* Мінімальна висота зовнішньої картки: не менше половини її ширини. */
+
 .product-page__card {
   aspect-ratio: 2 / 1;
 }
@@ -1557,7 +1557,7 @@ app-product-page {
   will-change: transform;
 }
 
-/* Картка трохи збільшується при наведенні (ручна прокрутка / кнопки без автопрокрутки). */
+
 .product-rec-carousel__item {
   position: relative;
   transition: transform 0.28s ease;

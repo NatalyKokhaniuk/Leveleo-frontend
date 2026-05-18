@@ -37,7 +37,7 @@ export class NovaPoshtaService {
   private readonly defaultSearchLimit = 20;
   /** Захист від нескінченного циклу, якщо `hasMore` некоректний. */
   private readonly maxSettlementPages = 500;
-  /** Кеш повного довідника в межах сесії (щоб не тягнути тисячі записів при кожному відкритті форми). */
+  
   private fullSettlementsCache: NpSettlementOptionDto[] | null = null;
 
   /**
@@ -116,7 +116,7 @@ export class NovaPoshtaService {
     );
   }
 
-  /** Скидання кешу довідника (наприклад після виходу з облікового запису). */
+  
   clearSettlementsDirectoryCache(): void {
     this.fullSettlementsCache = null;
   }

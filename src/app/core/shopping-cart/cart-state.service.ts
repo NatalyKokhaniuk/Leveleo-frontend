@@ -18,7 +18,7 @@ export class CartStateService {
   /** Для реактивних computed у компонентах (кількість по productId). */
   readonly quantities = this._qtyByProduct.asReadonly();
 
-  /** Сума кількостей позицій (для бейджа в хедері). */
+  
   readonly totalUnits = computed(() => {
     let n = 0;
     for (const q of this._qtyByProduct().values()) {
@@ -27,7 +27,7 @@ export class CartStateService {
     return n;
   });
 
-  /** Кількість позиції в кошику (0 — немає). */
+  
   quantityFor(productId: string): number {
     return this._qtyByProduct().get(productId) ?? 0;
   }

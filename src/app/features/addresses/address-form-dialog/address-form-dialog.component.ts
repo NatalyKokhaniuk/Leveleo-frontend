@@ -50,7 +50,6 @@ import {
   DeliveryType,
 } from '../address.types';
 
-/** Дані отримувача зі сторінки оформлення (контактна форма), коли поля ПІБ/телефон приховані в діалозі. */
 export interface AddressRecipientSnapshot {
   firstName: string;
   lastName: string;
@@ -59,7 +58,7 @@ export interface AddressRecipientSnapshot {
 }
 
 export interface AddressFormDialogData {
-  /** Якщо задано — режим редагування. */
+  
   address?: AddressResponseDto | null;
   /**
    * Лише місто / відділення / вулиця тощо — без ПІБ, телефону та вибору типу доставки в модалці.
@@ -109,9 +108,9 @@ export class AddressFormDialogComponent implements OnInit {
    * Порожній `find` на `/settlements` на бекенді часто не повертає дані — покладаємось на search.
    */
   settlementSearchResults = signal<NpSettlementOptionDto[]>([]);
-  /** Текст у полі — миттєве оновлення для клієнтського фільтра. */
+  
   citySearchText = signal('');
-  /** Щоб не показувати тисячі пунктів до першого фокусу на полі. */
+  
   cityFieldEverFocused = signal(false);
   /**
    * Список для автокомпліту: результати вже відфільтровані бекендом по `query` —
@@ -158,12 +157,12 @@ export class AddressFormDialogComponent implements OnInit {
   private lastPickedWarehouse: NpWarehouseDto | null = null;
   private lastPickedPostomat: NpWarehouseDto | null = null;
 
-  /** mat-select інколи дає рядок — порівнюємо через число. */
+  
   isDeliveryType(dt: DeliveryType): boolean {
     return Number(this.form.get('deliveryType')?.value) === dt;
   }
 
-  /** Приховати ПІБ, телефон і тип доставки в модалці (оформлення замовлення). */
+  
   get addressFieldsOnly(): boolean {
     return this.data.addressFieldsOnly === true;
   }
@@ -350,7 +349,7 @@ export class AddressFormDialogComponent implements OnInit {
     this.applyTypeValidators();
   }
 
-  /** Клік / фокус на «Населений пункт» — відкрити повний довідник (з кешу або з бекенду). */
+  
   onCityFieldActivate(): void {
     this.cityFieldEverFocused.set(true);
     const t = this.citySearchText().trim();
@@ -406,7 +405,7 @@ export class AddressFormDialogComponent implements OnInit {
         }
       },
       error: () => {
-        /* ігноруємо — форма лишається з полями з профілю */
+        
       },
     });
   }

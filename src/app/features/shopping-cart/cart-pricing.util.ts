@@ -4,7 +4,6 @@ import type { ProductResponseDto } from '../products/product.types';
 /** Порівняння цін (копійки / float з API). */
 const PRICE_EPS = 0.01;
 
-/** Кількість у рядку (відображення). */
 export function cartItemQuantityInCart(it: ShoppingCartItemDto): number {
   return Math.max(0, Number(it.quantity) || 0);
 }
@@ -23,7 +22,7 @@ export function quantityApplyingToTotalsForItem(it: ShoppingCartItemDto): number
 
 /** Агрегати з рядків кошика (коректніше, ніж лише totalProductDiscount з DTO). */
 export interface CartPricingFromItems {
-  /** Σ (каталожна ціна × кількість) — «вітринна» сума без товарних знижок. */
+  
   totalCatalogList: number;
   /** Σ ((product.price − priceAfterProductPromotion) × qty). */
   totalProductDiscount: number;
@@ -51,7 +50,7 @@ export function resolveCartLineUnitPrices(
   const disc = product?.discountedPrice;
 
   if (catalog > 0) {
-    /** Не опускаємо «повну» ціну за рядок нижче каталожного прайсу товару — для знижок і Σ по рядках. */
+    
     unitListPrice = Math.max(unitListPrice, catalog);
   }
 

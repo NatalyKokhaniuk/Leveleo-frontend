@@ -64,7 +64,7 @@ export class OrderDetailPage implements OnInit, OnDestroy {
   /** Стан відгуку по orderItemId для кнопок «Залишити / Показати відгук». */
   itemReviewUi = signal<Record<string, OrderItemReviewUi>>({});
 
-  /** Очікування входу через шапку (без модального вікна). */
+  
   private authWaitSub: Subscription | null = null;
   private isAuthenticated$ = toObservable(this.auth.isAuthenticated);
   loading = signal(true);
@@ -72,7 +72,7 @@ export class OrderDetailPage implements OnInit, OnDestroy {
   missingId = signal(false);
   order = signal<OrderDetailDto | null>(null);
 
-  /** Користувач закрив вікно входу без успішного логіну. */
+  
   loginCancelled = signal(false);
 
   /** Маршрут `/order-success` — показуємо банер про успішну оплату. */
@@ -115,14 +115,14 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     this.fetchOrder(id);
   }
 
-  /** Показати знову підказку про вхід (як у кошику). */
+  
   openLoginAgain(): void {
     this.loginCancelled.set(false);
     this.loadError.set(false);
     this.waitForAuthThenLoadOrder();
   }
 
-  /** Закрити підказку без входу (залишається текст «пізніше»). */
+  
   dismissGuestOrderHint(): void {
     this.authWaitSub?.unsubscribe();
     this.authWaitSub = null;
@@ -252,7 +252,7 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     return orderLineCatalogHintKey(resolveOrderLineCatalogState(item.productSnapshot));
   }
 
-  /** Посилання на публічну картку — лише для активного товару в каталозі з slug. */
+  
   lineProductPublicLinkSegments(item: OrderItemDto): string[] | null {
     const st = resolveOrderLineCatalogState(item.productSnapshot);
     if (isMissingFromDatabaseState(st) || isArchivedFromSaleState(st)) return null;
@@ -265,7 +265,7 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     return `https://novaposhta.ua/tracking/${encodeURIComponent(trackingNumber.trim())}`;
   }
 
-  /** Відгук по рядку замовлення — після відправлення або завершення. */
+  
   orderEligibleForItemReview(o: OrderDetailDto): boolean {
     const s = (o.status ?? '').trim().toLowerCase();
     return s === 'shipped' || s === 'completed';

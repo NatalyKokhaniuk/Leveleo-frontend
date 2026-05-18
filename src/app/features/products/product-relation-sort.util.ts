@@ -1,9 +1,6 @@
 import type { ProductResponseDto } from './product.types';
 
-/**
- * Сервер уже прибирає видалені товари; порядок — за датою додавання (нові вище).
- * Поля опційні — якщо бекенд не шле їх, лишаємо порядок відповіді.
- */
+
 export function sortProductsByFavoriteAddedAtDesc(items: ProductResponseDto[]): ProductResponseDto[] {
   return [...items].sort(sortByFavoriteKey);
 }

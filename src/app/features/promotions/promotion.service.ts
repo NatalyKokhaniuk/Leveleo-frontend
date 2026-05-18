@@ -17,7 +17,7 @@ export class PromotionService {
   private api = inject(ApiService);
   private base = '/promotions';
 
-  /** Повний список акцій (адмінка). */
+  
   getAll(): Observable<PromotionResponseDto[]> {
     return this.api.get<PromotionResponseDto[]>(this.base);
   }

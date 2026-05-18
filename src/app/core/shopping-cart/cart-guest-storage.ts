@@ -47,7 +47,7 @@ export function writeGuestCart(lines: GuestCartLine[]): void {
       .filter((l) => l.productId && l.quantity > 0);
     localStorage.setItem(GUEST_CART_STORAGE_KEY, JSON.stringify(normalized));
   } catch {
-    /* ignore */
+    
   }
 }
 
@@ -55,7 +55,7 @@ export function clearGuestCartStorage(): void {
   try {
     localStorage.removeItem(GUEST_CART_STORAGE_KEY);
   } catch {
-    /* ignore */
+    
   }
 }
 

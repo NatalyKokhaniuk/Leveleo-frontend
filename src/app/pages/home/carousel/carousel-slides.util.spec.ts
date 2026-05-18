@@ -1,10 +1,10 @@
 import { PromotionLevel, PromotionResponseDto } from '../../../features/promotions/promotion.types';
+import type { HomeCarouselSlide } from './carousel';
 import {
-  HomeCarouselSlide,
   isCarouselEligiblePromotion,
   mergeCategoryAndPromotionCarouselSlides,
   pickPromotionsForCarousel,
-} from './carousel';
+} from './carousel-slides.util';
 
 type PromoSlide = Extract<HomeCarouselSlide, { kind: 'promotion' }>;
 
@@ -32,7 +32,7 @@ describe('carousel slide selection', () => {
     const list = ['a', 'b', 'c', 'd'].map((id) => promo(id));
     const picked = pickPromotionsForCarousel(list, 'uk');
     expect(picked.length).toBe(4);
-    expect(picked.map((p) => p.id)).toEqual(['a', 'b', 'c', 'd']);
+    expect(picked.map((p: PromotionResponseDto) => p.id)).toEqual(['a', 'b', 'c', 'd']);
   });
 
   it('limits to 6 promotions when more are eligible', () => {
@@ -48,7 +48,7 @@ describe('carousel slide selection', () => {
       { ...promo('personal'), isPersonal: true },
     ];
     const picked = pickPromotionsForCarousel(list, 'uk');
-    expect(picked.map((p) => p.id)).toEqual(['ok']);
+    expect(picked.map((p: PromotionResponseDto) => p.id)).toEqual(['ok']);
   });
 
   it('places all promotion slides before categories', () => {

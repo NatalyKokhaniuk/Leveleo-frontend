@@ -22,7 +22,7 @@ function buildTestTranslations(): TranslationObject {
 
 const TEST_TRANSLATIONS = buildTestTranslations();
 
-/** Мінімальні переклади для unit-тестів компонентів. */
+
 export class TranslateTestLoader implements TranslateLoader {
   getTranslation(_lang: string): Observable<TranslationObject> {
     return of(TEST_TRANSLATIONS);

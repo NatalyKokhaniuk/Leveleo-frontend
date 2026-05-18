@@ -102,14 +102,12 @@ export class ReviewService {
     return this.http.post<ReviewDto>(`${this.base}/${encodeURIComponent(id)}/reject`, {});
   }
 
-  /** Публічні схвалені відгуки для товару. */
   getProductReviews(productId: string, page = 1, pageSize = 50) {
     return this.http.get<ProductReviewsDto>(
       `${this.base}/product/${encodeURIComponent(productId)}?page=${encodeURIComponent(String(page))}&pageSize=${encodeURIComponent(String(pageSize))}`,
     );
   }
 
-  /** Усі відгуки товару для адмінки (включно не схвалені). */
   getAdminProductReviews(productId: string, page = 1, pageSize = 50) {
     return this.http.get<ProductReviewsDto>(
       `${this.base}/admin/product/${encodeURIComponent(productId)}?page=${encodeURIComponent(String(page))}&pageSize=${encodeURIComponent(String(pageSize))}`,

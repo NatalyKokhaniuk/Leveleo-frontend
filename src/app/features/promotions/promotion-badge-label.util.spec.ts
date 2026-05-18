@@ -37,7 +37,7 @@ describe('promotion-badge-label.util', () => {
   describe('formatAppliedPromotionBadgeLabel', () => {
     it('formats localized name with percent', () => {
       const text = formatAppliedPromotionBadgeLabel(promo(), 'en');
-      expect(text).toBe('Summer: 10%');
+      expect(text).toBe('Summer : - 10%');
     });
 
     it('formats fixed amount with hryvnia', () => {
@@ -45,7 +45,7 @@ describe('promotion-badge-label.util', () => {
         promo({ discountType: DiscountType.FixedAmount, discountValue: 50 }),
         'uk',
       );
-      expect(text).toContain('Літо:');
+      expect(text).toContain('Літо : -');
       expect(text).toContain('₴');
     });
 
@@ -110,13 +110,13 @@ describe('promotion-badge-label.util', () => {
         },
         'en',
       );
-      expect(chip).toBe('Cart deal: 5%');
+      expect(chip).toBe('Cart deal : - 5%');
     });
   });
 
   describe('formatPromotionDiscountSuffix', () => {
     it('infers fixed amount for large values without type', () => {
-      expect(formatPromotionDiscountSuffix(null, 150, 'uk')).toContain('₴');
+      expect(formatPromotionDiscountSuffix(null, 150)).toContain('₴');
     });
   });
 });

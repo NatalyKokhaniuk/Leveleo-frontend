@@ -96,7 +96,7 @@ export interface ChangePasswordRequest {
   newPassword: string;
 }
 
-// Social
+
 export interface SocialLoginRequest {
   provider: 'google' | 'facebook';
   accessToken: string;
@@ -110,7 +110,7 @@ export interface SocialRedirectResponse {
   redirectUrl: string;
 }
 
-// ─── User profile update ──────────────────────────────────────────
+
 
 export interface UpdateMyProfileRequest {
   firstName?: string | null;
@@ -120,7 +120,7 @@ export interface UpdateMyProfileRequest {
   language?: string | null;
 }
 
-// ─── Media ───────────────────────────────────────────────────────
+
 
 export interface MediaUploadResponse {
   fileName: string;

@@ -84,7 +84,7 @@ export class AdminProductDetailComponent implements OnInit, OnDestroy {
   videos = signal<ProductVideoDto[]>([]);
   attributeValues = signal<ProductAttributeValueResponseDto[]>([]);
 
-  /** Атрибути каталогу, які ще не додані до поточного товару (для діалогу «Додати значення»). */
+  
   attributesAvailableForAdd = computed((): ProductAttributeResponseDto[] => {
     const used = new Set(this.attributeValues().map((v) => v.productAttributeId));
     return this.allAttributes().filter((a) => !used.has(a.id));

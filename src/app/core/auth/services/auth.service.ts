@@ -67,9 +67,11 @@ export class AuthService {
   }
 
   isModerator = computed(() => this.hasRoleInsensitive('Moderator'));
-  // ─── Відновлення сесії ───────────────────────────────────────────
+  
+
   // Повертає Observable — використовується в APP_INITIALIZER щоб
-  // Angular чекав завершення перед першим рендером.
+  
+
   // В AuthService
   restoreSession(): Observable<RefreshResponse | null> {
     if (!isPlatformBrowser(this.platformId)) {
@@ -99,7 +101,7 @@ export class AuthService {
       }),
     );
   }
-  // ─── Основні методи автентифікації ───────────────────────────────
+  
 
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.api.post<AuthResponse>('/auth/login', credentials).pipe(
@@ -180,7 +182,7 @@ export class AuthService {
     return this.api.post('/auth/logout/all', {}).pipe(tap(() => this._clearAuthState()));
   }
 
-  // ─── 2FA ─────────────────────────────────────────────────────────
+  
 
   initiateTwoFactor(req: TwoFactorInitiateRequest): Observable<TwoFactorInitiateResponse> {
     return this.api.post<TwoFactorInitiateResponse>('/auth/2fa/initiate', req);
@@ -206,7 +208,7 @@ export class AuthService {
       .pipe(tap((res) => this.handleSuccessfulAuth(res)));
   }
 
-  // ─── Password ────────────────────────────────────────────────────
+  
 
   requestPasswordReset(req: RequestPasswordResetRequest): Observable<void> {
     return this.api.post<void>('/auth/password-reset/request', req);
@@ -220,7 +222,7 @@ export class AuthService {
     return this.api.post<void>('/auth/password/change', req);
   }
 
-  // ─── Account ─────────────────────────────────────────────────────
+  
 
   deleteAccount(): Observable<{ message: string }> {
     return this.api
@@ -228,7 +230,7 @@ export class AuthService {
       .pipe(tap(() => this._clearAuthState()));
   }
 
-  // ─── Social ──────────────────────────────────────────────────────
+  
 
   loginWithGoogle(req: SocialLoginRequest): Observable<SocialRedirectResponse> {
     return this.api.post<SocialRedirectResponse>('/auth/social/google', req);
@@ -244,8 +246,9 @@ export class AuthService {
       .pipe(tap((res) => this.handleSuccessfulAuth(res)));
   }
 
-  // ─── Helpers ─────────────────────────────────────────────────────
-  /** Оновлює дані поточного користувача після редагування профілю */
+  
+
+  
   updateCurrentUser(user: UserResponse): void {
     this._currentUser.set(user);
   }

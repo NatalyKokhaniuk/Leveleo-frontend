@@ -23,9 +23,7 @@ export class MediaService {
     });
   }
 
-  /**
-   * Видаляє файл з S3 за ключем.
-   */
+  
   delete(key: string): Observable<{ success: boolean }> {
     return this.http.delete<{ success: boolean }>(
       `${this.base}/${encodeURIComponent(key)}`,

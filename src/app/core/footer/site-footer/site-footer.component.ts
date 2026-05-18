@@ -46,7 +46,7 @@ export class SiteFooterComponent implements OnInit {
   private themeService = inject(ThemeService);
   translate = inject(TranslateService);
 
-  /** Як у хедері: світла/темна тема → відповідний логотип. */
+  
   currentTheme = this.themeService.theme;
 
   year = new Date().getFullYear();
@@ -56,7 +56,7 @@ export class SiteFooterComponent implements OnInit {
     email: ['', [Validators.required, Validators.email]],
   });
 
-  /** Мовний ключ для перерахунку підписів каталогу. */
+  
   private lang = signal(this.translate.currentLang || 'uk');
 
   /** Кореневі активні категорії з API. */

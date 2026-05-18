@@ -21,14 +21,16 @@ export const adminGuard: CanActivateFn = async (route, state) => {
     );
   }
 
-  // Якщо немає токена, спробуємо відновити
+  
+
   if (!auth.accessToken()) {
     try {
       await firstValueFrom(auth.restoreSession());
     } catch {}
   }
 
-  // Перевірка ролі Admin
+  
+
   if (auth.hasRole('Admin')) return true;
   return false;
 };

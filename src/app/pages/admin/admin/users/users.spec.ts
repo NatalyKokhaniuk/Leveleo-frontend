@@ -1,23 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { configureComponentTestBed } from '../../../../testing/component-test-bed';
+import { UsersComponent } from './users';
 
-import { Users } from './users';
-
-describe('Users', () => {
-  let component: Users;
-  let fixture: ComponentFixture<Users>;
+describe('UsersComponent', () => {
+  let component: UsersComponent;
+  let fixture: ComponentFixture<UsersComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [Users]
-    })
-    .compileComponents();
-
-    fixture = TestBed.createComponent(Users);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+    await configureComponentTestBed(UsersComponent);
   });
 
   it('should create', () => {
+    fixture = TestBed.createComponent(UsersComponent);
+    component = fixture.componentInstance;
     expect(component).toBeTruthy();
   });
 });

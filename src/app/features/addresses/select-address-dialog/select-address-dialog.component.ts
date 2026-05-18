@@ -26,11 +26,11 @@ import {
 } from '../address.types';
 
 export interface SelectAddressDialogData {
-  /** Поточна адреса кошика (підсвітити в списку). */
+  
   selectedId?: string | null;
   /** Id з localStorage — основна адреса; якщо підходить під fixedDeliveryType, обирається автоматично. */
   preferredDefaultId?: string | null;
-  /** Режим оформлення замовлення: у формі адреси лише НП-поля. */
+  
   addressFieldsOnly?: boolean;
   fixedDeliveryType?: DeliveryType;
   recipientFromCheckout?: AddressRecipientSnapshot;
@@ -67,9 +67,9 @@ export class SelectAddressDialogComponent implements OnInit {
   addresses = signal<AddressResponseDto[]>([]);
   searchText = signal('');
   pickedId = signal<string | null>(this.data.selectedId ?? null);
-  /** Для іконки «основна» після зміни без перезавантаження діалогу. */
+  
   preferredIdUi = signal<string | null>(null);
-  /** Коротка анімація рядка після «зробити за замовчуванням». */
+  
   highlightDefaultId = signal<string | null>(null);
 
   /**
@@ -103,7 +103,7 @@ export class SelectAddressDialogComponent implements OnInit {
     return reorderAddressListPreferredFirst(narrowed, this.preferredIdUi());
   });
 
-  /** Підказка, коли список порожній після фільтрації та пошуку. */
+  
   listEmptyHint = computed((): 'search' | 'delivery' | 'profile-empty' | null => {
     if (this.filtered().length > 0) {
       return null;
@@ -113,11 +113,11 @@ export class SelectAddressDialogComponent implements OnInit {
     const allCount = this.addresses().length;
     const fixed = this.data.fixedDeliveryType;
 
-    /* Спочатку: для обраного типу доставки немає жодної збереженої адреси */
+    
     if (fixed !== undefined && fixed !== null && matchCount === 0 && allCount > 0) {
       return 'delivery';
     }
-    /* Є адреси потрібного типу, але пошук нічого не знайшов */
+    
     if (q && matchCount > 0) {
       return 'search';
     }
@@ -198,7 +198,7 @@ export class SelectAddressDialogComponent implements OnInit {
       if (updated) {
         this.addresses.update((prev) => prev.map((x) => (x.id === updated.id ? updated : x)));
         if (this.pickedId() === updated.id) {
-          /* ok */
+          
         }
       }
     });

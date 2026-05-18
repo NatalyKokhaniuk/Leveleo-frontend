@@ -1,7 +1,7 @@
 /** Відповідає SubscribeNewsletterDto на бекенді. */
 export interface SubscribeNewsletterDto {
   email: string;
-  /** Напр. homepage, footer, popup */
+  
   source?: string;
 }
 

@@ -41,8 +41,10 @@ export class UserMenuComponent {
   // deleteAccount() {
   //   if (confirm('Ви впевнені? Це незворотна дія.')) {
   //     this.auth.deleteAccount().subscribe(() => this.router.navigate(['/']));
-  //   }
-  // }
+  
+
+  
+
   goToProfile() {
     this.router.navigate(['/profile']);
   }

@@ -72,7 +72,7 @@ export class AdminTasksComponent {
   loading = signal(true);
   items = signal<AdminTaskResponseDto[]>([]);
   totalCount = signal(0);
-  /** Кеш id користувача → відображуване ім'я */
+  
   assigneeNames = signal<Record<string, string>>({});
 
   page = signal(1);

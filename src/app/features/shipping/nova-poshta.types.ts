@@ -55,7 +55,7 @@ export interface NpWarehouseDto {
   name?: string | null;
   description?: string | null;
   shortAddress?: string | null;
-  /** Номер відділення / поштомату з НП. */
+  
   number?: string | null;
   typeOfWarehouse?: string | null;
   typeOfWarehouseRef?: string | null;

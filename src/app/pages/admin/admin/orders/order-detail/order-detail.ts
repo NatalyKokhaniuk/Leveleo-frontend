@@ -207,7 +207,7 @@ export class AdminOrderDetailComponent implements OnInit {
     return ['/products', slug];
   }
 
-  /** Для архівних/існуючих рядків — адмін-товар за id рядка. */
+  
   lineProductAdminLinkSegments(item: OrderItemDto): string[] | null {
     if (isMissingFromDatabaseState(resolveOrderLineCatalogState(item.productSnapshot))) {
       return null;

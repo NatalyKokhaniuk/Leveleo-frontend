@@ -26,7 +26,7 @@ export class DocumentTitleService {
     queueMicrotask(() => this.applyFromRoute());
   }
 
-  /** Динамічна назва сторінки (товар, список з заголовком тощо). */
+  
   setLeveleoPage(pageName: string): void {
     const name = pageName?.trim();
     if (!name) {

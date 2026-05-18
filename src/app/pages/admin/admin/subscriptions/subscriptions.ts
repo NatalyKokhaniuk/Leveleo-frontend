@@ -52,7 +52,7 @@ export class AdminSubscriptionsComponent {
   page = signal(1);
   readonly pageSize = 15;
 
-  /** Стовпець «Дії» лише для Admin. */
+  
   displayedColumns = computed(() => {
     const base: string[] = ['email', 'fullName', 'subscribedAt', 'source', 'hasAccount'];
     return this.auth.isAdmin() ? [...base, 'actions'] : base;

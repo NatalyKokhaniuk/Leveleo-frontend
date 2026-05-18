@@ -56,7 +56,7 @@ export class ProductQuickViewDialogComponent implements OnInit {
     return productLocalizedName(this.data.product, this.lang());
   }
 
-  /** Заголовок у діалозі: публічне посилання лише якщо товар можна купити з вітрини. */
+  
   titlePublicSegments(): string[] | null {
     const p = this.data.product;
     if (!p?.slug?.trim() || isCatalogPurchaseBlocked(p)) return null;

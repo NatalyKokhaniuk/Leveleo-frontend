@@ -24,7 +24,7 @@ export function writeFavoriteIds(ids: Set<string>): void {
   try {
     localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify([...ids]));
   } catch {
-    /* ignore */
+    
   }
 }
 

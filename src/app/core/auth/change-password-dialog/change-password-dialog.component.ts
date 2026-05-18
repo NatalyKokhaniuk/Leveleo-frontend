@@ -69,7 +69,8 @@ export class ChangePasswordDialogComponent {
     return this.form.get('newPassword')?.touched ?? false;
   }
   constructor() {
-    // Clear error when user starts typing again
+    
+
     this.form.valueChanges.subscribe(() => this.error.set(null));
   }
 
@@ -88,7 +89,8 @@ export class ChangePasswordDialogComponent {
         // BUG FIX: show error INSIDE dialog, do NOT close - user may want to retry
         this.error.set(err.error?.errorCode || 'CHANGE_PASSWORD_FAILED');
         this.isLoading.set(false);
-        // Dialog stays open with error message visible
+        
+
         // Only close with 'error' if the error is unrecoverable (e.g. token expired)
         const unrecoverable = ['UNAUTHORIZED', 'INVALID_REFRESH_TOKEN', 'REFRESH_TOKEN_EXPIRED'];
         if (unrecoverable.includes(err.error?.errorCode)) {

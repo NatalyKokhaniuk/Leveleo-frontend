@@ -67,7 +67,8 @@ export class ProfileComponent {
   currentUser = this.auth.currentUser;
   isAdmin = this.auth.isAdmin;
 
-  // Computed допоміжні сигнали
+  
+
   fullName = computed(() => {
     const u = this.currentUser();
     if (!u) return '';
@@ -82,12 +83,14 @@ export class ProfileComponent {
     return (first + last).toUpperCase() || u.email[0].toUpperCase();
   });
 
-  // Стан
+  
+
   isSaving = signal(false);
   isUploadingAvatar = signal(false);
   saveError = signal<string | null>(null);
 
-  // Форма профілю
+  
+
   form = this.fb.group({
     firstName: [this.currentUser()?.firstName ?? ''],
     lastName: [this.currentUser()?.lastName ?? ''],
@@ -106,10 +109,10 @@ export class ProfileComponent {
   addressesError = signal<string | null>(null);
   /** Відображення «основна» (localStorage + POST .../default). */
   preferredAddressId = signal<string | null>(this.addressPreference.getPreferredId());
-  /** Анімація після «зробити за замовчуванням». */
+  
   defaultHighlightId = signal<string | null>(null);
 
-  /** Основна адреса — зверху списку. */
+  
   sortedAddresses = computed(() =>
     reorderAddressListPreferredFirst(this.addresses(), this.preferredAddressId()),
   );
@@ -266,7 +269,7 @@ export class ProfileComponent {
     return typeof t === 'number' && !Number.isNaN(t) ? t : null;
   }
 
-  // ── Аватар ───────────────────────────────────────────────────────
+  
 
   onAvatarClick(): void {
     document.getElementById('avatar-input')?.click();
@@ -319,7 +322,7 @@ export class ProfileComponent {
     });
   }
 
-  // ── Профіль ──────────────────────────────────────────────────────
+  
 
   onSave(): void {
     if (this.form.invalid) return;
@@ -350,7 +353,7 @@ export class ProfileComponent {
       });
   }
 
-  // ── Безпека ──────────────────────────────────────────────────────
+  
 
   changePassword(): void {
     this.authHandler.openChangePassword();
@@ -364,7 +367,7 @@ export class ProfileComponent {
     this.authHandler.openTwoFactorManage();
   }
 
-  // ── Небезпечна зона ─────────────────────────────────────────────
+  
 
   deleteAccount(): void {
     this.auth.deleteAccount().subscribe({

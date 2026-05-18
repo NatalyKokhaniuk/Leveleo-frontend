@@ -86,7 +86,7 @@ function parseDatetimeLocalInput(value: unknown): Date | null {
   return Number.isNaN(dt.getTime()) ? null : dt;
 }
 
-/** Лише однаковий момент часу — невалідно; різний порядок у полях виправляється при відправці. */
+
 function datesEqualValidator(group: AbstractControl): ValidationErrors | null {
   const start = group.get('startDate')?.value;
   const end = group.get('endDate')?.value;
@@ -348,7 +348,8 @@ export class PromotionFormDialogComponent implements OnInit, OnDestroy {
     this.form.patchValue({
       nameEn: enName,
       descriptionEn: enDescription,
-      // Якщо uk-перекладу ще немає, підставляємо en, щоб форма залишалась валідною.
+      
+
       nameUk: uk?.name ?? enName,
       descriptionUk: uk?.description ?? enDescription,
       imageKey: p.imageKey ?? '',

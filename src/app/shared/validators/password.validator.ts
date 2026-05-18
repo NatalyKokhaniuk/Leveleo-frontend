@@ -21,7 +21,8 @@ export function getPasswordStrength(password: string): PasswordStrengthResult {
 export function strongPasswordValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {
     const value: string = control.value ?? '';
-    if (!value) return null; // required validator handles empty
+    if (!value) return null; 
+
 
     const s = getPasswordStrength(value);
     const errors: ValidationErrors = {};

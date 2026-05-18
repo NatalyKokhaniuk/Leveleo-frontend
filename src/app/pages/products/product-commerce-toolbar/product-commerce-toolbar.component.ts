@@ -16,9 +16,9 @@ import { CartStateService } from '../../../core/shopping-cart/cart-state.service
 export class ProductCommerceToolbarComponent {
   productId = input.required<string>();
   maxQuantity = input<number | null>(null);
-  /** Приховати кнопку порівняння (наприклад у кошику). */
+  
   hideCompare = input(false);
-  /** Знято з продажу / нема в каталозі — не додавати й не збільшувати кількість (зменшити/прибрати з кошика можна). */
+  
   purchaseBlocked = input(false);
 
   private auth = inject(AuthService);
@@ -27,9 +27,7 @@ export class ProductCommerceToolbarComponent {
 
   busy = false;
 
-  /**
-   * Інлайн-підказка для гостя (як на сторінці кошика), без модального вікна.
-   */
+  
   guestHint = signal<'none' | 'compare' | 'purchase'>('none');
 
   constructor() {
@@ -40,7 +38,7 @@ export class ProductCommerceToolbarComponent {
     });
   }
 
-  /** Реактивно від оновлень кошика на сервері. */
+  
   qty = computed(() => this.cart.quantities().get(this.productId()) ?? 0);
   inComparison = computed(() => this.comparison.comparisonIds().has(this.productId()));
   canIncrease = computed(() => {

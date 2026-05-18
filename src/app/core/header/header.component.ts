@@ -58,7 +58,7 @@ export class HeaderComponent {
   private cartState = inject(CartStateService);
   private snackBar = inject(MatSnackBar);
 
-  /** Сума кількостей у кошику — для бейджа. */
+  
   cartItemsCount = this.cartState.totalUnits;
   private elementRef = inject(ElementRef);
   private platformId = inject(PLATFORM_ID);
@@ -68,7 +68,8 @@ export class HeaderComponent {
   // ── Локальний computed сигнал — Angular гарантовано відстежить зміни ──
   // Пряме звернення до authService.isAuthenticated() у шаблоні може не
   // спрацювати коли значення приходить асинхронно (tryRestoreSession).
-  // Computed у самому компоненті вирішує це.
+  
+
   isAuthenticated = this.authService.isAuthenticated;
   currentUser = this.authService.currentUser;
 

@@ -50,7 +50,7 @@ type ProductMediaItem = {
   key: string;
 };
 
-/** Фото зліва, таби справа: деталі / відгуки. */
+
 @Component({
   selector: 'app-product-detail-tabs',
   standalone: true,
@@ -79,28 +79,28 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   private translate = inject(TranslateService);
 
   @Input({ required: true }) product!: ProductResponseDto;
-  /** У вузькому діалозі — трохи компактніша сітка. */
+  
   @Input() compact = false;
-  /** Квадратний quick view: заповнення висоти, прокрутка лише в тілі табів. */
+  
   @Input() dialogLayout = false;
-  /** Назва показується в заголовку діалогу — прибрати дубль у вкладці «Деталі». */
+  
   @Input() hideTitleInDetailsTab = false;
-  /** Більший відступ між зірками рейтингу (наприклад, сторінка обраного). */
+  
   @Input() roomyRating = false;
-  /** Для компактних сценаріїв (наприклад, кошик) приховати опис. */
+  
   @Input() hideDescription = false;
-  /** Для компактних сценаріїв (наприклад, кошик) приховати атрибути. */
+  
   @Input() hideAttributes = false;
-  /** Для окремої сторінки товару: медіа-блок квадратний (висота не менша за ширину). */
+  
   @Input() forceSquareMedia = false;
-  /** Рядок замовлення: показати форму залишення відгуку у вкладці «Відгуки». */
+  
   @Input() orderItemId: string | null = null;
-  /** Відкрити вкладку відгуків (наприклад, у модалці з замовлення). */
+  
   @Input() openOnReviewsTab = false;
 
   private lang = signal(this.translate.currentLang || 'uk');
 
-  /** Індекс вкладки: 0 — деталі, 1 — відгуки. */
+  
   selectedTabIndex = signal(0);
 
   imageUrl = signal<string | null>(null);
@@ -114,7 +114,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   private readonly maxImageErrorRetries = 2;
   reviewsLoading = signal(false);
   reviews = signal<ProductReviewPublicDto[]>([]);
-  /** Фільтр списку відгуків за округленою оцінкою (зірками). */
+  
   publicReviewStarsFilter = signal<'' | '1' | '2' | '3' | '4' | '5'>('');
 
   filteredPublicReviews = computed(() => {
@@ -127,7 +127,7 @@ export class ProductDetailTabsComponent implements OnInit, OnChanges {
   attributeRows = signal<{ id: string; label: string; value: string }[]>([]);
   breadcrumbs = signal<{ label: string; slug: string }[]>([]);
   brandLabel = signal<string | null>(null);
-  /** Для посилання на каталог за брендом. */
+  
   brandSlug = signal<string | null>(null);
 
   ngOnInit(): void {

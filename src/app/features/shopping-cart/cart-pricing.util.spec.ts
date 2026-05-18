@@ -1,5 +1,5 @@
 import {
-  buildCartLineView,
+  buildCartLineViewDto,
   cartItemQuantityInCart,
   computePricingFromCartItems,
   quantityApplyingToTotalsForItem,
@@ -59,7 +59,7 @@ describe('cart-pricing.util', () => {
   });
 
   it('buildCartLineView exposes unit prices', () => {
-    const row = buildCartLineView(
+    const row = buildCartLineViewDto(
       { quantity: 1, price: 100, product: product() },
       product(),
     );

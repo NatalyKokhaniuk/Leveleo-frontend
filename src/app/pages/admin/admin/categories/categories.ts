@@ -61,7 +61,7 @@ export class CategoriesComponent {
     return m;
   });
 
-  /** Пошук по полях категорії та перекладах (як повнотекстовий на бекенді). */
+  
   filteredAndSortedCategories = computed(() => {
     const map = this.categoryById();
     const parentLabel = (parentId: string | null | undefined): string => {

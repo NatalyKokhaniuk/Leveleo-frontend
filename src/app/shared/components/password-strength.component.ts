@@ -69,7 +69,8 @@ export class PasswordStrengthComponent implements OnChanges {
   ];
 
   ngOnChanges(): void {
-    // Показуємо підказки щойно користувач почав вводити
+    
+
     if (this.password?.length > 0 || this.touched) {
       this.show.set(true);
     }

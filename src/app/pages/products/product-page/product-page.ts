@@ -85,7 +85,7 @@ export class ProductPage implements OnInit {
   readonly recGapPx = 16;
   readonly recMinCardPx = 200;
 
-  /** Скільки карток одночасно видно (цілі, без обрізання). */
+  
   recVisibleCount = signal(1);
 
   /** Ширина однієї картки в px (однакова для всіх у ряду). */
@@ -100,9 +100,7 @@ export class ProductPage implements OnInit {
     return n > 0 && n <= v;
   });
 
-  /**
-   * Потрібна безкінечна карусель (більше товарів, ніж видимих місць).
-   */
+  
   recCarouselMode = computed(() => {
     const n = this.recommendedProducts().length;
     const v = this.recVisibleCount();
@@ -114,7 +112,7 @@ export class ProductPage implements OnInit {
    */
   recPos = signal(0);
 
-  /** Без анімації при миттєвому стрибку петлі. */
+  
   recSkipTransition = signal(false);
 
   recTrackSlots = computed((): RecTrackSlot[] => {
@@ -320,10 +318,7 @@ export class ProductPage implements OnInit {
     );
   }
 
-  /**
-   * До 12 товарів: з кореневої категорії (якщо у каталозі таких >7 — 6 випадкових; інакше всі інші),
-   * решта з того ж бренду (випадково).
-   */
+  
   private loadYouMayAlsoLike(p: ProductResponseDto): void {
     this.recommendedProducts.set([]);
     this.categoriesApi

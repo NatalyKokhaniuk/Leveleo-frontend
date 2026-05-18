@@ -12,7 +12,8 @@ export const authGuard: CanActivateFn = async (route, state) => {
     return true;
   }
 
-  // Крок 1: Чекаємо, якщо йде відновлення сесії
+  
+
   if (auth.isRestoring()) {
     try {
       await firstValueFrom(
@@ -40,7 +41,8 @@ export const authGuard: CanActivateFn = async (route, state) => {
     } catch {}
   }
 
-  // Крок 3: Фінальна перевірка
+  
+
 
   if (auth.isAuthenticated()) {
     return true;

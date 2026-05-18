@@ -62,12 +62,12 @@ export class ProductCardComponent implements OnInit, OnChanges {
   @Input() isFavorite = false;
 
   favoriteToggled = output<void>();
-  /** Відкрити картку (модалка деталей) — не навігація. */
+  
   openDetail = output<void>();
 
   imageUrl = signal<string | null>(null);
   imageLoading = signal(false);
-  /** Локалізована назва бренду для картки. */
+  
   brandName = signal<string | null>(null);
   /** Slug для посилання `/products/brand/:slug`. */
   brandSlug = signal<string | null>(null);
@@ -323,7 +323,7 @@ export class ProductCardComponent implements OnInit, OnChanges {
     return Number(disc) < list - 0.01;
   }
 
-  /** Текст червоної плашки: лише локалізована назва акції. */
+  
   promotionNameBadge(): string | null {
     return productPromotionNameBadgeText(this.product, this.lang(), this.translate.instant('PRODUCTS.PROMO_BADGE_FALLBACK'), {
       hideCartLevel: true,

@@ -27,7 +27,7 @@ export interface ReviewDto {
     videoKey: string;
   }[];
 
-  /** Якщо бекенд додає статус замовлення — для фільтрації bulk-approve. */
+  
   orderStatus?: string | null;
 
   /** Відхилено модератором (якщо API повертає). */

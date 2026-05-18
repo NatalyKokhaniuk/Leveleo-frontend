@@ -64,10 +64,10 @@ export class OrderCheckoutPage implements OnInit {
   cartEmpty = signal(false);
   /** Є рядки з quantity > 0 (після оплати або стоку рядки можуть лишатись із сумаю 0). */
   cartHasQuantityLines = signal(false);
-  /** Кінцева сума після усіх знижок (як у кошику). */
+  
   totalPayable = signal(0);
 
-  /** Згорнути блок контактів. */
+  
   contactCollapsed = signal(false);
 
   selectedAddress = signal<AddressResponseDto | null>(null);
@@ -106,7 +106,7 @@ export class OrderCheckoutPage implements OnInit {
     return phone || '—';
   });
 
-  /** Адреса доставки для блоку «Отримувач». */
+  
   recipientAddressDisplay = computed(() => {
     const addr = this.selectedAddress();
     if (!addr) return null;
@@ -130,7 +130,7 @@ export class OrderCheckoutPage implements OnInit {
     return true;
   });
 
-  /** Рядки в кошику є, але нічого не оплачується (усі недоступні). */
+  
   checkoutZeroPayableWithLines = computed(() => {
     return (
       !this.loading() &&
@@ -245,7 +245,7 @@ export class OrderCheckoutPage implements OnInit {
     this.applyPreferredAddressForDelivery(next);
   }
 
-  /** Підставити збережену «основну» адресу, якщо вона підходить під обраний тип доставки. */
+  
   private applyPreferredAddressForDelivery(dt: DeliveryType): void {
     const pref = this.addressPreference.getPreferredId();
     if (!pref) {
@@ -262,7 +262,7 @@ export class OrderCheckoutPage implements OnInit {
     });
   }
 
-  /** Повний номер телефону для відображення (без маскування). */
+  
   recipientPhoneDisplay(): string {
     const raw = this.contactForm.get('phoneNumber')?.value?.trim() ?? '';
     return raw.length > 0 ? raw : '—';
@@ -442,7 +442,7 @@ export class OrderCheckoutPage implements OnInit {
     );
   }
 
-  /** Повідомлення про зміну кошика (окремо від загальної помилки створення замовлення). */
+  
   private isBackendCartChangedMessage(message: string): boolean {
     const m = message.toLowerCase();
     return m.includes('cart has changed') || m.includes('review your items');

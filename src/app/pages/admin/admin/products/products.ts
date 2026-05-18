@@ -89,7 +89,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   searchText = signal('');
   categoryId = signal<string | null>(null);
   brandId = signal<string | null>(null);
-  /** Активний стовпець сортування таблиці (як у категорій/брендів). */
+  
   tableSortKey = signal<ProductTableSortKey>('price');
   tableSortDir = signal<'asc' | 'desc'>('asc');
   includeInactive = signal(true);
@@ -101,10 +101,10 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
   brands = signal<BrandResponseDto[]>([]);
   filterableAttributes = signal<ProductAttributeResponseDto[]>([]);
 
-  /** Чернетка фільтра за атрибутом (поля залежать від типу атрибута). */
+  
   attrFilterAttrId = signal<string | null>(null);
   attrFilterString = signal('');
-  /** Список допустимих значень (як на бекенді): через кому. */
+  
   attrFilterIntegerListRaw = signal('');
   attrFilterDecimalListRaw = signal('');
   /** unset — ще не обрано; для API: так / ні. */
@@ -132,7 +132,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     }
   }
 
-  /** Поточний атрибут у селекторі фільтра (для умовних полів). */
+  
   selectedFilterAttr = computed(() => {
     const id = this.attrFilterAttrId();
     if (!id) return undefined;
@@ -329,12 +329,12 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.searchDebounced$.next(v);
   }
 
-  /** Очищує пошук (при зміні будь-якого фільтра). */
+  
   private clearSearchText(): void {
     this.searchText.set('');
   }
 
-  /** Скидає фільтри панелі (при введенні символа в пошук). «Показувати неактивні» лишаємо. */
+  
   private clearAllStructuredFilters(): void {
     this.categoryId.set(null);
     this.brandId.set(null);
@@ -425,7 +425,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.snack.open(this.translate.instant(key, { token }), 'OK', { duration: 5000 });
   }
 
-  /** Розбиття списку через кому; порожні фрагменти відкидаються. */
+  
   private splitFilterList(raw: string): string[] {
     return raw
       .split(',')
@@ -524,7 +524,7 @@ export class AdminProductsComponent implements OnInit, OnDestroy {
     this.load();
   }
 
-  /** Короткий підпис обраного фільтра в чіпі. */
+  
   attrFilterChipLabel(f: AttributeFilterValueDto): string {
     const name = this.attrName(f.attributeId);
     if (f.stringValues?.length) {

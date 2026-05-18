@@ -67,7 +67,8 @@ export class AuthDialogComponent {
   // Active tab — read defaultTab from dialog data
   activeTab = signal<'login' | 'register'>(this.data?.defaultTab ?? 'login');
 
-  // 2FA state
+  
+
   twoFaRequired = signal(false);
   twoFaToken = signal<string | null>(null);
   twoFaMethod = signal<string | null>(null); // 'Email' | 'Sms' | 'Totp'
@@ -163,7 +164,8 @@ export class AuthDialogComponent {
     this.dialogRef.close();
   }
 
-  // ── 2FA ──────────────────────────────────────────────────────────
+  
+
 
   onVerify2FA() {
     if (this.twoFaForm.invalid || !this.twoFaToken()) return;
@@ -251,7 +253,8 @@ export class AuthDialogComponent {
   }
 
   switchToLogin() {
-    // Pre-fill email from register form for convenience
+    
+
     const email = this.registerForm.value.email;
     if (email) this.loginForm.patchValue({ email });
     this.activeTab.set('login');

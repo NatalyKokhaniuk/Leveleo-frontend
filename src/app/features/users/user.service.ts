@@ -9,7 +9,8 @@ export class UserService {
   private api = inject(ApiService);
   private auth = inject(AuthService);
 
-  // ── Профіль поточного користувача ────────────────────────────────
+  
+
 
   /**
    * Оновлює профіль поточного користувача.
@@ -30,8 +31,10 @@ export class UserService {
     return this.auth.deleteAccount();
   }
 
-  // ── Admin / Moderator endpoints ───────────────────────────────────
-  // Використовуються в адмін-панелі (ще не реалізована)
+  
+
+  
+
 
   getUserById(id: string): Observable<UserResponse> {
     return this.api.get<UserResponse>(`/users/${id}`);

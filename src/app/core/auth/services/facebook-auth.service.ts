@@ -41,7 +41,8 @@ export class FacebookAuthService {
         resolve();
       };
 
-      // Динамічно додаємо скрипт
+      
+
       const script = document.createElement('script');
       script.id = 'facebook-jssdk';
       script.src = 'https://connect.facebook.net/uk_UA/sdk.js';

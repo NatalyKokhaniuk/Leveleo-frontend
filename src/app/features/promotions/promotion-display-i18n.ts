@@ -12,10 +12,6 @@ export function appliedPromotionLocalizedName(pr: AppliedPromotionDto, lang: str
   if (n) {
     return n;
   }
-  const anyName = pr.translations?.map((t) => t.name?.trim()).find(Boolean);
-  if (anyName) {
-    return anyName;
-  }
   return (pr.name ?? '').trim() || pr.slug;
 }
 
@@ -45,7 +41,7 @@ export function cartAppliedPromotionDisplayName(
   return (t.slug ?? '').trim();
 }
 
-/** Назва акції для поточної мови: переклад, базове name, slug. */
+
 export function promotionLocalizedName(p: PromotionResponseDto, lang: string): string {
   const code = normalizeUiLang(lang);
   const tr = p.translations?.find((t) =>
@@ -62,7 +58,7 @@ export function promotionLocalizedName(p: PromotionResponseDto, lang: string): s
   return (p.name ?? '').trim() || p.slug;
 }
 
-/** Опис акції для поточної мови. */
+
 export function promotionLocalizedDescription(
   p: PromotionResponseDto,
   lang: string,

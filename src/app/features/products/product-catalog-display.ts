@@ -76,7 +76,7 @@ export function catalogStateBadgeKey(state: ProductCatalogDisplayState): string 
   }
 }
 
-/** Текст для рядка замовлення під назвою. */
+
 export function orderLineCatalogHintKey(state: ProductCatalogDisplayState): string | null {
   switch (state) {
     case 'archivedFromSale':

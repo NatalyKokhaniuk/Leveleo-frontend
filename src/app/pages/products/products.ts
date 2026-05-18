@@ -90,7 +90,7 @@ export class Products implements OnInit {
   /** 1-based, синхронізується з query `page`. */
   currentPage = signal(1);
   readonly pageSize = 24;
-  /** Фільтри за замовчуванням згорнуті; можна розгорнути. */
+  
   filtersExpanded = signal(false);
 
   constructor() {
@@ -101,7 +101,7 @@ export class Products implements OnInit {
     });
   }
 
-  /** Дзеркало query / slug-маршруту */
+  
   categoryId = signal<string | null>(null);
   brandId = signal<string | null>(null);
   sortBy = signal<ProductSortBy>(ProductSortBy.PriceAsc);
@@ -136,7 +136,7 @@ export class Products implements OnInit {
 
   hasCatalogSearch = computed(() => this.catalogSearchQuery().trim().length > 0);
 
-  /** Прямі дочірні категорії для поточної категорії з маршруту (наступний рівень вкладеності). */
+  
   routeCategoryDirectChildren = computed(() => {
     const lang = this.lang();
     if (!this.routeCategorySlug() || this.promotionId()) {
@@ -765,7 +765,7 @@ export class Products implements OnInit {
     sortBy?: ProductSortBy;
     priceFromStr?: string;
     priceToStr?: string;
-    /** Якщо не передано — скидаємо на 1 (новий фільтр). */
+    
     page?: number;
   }): void {
     const sortBy = state.sortBy ?? this.sortBy();

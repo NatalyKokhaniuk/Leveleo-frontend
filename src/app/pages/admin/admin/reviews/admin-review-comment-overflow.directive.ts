@@ -1,9 +1,6 @@
 import { Directive, ElementRef, effect, inject, input, OnDestroy, output } from '@angular/core';
 
-/**
- * Після накладання однорядкового clamp на host вимірює вертикальне переповнення
- * і повідомляє, чи варто показувати «…ще» / «сховати».
- */
+
 @Directive({
   standalone: true,
   selector: '[appAdminReviewCommentOverflow]',
