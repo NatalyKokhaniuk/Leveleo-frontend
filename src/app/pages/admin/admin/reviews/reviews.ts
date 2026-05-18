@@ -56,8 +56,7 @@ type SortColumn = 'productName' | 'rating' | 'comment' | 'createdAt';
     AdminReviewCommentOverflowDirective,
     MediaImageThumbComponent,
   ],
-  templateUrl: './reviews.html',
-  styleUrl: './reviews.scss',
+  templateUrl: './reviews.html',
 })
 export class AdminReviewsComponent {
   private reviewsApi = inject(ReviewService);

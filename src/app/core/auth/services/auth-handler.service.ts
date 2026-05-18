@@ -120,7 +120,7 @@ export class AuthHandlerService {
             if (result === 'disabled') {
               // Оновлюємо стан після відключення 2FA
               this.auth.restoreSession().pipe(take(1)).subscribe();
-              this.translate.get('PROFILE.2FA_DISABLED_SNACK').subscribe((msg) => {
+              this.translate.get('PROFILE.TWO_FA_DISABLED_SNACK').subscribe((msg) => {
                 this.snack.open(msg, undefined, { duration: 2500 });
               });
             } else if (result === 'switch') {

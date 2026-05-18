@@ -33,8 +33,7 @@ import { FavoritesStateService } from '../../../core/favorites/favorites-state.s
     MatButtonModule,
     ProductCardComponent,
   ],
-  templateUrl: './latest-products-strip.component.html',
-  styleUrl: './latest-products-strip.component.scss',
+  templateUrl: './latest-products-strip.component.html',
 })
 export class HomeLatestProductsStripComponent implements OnInit {
   private productsApi = inject(ProductService);

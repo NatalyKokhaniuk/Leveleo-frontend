@@ -1,0 +1,25 @@
+---
+description: Конвенції іменування TypeScript, Angular та i18n у Leveleo-frontend
+globs: src/**/*.{ts,html,json}
+alwaysApply: false
+---
+
+# Naming conventions
+
+| Категорія | Формат | Приклад |
+|-----------|--------|---------|
+| Функції, змінні, методи | camelCase | `loadCart`, `totalUnits` |
+| Класи, типи, інтерфейси | PascalCase | `CartStateService` |
+| Файли | kebab-case + суфікс | `cart-state.service.ts`, `promotion-badge-label.util.ts` |
+| Компоненти (клас) | PascalCase | `CartPage`, `HeaderComponent` (суфікс Page/Component довільний) |
+| Селектори | `app-kebab-case` | `app-product-card` |
+| DTO в `*.types.ts` | PascalCase + `Dto` | `ProductResponseDto` |
+| i18n | `SECTION.KEY` (UPPER_SNAKE) | `CART.TITLE`, `TWO_FA_SETUP.NEXT` |
+
+## Винятки
+
+- Ключі помилок API з бекенду (`INVALID_2FA_CODE`, `DISABLE_2FA_FAILED`) — як у відповіді сервера.
+- `ENUM.*` — значення enum C# (PascalCase) для `translate` за ключем статусу.
+- `auth.types.ts` — `LoginRequest` / `AuthResponse` (контракт auth API).
+
+Перевірка: `node scripts/check-naming.mjs`

@@ -42,7 +42,7 @@ import {
 } from 'rxjs';
 import { AuthService } from '../../../core/auth/services/auth.service';
 import { NovaPoshtaService } from '../../shipping/nova-poshta.service';
-import { NpSettlementOption, NpStreetDto, NpWarehouseDto } from '../../shipping/nova-poshta.types';
+import { NpSettlementOptionDto, NpStreetDto, NpWarehouseDto } from '../../shipping/nova-poshta.types';
 import { AddressService } from '../address.service';
 import {
   AddressResponseDto,
@@ -108,7 +108,7 @@ export class AddressFormDialogComponent implements OnInit {
    * Результати онлайн-пошуку населених пунктів (`GET /NovaPoshta/cities/search?query=`).
    * Порожній `find` на `/settlements` на бекенді часто не повертає дані — покладаємось на search.
    */
-  settlementSearchResults = signal<NpSettlementOption[]>([]);
+  settlementSearchResults = signal<NpSettlementOptionDto[]>([]);
   /** Текст у полі — миттєве оновлення для клієнтського фільтра. */
   citySearchText = signal('');
   /** Щоб не показувати тисячі пунктів до першого фокусу на полі. */
@@ -153,7 +153,7 @@ export class AddressFormDialogComponent implements OnInit {
   firstAddressCreatesPrimaryDefault = signal(false);
 
   /** Останній вибір зі списку (щоб скинути ref при ручній зміні тексту). */
-  private lastPicked: NpSettlementOption | null = null;
+  private lastPicked: NpSettlementOptionDto | null = null;
   private lastPickedStreet: NpStreetDto | null = null;
   private lastPickedWarehouse: NpWarehouseDto | null = null;
   private lastPickedPostomat: NpWarehouseDto | null = null;
@@ -235,7 +235,7 @@ export class AddressFormDialogComponent implements OnInit {
         switchMap((t) => {
           if (t.length < 1) {
             this.settlementSearchResults.set([]);
-            return of<NpSettlementOption[]>([]);
+            return of<NpSettlementOptionDto[]>([]);
           }
           this.directoryLoading.set(true);
           return this.np.searchCities(t).pipe(finalize(() => this.directoryLoading.set(false)));

@@ -21,8 +21,7 @@ export interface CategoryDeleteDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './category-delete-dialog.component.html',
-  styleUrl: './category-delete-dialog.component.scss',
+  templateUrl: './category-delete-dialog.component.html',
 })
 export class CategoryDeleteDialogComponent {
   data = inject<CategoryDeleteDialogData>(MAT_DIALOG_DATA);

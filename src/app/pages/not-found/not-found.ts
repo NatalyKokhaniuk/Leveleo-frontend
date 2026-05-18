@@ -20,7 +20,6 @@ import { TranslateModule } from '@ngx-translate/core';
     MatIcon,
     MatTabGroup,
     MatTab,],
-  templateUrl: './not-found.html',
-  styleUrl: './not-found.scss',
+  templateUrl: './not-found.html',
 })
 export class NotFound {}

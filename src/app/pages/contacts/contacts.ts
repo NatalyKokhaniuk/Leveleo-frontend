@@ -29,8 +29,7 @@ import { ContactFormCategory } from '../../features/contact/contact.types';
     MatProgressSpinnerModule,
     MatSnackBarModule,
   ],
-  templateUrl: './contacts.html',
-  styleUrl: './contacts.component.scss',
+  templateUrl: './contacts.html',
 })
 export class ContactsComponent {
   private fb = inject(FormBuilder);

@@ -38,8 +38,7 @@ import { ProductImageDto, ProductResponseDto } from '../../../features/products/
   selector: 'app-product-card',
   standalone: true,
   imports: [MatIconModule, TranslateModule, DecimalPipe, RouterLink],
-  templateUrl: './product-card.component.html',
-  styleUrl: './product-card.component.scss',
+  templateUrl: './product-card.component.html',
 })
 export class ProductCardComponent implements OnInit, OnChanges {
   private mediaUrlCache = inject(MediaUrlCacheService);

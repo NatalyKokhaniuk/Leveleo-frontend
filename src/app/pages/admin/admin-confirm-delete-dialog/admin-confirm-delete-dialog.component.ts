@@ -16,8 +16,7 @@ export interface AdminConfirmDeleteDialogData {
   selector: 'app-admin-confirm-delete-dialog',
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatIconModule, TranslateModule],
-  templateUrl: './admin-confirm-delete-dialog.component.html',
-  styleUrl: './admin-confirm-delete-dialog.component.scss',
+  templateUrl: './admin-confirm-delete-dialog.component.html',
 })
 export class AdminConfirmDeleteDialogComponent {
   ref = inject(MatDialogRef<AdminConfirmDeleteDialogComponent, boolean>);

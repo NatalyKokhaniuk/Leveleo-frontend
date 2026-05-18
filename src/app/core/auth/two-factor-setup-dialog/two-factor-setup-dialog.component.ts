@@ -72,21 +72,21 @@ export class TwoFactorSetupDialogComponent {
     [
       {
         value: 'Email',
-        labelKey: '2FA_SETUP.METHOD_EMAIL',
+        labelKey: 'TWO_FA_SETUP.METHOD_EMAIL',
         icon: 'email',
-        descKey: '2FA_SETUP.METHOD_EMAIL_DESC',
+        descKey: 'TWO_FA_SETUP.METHOD_EMAIL_DESC',
       },
       {
         value: 'Sms',
-        labelKey: '2FA_SETUP.METHOD_SMS',
+        labelKey: 'TWO_FA_SETUP.METHOD_SMS',
         icon: 'sms',
-        descKey: '2FA_SETUP.METHOD_SMS_DESC',
+        descKey: 'TWO_FA_SETUP.METHOD_SMS_DESC',
       },
       {
         value: 'Totp',
-        labelKey: '2FA_SETUP.METHOD_TOTP',
+        labelKey: 'TWO_FA_SETUP.METHOD_TOTP',
         icon: 'security',
-        descKey: '2FA_SETUP.METHOD_TOTP_DESC',
+        descKey: 'TWO_FA_SETUP.METHOD_TOTP_DESC',
       },
     ];
 

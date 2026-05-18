@@ -48,8 +48,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     TranslateModule,
     PasswordStrengthComponent
 ],
-  templateUrl: './forgot-password-dialog.component.html',
-  styleUrl: './forgot-password-dialog.component.scss',
+  templateUrl: './forgot-password-dialog.component.html',
 })
 export class ForgotPasswordDialogComponent {
   private auth = inject(AuthService);

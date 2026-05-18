@@ -2,7 +2,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, catchError, of, throwError } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { CreateReviewDto, PagedReviews, ProductReviewsDto, ReviewDto, UpdateReviewDto } from './review.types';
+import { CreateReviewDto, PagedReviewsDto, ProductReviewsDto, ReviewDto, UpdateReviewDto } from './review.types';
 
 function num(v: unknown, fallback: number): number {
   const n = Number(v);
@@ -38,7 +38,7 @@ function normalizeReviewRow(raw: unknown): ReviewDto {
   };
 }
 
-function asPagedReviews(raw: unknown, fallbackPage: number, fallbackPageSize: number): PagedReviews {
+function asPagedReviewsDto(raw: unknown, fallbackPage: number, fallbackPageSize: number): PagedReviewsDto {
   if (!raw || typeof raw !== 'object') {
     return { items: [], totalCount: 0, page: fallbackPage, pageSize: fallbackPageSize };
   }
@@ -63,7 +63,7 @@ export class ReviewService {
       .get<unknown>(
         `${this.base}/pending?page=${encodeURIComponent(String(page))}&pageSize=${encodeURIComponent(String(pageSize))}`,
       )
-      .pipe(map((raw) => asPagedReviews(raw, page, pageSize)));
+      .pipe(map((raw) => asPagedReviewsDto(raw, page, pageSize)));
   }
 
   /** Усі відгуки (схвалені + на модерації) для Admin/Moderator. */
@@ -72,7 +72,7 @@ export class ReviewService {
       .get<unknown>(
         `${this.base}/admin/all?page=${encodeURIComponent(String(page))}&pageSize=${encodeURIComponent(String(pageSize))}`,
       )
-      .pipe(map((raw) => asPagedReviews(raw, page, pageSize)));
+      .pipe(map((raw) => asPagedReviewsDto(raw, page, pageSize)));
   }
 
   /** 404 → null (відгуку ще немає). */

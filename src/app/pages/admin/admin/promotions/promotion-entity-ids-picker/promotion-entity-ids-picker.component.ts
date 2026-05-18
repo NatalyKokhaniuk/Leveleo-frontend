@@ -23,8 +23,7 @@ type PickerItem = { id: string; name: string };
     MatInputModule,
     MatFormFieldModule,
   ],
-  templateUrl: './promotion-entity-ids-picker.component.html',
-  styleUrl: './promotion-entity-ids-picker.component.scss',
+  templateUrl: './promotion-entity-ids-picker.component.html',
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,

@@ -361,13 +361,13 @@
           >
             <div>
               <p class="font-medium text-sm text-[var(--color-text)]">
-                {{ 'AUTH.2FA_SETUP' | translate }}
+                {{ 'AUTH.TWO_FA_SETUP' | translate }}
               </p>
               <p class="text-sm">
                 @if (user.twoFactorEnabled) {
                   <span class="flex items-center gap-1 text-[var(--color-success)]">
                     <mat-icon class="text-base leading-none">check_circle</mat-icon>
-                    {{ 'PROFILE.2FA_ENABLED' | translate }}
+                    {{ 'PROFILE.TWO_FA_ENABLED' | translate }}
                     &nbsp;·&nbsp;
                     <span class="text-[var(--color-text-secondary)]">{{
                       user.twoFactorMethod
@@ -375,7 +375,7 @@
                   </span>
                 } @else {
                   <span class="text-[var(--color-text-secondary)]">
-                    {{ 'PROFILE.2FA_DISABLED' | translate }}
+                    {{ 'PROFILE.TWO_FA_DISABLED' | translate }}
                   </span>
                 }
               </p>
@@ -389,7 +389,7 @@
                 class="shrink-0"
                 (click)="openTwoFactorManage()"
               >
-                {{ 'PROFILE.2FA_MANAGE' | translate }}
+                {{ 'PROFILE.TWO_FA_MANAGE' | translate }}
               </button>
             } @else {
               <button
@@ -399,7 +399,7 @@
                 class="shrink-0"
                 (click)="openTwoFactorSetup()"
               >
-                {{ 'PROFILE.2FA_ENABLE' | translate }}
+                {{ 'PROFILE.TWO_FA_ENABLE' | translate }}
               </button>
             }
           </div>

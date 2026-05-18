@@ -14,8 +14,7 @@ export interface BackupCodesDialogData {
   selector: 'app-backup-codes-dialog',
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatIconModule, MatProgressSpinnerModule, TranslateModule],
-  templateUrl: './backup-codes-dialog.component.html',
-  styleUrl: './backup-codes-dialog.component.scss',
+  templateUrl: './backup-codes-dialog.component.html',
 })
 export class BackupCodesDialogComponent {
   data = inject<BackupCodesDialogData>(MAT_DIALOG_DATA);

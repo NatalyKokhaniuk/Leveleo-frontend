@@ -27,11 +27,11 @@ import {
 } from '../../features/promotions/promotion-badge-label.util';
 import { cartAppliedPromotionDisplayName } from '../../features/promotions/promotion-display-i18n';
 import {
-  buildCartLineView,
+  buildCartLineViewDto,
   computePricingFromLineViews,
 } from '../../features/shopping-cart/cart-pricing.util';
 import {
-  CartLineView,
+  CartLineViewDto,
   coerceApplyCouponResult,
   isApplyCouponSuccess,
   isApplyCouponUsageLimitExceeded,
@@ -60,7 +60,6 @@ import { ProductCommerceToolbarComponent } from '../products/product-commerce-to
     ProductCommerceToolbarComponent,
   ],
   templateUrl: './cart.html',
-  styleUrl: './cart.scss',
 })
 export class CartPage implements OnInit {
   private auth = inject(AuthService);
@@ -76,7 +75,7 @@ export class CartPage implements OnInit {
   loading = signal(true);
   loadError = signal(false);
   /** Порядок як у відповіді кошика; ціни з рядка GET /me + quantityApplyingToTotals / totalPrice. */
-  lines = signal<CartLineView[]>([]);
+  lines = signal<CartLineViewDto[]>([]);
   cartTotals = signal<{
     /** Σ каталожних цін — для узгодженості з рядками. */
     totalCatalogList: number;
@@ -167,7 +166,7 @@ export class CartPage implements OnInit {
           this.loadError.set(true);
           this.cartTotals.set(null);
           return of({
-            lines: [] as CartLineView[],
+            lines: [] as CartLineViewDto[],
             unavailableNames: [] as string[],
             cart: { items: [] } as ShoppingCartDto,
           });
@@ -185,7 +184,7 @@ export class CartPage implements OnInit {
       });
   }
 
-  private loadRowMeta(rows: CartLineView[]): void {
+  private loadRowMeta(rows: CartLineViewDto[]): void {
     const products = rows.map((r) => r.product);
     if (products.length === 0) {
       this.imageUrls.set(new Map());
@@ -217,12 +216,12 @@ export class CartPage implements OnInit {
         subtotalAfterProductPromotions: 0,
         totalCartDiscountFromLines: 0,
       });
-      return of({ lines: [] as CartLineView[], unavailableNames: [] as string[] });
+      return of({ lines: [] as CartLineViewDto[], unavailableNames: [] as string[] });
     }
     const lang = this.lang();
     return forkJoin(raw.map((it) => this.resolveCartLineItem(it, lang))).pipe(
       map((parts) => {
-        const lines: CartLineView[] = [];
+        const lines: CartLineViewDto[] = [];
         const unavailableNames: string[] = [];
         for (const p of parts) {
           if (p.line) {
@@ -290,7 +289,7 @@ export class CartPage implements OnInit {
   private resolveCartLineItem(
     it: ShoppingCartItemDto,
     lang: string,
-  ): Observable<{ line: CartLineView | null; unavailableLabel: string | null }> {
+  ): Observable<{ line: CartLineViewDto | null; unavailableLabel: string | null }> {
     const id = String(it.productId ?? it.product?.id ?? '').trim();
     if (!id) {
       return of({ line: null, unavailableLabel: null });
@@ -300,12 +299,12 @@ export class CartPage implements OnInit {
         if (!p.isActive) {
           return { line: null, unavailableLabel: productLocalizedName(p, lang) };
         }
-        return { line: buildCartLineView(it, p), unavailableLabel: null };
+        return { line: buildCartLineViewDto(it, p), unavailableLabel: null };
       }),
       catchError(() => {
         const emb = it.product;
         if (emb?.isActive) {
-          return of({ line: buildCartLineView(it, emb), unavailableLabel: null });
+          return of({ line: buildCartLineViewDto(it, emb), unavailableLabel: null });
         }
         return of({
           line: null,
@@ -320,7 +319,7 @@ export class CartPage implements OnInit {
   /**
    * Для відображуваного рядка: залишок на складі 0 або кількість у кошику більша за доступну.
    */
-  lineStockIssueKey(row: CartLineView): 'out_of_stock' | 'exceeds' | null {
+  lineStockIssueKey(row: CartLineViewDto): 'out_of_stock' | 'exceeds' | null {
     const q = row.quantityInCart;
     if (q <= 0) {
       return null;
@@ -504,7 +503,7 @@ export class CartPage implements OnInit {
     }
   }
 
-  private writeCartSnapshotToSession(rows: CartLineView[]): void {
+  private writeCartSnapshotToSession(rows: CartLineViewDto[]): void {
     const lang = this.lang();
     const names: Record<string, string> = {};
     for (const r of rows) {
@@ -521,7 +520,7 @@ export class CartPage implements OnInit {
    * «Зникли з каталогу» — із RemovedMissingProductIds.
    * Інші зниклі id — за знімком (бекенд міг просто забрати рядок без id у списку missing).
    */
-  private refreshRemovalNotices(cart: ShoppingCartDto, rows: CartLineView[]): void {
+  private refreshRemovalNotices(cart: ShoppingCartDto, rows: CartLineViewDto[]): void {
     const prevNames = this.readCartSnapshotFromSession();
     const currIds = new Set(rows.map((r) => r.product.id));
     const apiMissingIds = new Set(
@@ -575,12 +574,12 @@ export class CartPage implements OnInit {
   /**
    * Ціна за одиницю на картці рядка — лише після товарних акцій; знижку кошика показуємо лише в блоці підсумків.
    */
-  lineUnitDisplayedOnRow(row: CartLineView): number {
+  lineUnitDisplayedOnRow(row: CartLineViewDto): number {
     return row.unitAfterProductPromotion;
   }
 
   /** Закреслення каталожної ціни лише через товарну/каталожну знижку (без ефекту акції кошика). */
-  lineShowProductDiscountStrikethrough(row: CartLineView): boolean {
+  lineShowProductDiscountStrikethrough(row: CartLineViewDto): boolean {
     return row.unitAfterProductPromotion < row.unitListPrice - 0.01;
   }
 
@@ -591,7 +590,7 @@ export class CartPage implements OnInit {
     });
   }
 
-  linePurchaseBlocked(row: CartLineView): boolean {
+  linePurchaseBlocked(row: CartLineViewDto): boolean {
     return isCatalogPurchaseBlocked(row.product);
   }
 

@@ -19,8 +19,7 @@ import { PromotionLevel } from '../../features/promotions/promotion.types';
   selector: 'app-promotions-page',
   standalone: true,
   imports: [TranslateModule, RouterLink, MatIconModule, DatePipe],
-  templateUrl: './promotions.html',
-  styleUrl: './promotions.scss',
+  templateUrl: './promotions.html',
 })
 export class PromotionsPage {
   private promotionsApi = inject(PromotionService);

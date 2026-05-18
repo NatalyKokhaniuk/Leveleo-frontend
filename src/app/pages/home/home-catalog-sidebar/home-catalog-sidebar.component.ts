@@ -54,8 +54,7 @@ function buildCategoryTree(flat: CategoryResponseDto[]): CategoryTreeNode[] {
     MatProgressSpinnerModule,
     HomeCategoryNodeComponent,
   ],
-  templateUrl: './home-catalog-sidebar.component.html',
-  styleUrl: './home-catalog-sidebar.component.scss',
+  templateUrl: './home-catalog-sidebar.component.html',
 })
 export class HomeCatalogSidebarComponent implements OnInit {
   private categoryService = inject(CategoryService);

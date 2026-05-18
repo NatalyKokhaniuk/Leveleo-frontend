@@ -14,8 +14,7 @@ export interface PromotionDeleteDialogData {
   selector: 'app-promotion-delete-dialog',
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatIconModule, TranslateModule],
-  templateUrl: './promotion-delete-dialog.component.html',
-  styleUrl: './promotion-delete-dialog.component.scss',
+  templateUrl: './promotion-delete-dialog.component.html',
 })
 export class PromotionDeleteDialogComponent {
   data = inject<PromotionDeleteDialogData>(MAT_DIALOG_DATA);

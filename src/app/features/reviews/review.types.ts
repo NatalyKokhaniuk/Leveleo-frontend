@@ -59,7 +59,7 @@ export interface UpdateReviewDto {
   videoKeys: string[] | null;
 }
 
-export interface PagedReviews {
+export interface PagedReviewsDto {
   items: ReviewDto[];
   totalCount: number;
   page: number;

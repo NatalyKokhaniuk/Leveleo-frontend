@@ -1,4 +1,4 @@
-import { CartLineView, ShoppingCartItemDto } from './shopping-cart.types';
+import { CartLineViewDto, ShoppingCartItemDto } from './shopping-cart.types';
 import type { ProductResponseDto } from '../products/product.types';
 
 /** Порівняння цін (копійки / float з API). */
@@ -128,7 +128,7 @@ export function computePricingFromCartItems(
  * Підсумки з уже зібраних рядків (після GET /products/:id) — узгоджено з цінами на картках.
  * Не використовувати сирі `cart.items` без актуального каталогу: знижка на товар не потрапить у Σ.
  */
-export function computePricingFromLineViews(lines: CartLineView[] | null | undefined): CartPricingFromItems {
+export function computePricingFromLineViews(lines: CartLineViewDto[] | null | undefined): CartPricingFromItems {
   let totalCatalogList = 0;
   let totalProductDiscount = 0;
   let subtotalAfterProductPromotions = 0;
@@ -155,10 +155,10 @@ export function computePricingFromLineViews(lines: CartLineView[] | null | undef
 }
 
 /** Ціни за одиницю для відображення рядка; узгоджено з computePricingFromCartItems. */
-export function buildCartLineView(
+export function buildCartLineViewDto(
   it: ShoppingCartItemDto,
   product: ProductResponseDto,
-): CartLineView {
+): CartLineViewDto {
   const quantityInCart = cartItemQuantityInCart(it);
   const quantityApplyingToTotals = quantityApplyingToTotalsForItem(it);
 

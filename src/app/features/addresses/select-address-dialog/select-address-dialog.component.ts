@@ -51,8 +51,7 @@ export interface SelectAddressDialogData {
     MatTooltipModule,
     TranslateModule,
   ],
-  templateUrl: './select-address-dialog.component.html',
-  styleUrl: './select-address-dialog.component.scss',
+  templateUrl: './select-address-dialog.component.html',
 })
 export class SelectAddressDialogComponent implements OnInit {
   private addressApi = inject(AddressService);

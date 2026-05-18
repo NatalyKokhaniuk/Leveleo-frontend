@@ -166,24 +166,24 @@
               <div class="icon-wrapper icon-info mx-auto">
                 <mat-icon class="status-icon">shield</mat-icon>
               </div>
-              <h2 class="modal-title">{{ 'AUTH.2FA_TITLE' | translate }}</h2>
+              <h2 class="modal-title">{{ 'AUTH.TWO_FA_TITLE' | translate }}</h2>
               <p class="modal-desc">
                 @switch (twoFaMethod()) {
                   @case ('Email') {
-                    {{ 'AUTH.2FA_DESC_EMAIL' | translate }}
+                    {{ 'AUTH.TWO_FA_DESC_EMAIL' | translate }}
                   }
                   @case ('Sms') {
-                    {{ 'AUTH.2FA_DESC_SMS' | translate }}
+                    {{ 'AUTH.TWO_FA_DESC_SMS' | translate }}
                   }
                   @default {
-                    {{ 'AUTH.2FA_DESC_TOTP' | translate }}
+                    {{ 'AUTH.TWO_FA_DESC_TOTP' | translate }}
                   }
                 }
               </p>
 
               <form [formGroup]="twoFaForm" (ngSubmit)="onVerify2FA()" class="w-full">
                 <mat-form-field class="w-full">
-                  <mat-label>{{ 'AUTH.2FA_CODE' | translate }}</mat-label>
+                  <mat-label>{{ 'AUTH.TWO_FA_CODE' | translate }}</mat-label>
                   <input
                     matInput
                     formControlName="code"
@@ -211,7 +211,7 @@
                     @if (isLoading()) {
                       <mat-spinner diameter="20"></mat-spinner>
                     } @else {
-                      {{ 'AUTH.2FA_VERIFY' | translate }}
+                      {{ 'AUTH.TWO_FA_VERIFY' | translate }}
                     }
                   </button>
                   <button matButton class="w-full" type="button" (click)="openBackupCodeLogin()">

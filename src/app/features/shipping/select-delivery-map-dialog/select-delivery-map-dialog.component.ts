@@ -33,8 +33,7 @@ export interface SelectDeliveryMapDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './select-delivery-map-dialog.component.html',
-  styleUrl: './select-delivery-map-dialog.component.scss',
+  templateUrl: './select-delivery-map-dialog.component.html',
 })
 export class SelectDeliveryMapDialogComponent implements AfterViewInit, OnDestroy {
   @ViewChild('mapHost') mapHost?: ElementRef<HTMLDivElement>;

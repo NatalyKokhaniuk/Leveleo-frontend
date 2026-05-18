@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { adminGuard } from './core/guards/admin.guard';
-import { adminOrModeratorGuard } from './core/guards/admin.moderator.guartd';
+import { adminOrModeratorGuard } from './core/guards/admin-moderator.guard';
 import { authGuard } from './core/guards/auth.guard';
 
 /** Заголовок вкладки: лише «Leveleo». */

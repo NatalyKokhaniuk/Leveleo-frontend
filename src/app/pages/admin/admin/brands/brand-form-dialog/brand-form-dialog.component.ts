@@ -40,8 +40,7 @@ export interface BrandFormDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './brand-form-dialog.component.html',
-  styleUrl: './brand-form-dialog.component.scss',
+  templateUrl: './brand-form-dialog.component.html',
 })
 export class BrandFormDialogComponent implements OnInit, OnDestroy {
   data = inject<BrandFormDialogData>(MAT_DIALOG_DATA);

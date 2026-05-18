@@ -5,7 +5,7 @@
  * текст для option — **`displayLabel`** (на бекенді: `present` або fallback на `mainDescription`).
  * `/NovaPoshta/settlements`: у рядках довідника приходить **`ref`** того ж смислу, що й `settlementRef` у пошуку міст.
  */
-export interface NpSettlementOption {
+export interface NpSettlementOptionDto {
   /** Settlement ref (`ref` / `settlementRef`) — для пошуку **вулиць** (`…/streets/search`). Не підставляти в branches/postomats, якщо є `deliveryCityRef`. */
   ref: string;
   /**
@@ -76,7 +76,7 @@ export interface DeliveryPointDto {
 }
 
 /** Query до `GET .../settlements/{settlementRef}/delivery-points`. */
-export interface DeliveryPointsQueryParams {
+export interface DeliveryPointsQueryParamsDto {
   type?: 'branch' | 'postomat' | 'all';
   bbox?: string;
   near?: string;

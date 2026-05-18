@@ -35,8 +35,7 @@ import { ThemeService } from '../../services/theme.service';
     MatSnackBarModule,
     MatProgressSpinnerModule,
   ],
-  templateUrl: './site-footer.component.html',
-  styleUrl: './site-footer.component.scss',
+  templateUrl: './site-footer.component.html',
 })
 export class SiteFooterComponent implements OnInit {
   private fb = inject(FormBuilder);

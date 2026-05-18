@@ -119,8 +119,7 @@ function datesEqualValidator(group: AbstractControl): ValidationErrors | null {
     PromotionCouponAssignmentsComponent,
     RouterLink,
   ],
-  templateUrl: './promotion-form-dialog.component.html',
-  styleUrl: './promotion-form-dialog.component.scss',
+  templateUrl: './promotion-form-dialog.component.html',
 })
 export class PromotionFormDialogComponent implements OnInit, OnDestroy {
   data = inject<PromotionFormDialogData>(MAT_DIALOG_DATA);

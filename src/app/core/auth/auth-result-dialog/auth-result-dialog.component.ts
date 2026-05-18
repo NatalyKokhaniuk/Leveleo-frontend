@@ -31,8 +31,7 @@ interface VariantConfig {
   selector: 'app-auth-result-dialog',
   standalone: true,
   imports: [NgClass, MatDialogModule, MatButtonModule, MatIconModule, TranslateModule],
-  templateUrl: './auth-result-dialog.component.html',
-  styleUrl: './auth-result-dialog.component.scss',
+  templateUrl: './auth-result-dialog.component.html',
 })
 export class AuthResultDialogComponent {
   data = inject<AuthResultDialogData>(MAT_DIALOG_DATA);

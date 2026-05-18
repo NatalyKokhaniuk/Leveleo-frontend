@@ -43,8 +43,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
     TranslateModule,
     PasswordStrengthComponent
 ],
-  templateUrl: './change-password-dialog.component.html',
-  styleUrl: './change-password-dialog.component.scss',
+  templateUrl: './change-password-dialog.component.html',
 })
 export class ChangePasswordDialogComponent {
   private auth = inject(AuthService);

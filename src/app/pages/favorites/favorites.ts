@@ -34,8 +34,7 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
-  templateUrl: './favorites.html',
-  styleUrl: './favorites.scss',
+  templateUrl: './favorites.html',
 })
 export class FavoritesPage implements OnInit, OnDestroy {
   private favorites = inject(FavoritesStateService);

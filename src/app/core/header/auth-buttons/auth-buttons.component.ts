@@ -11,8 +11,7 @@ import { AuthDialogComponent } from '../../auth/auth-dialog/auth-dialog.componen
   selector: 'app-auth-buttons',
   standalone: true,
   imports: [MatButtonModule, MatIconModule, TranslateModule, MatFormFieldModule, MatInputModule],
-  templateUrl: './auth-buttons.component.html',
-  styleUrl: './auth-buttons.component.scss',
+  templateUrl: './auth-buttons.component.html',
 })
 export class AuthButtonsComponent {
   private dialog = inject(MatDialog);

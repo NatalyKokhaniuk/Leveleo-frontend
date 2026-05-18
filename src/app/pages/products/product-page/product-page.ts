@@ -64,8 +64,7 @@ type RecTrackSlot = { trackId: string; product: ProductResponseDto };
     ProductCommerceToolbarComponent,
     ProductCardComponent,
   ],
-  templateUrl: './product-page.html',
-  styleUrl: './product-page.scss',
+  templateUrl: './product-page.html',
 })
 export class ProductPage implements OnInit {
   private route = inject(ActivatedRoute);

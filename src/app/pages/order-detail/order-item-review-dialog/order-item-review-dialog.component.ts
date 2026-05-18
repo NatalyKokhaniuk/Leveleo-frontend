@@ -31,8 +31,7 @@ export interface OrderItemReviewDialogData {
     RouterLink,
     ProductDetailTabsComponent,
   ],
-  templateUrl: './order-item-review-dialog.component.html',
-  styleUrl: './order-item-review-dialog.component.scss',
+  templateUrl: './order-item-review-dialog.component.html',
 })
 export class OrderItemReviewDialogComponent implements OnInit {
   data = inject<OrderItemReviewDialogData>(MAT_DIALOG_DATA);

@@ -20,8 +20,8 @@ import { ComparisonStateService } from '../../comparison/comparison-state.servic
 import { FavoritesStateService } from '../../favorites/favorites-state.service';
 import { CartStateService } from '../../shopping-cart/cart-state.service';
 import { AuthService } from '../services/auth.service';
-import { FacebookAuthService } from '../services/facebookAuthService';
-import { GoogleAuthService } from '../services/googleAuthService';
+import { FacebookAuthService } from '../services/facebook-auth.service';
+import { GoogleAuthService } from '../services/google-auth.service';
 
 export interface AuthDialogData {
   defaultTab?: 'login' | 'register';
@@ -45,7 +45,6 @@ export interface AuthDialogData {
     PasswordStrengthComponent,
   ],
   templateUrl: './auth-dialog.component.html',
-  styleUrl: './auth-dialog.component.scss',
 })
 export class AuthDialogComponent {
   private auth = inject(AuthService);

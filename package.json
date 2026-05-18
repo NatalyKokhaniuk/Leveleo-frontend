@@ -7,6 +7,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "styles:bundle": "node scripts/bundle-component-styles.mjs",
+    "lint:naming": "node scripts/check-naming.mjs",
     "serve:ssr:Leveleo-frontend": "node dist/Leveleo-frontend/server/server.mjs"
   },
   "prettier": {

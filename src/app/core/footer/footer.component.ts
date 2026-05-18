@@ -6,8 +6,7 @@ import { MatIcon } from '@angular/material/icon';
   selector: 'app-scroll-to-top',
   standalone: true,
   imports: [MatIcon, NgClass],
-  templateUrl: './footer.component.html',
-  styleUrl: './footer.component.scss',
+  templateUrl: './footer.component.html',
 })
 export class ScrollToTopComponent {
   platformId = inject(PLATFORM_ID);

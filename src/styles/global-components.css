@@ -1,0 +1,1666 @@
+/* Auto-generated component styles. Regenerate: node scripts/bundle-component-styles.mjs */
+/* --- src/app/app.scss --- */
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+app-root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+/* --- src/app/core/footer/site-footer/site-footer.component.scss --- */
+/* Як у модальних формах: fill + прозорий фон, лінія знизу (без outline «на дві частини») */
+.footer-subscribe-field {
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+      border-radius: 9999px !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+
+    .mat-mdc-form-field-infix {
+      min-height: 52px;
+      padding-top: 1.5rem;
+      padding-bottom: 0.75rem;
+    }
+
+    input.mat-mdc-input-element {
+      padding-top: 0.2rem;
+    }
+  }
+}
+
+.footer-subscribe-btn {
+  border-radius: 9999px !important;
+  min-height: 48px;
+}
+
+.footer-logo {
+  min-width: 0;
+}
+
+.footer-logo__img {
+  display: block;
+  width: auto;
+  max-width: min(38vw, 200px);
+  height: clamp(28px, 5.2vw, 50px);
+  object-fit: contain;
+}
+
+/* --- src/app/core/header/header.component.scss --- */
+/* Вирівнювання перемикача теми та мови по одній горизонтальній осі (центр іконок). */
+.theme-lang-cluster {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.theme-lang-cluster mat-slide-toggle {
+  display: inline-flex;
+  align-items: center;
+}
+
+.header-logo {
+  min-width: 0;
+}
+
+.header-logo__img {
+  display: block;
+  width: auto;
+  max-width: min(42vw, 210px);
+  height: clamp(28px, 6.2vw, 50px);
+  object-fit: contain;
+}
+
+/* Стабільний рендер іконок у хедері (особливо на вузьких екранах). */
+app-header ::ng-deep button[matIconButton] .mat-icon,
+app-header ::ng-deep button[matIconButton] mat-icon {
+  width: 22px;
+  height: 22px;
+  font-size: 22px;
+  line-height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 639.98px) {
+  .header-logo__img {
+    max-width: min(48vw, 170px);
+    height: clamp(24px, 6.6vw, 38px);
+  }
+
+  app-header ::ng-deep button[matIconButton] .mat-icon,
+  app-header ::ng-deep button[matIconButton] mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    line-height: 20px;
+  }
+}
+
+/* --- src/app/features/addresses/select-address-dialog/select-address-dialog.component.scss --- */
+.select-address-row {
+  transition:
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
+    transform 0.35s ease;
+}
+
+.select-address-row .select-address-star {
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+}
+
+.select-address-row.address-default-pulse .select-address-star {
+  transform: scale(1.2);
+}
+
+/* --- src/app/features/shipping/select-delivery-map-dialog/select-delivery-map-dialog.component.scss --- */
+.np-map-host {
+  min-height: 280px;
+  height: min(50vh, 480px);
+  z-index: 0;
+}
+
+/* Leaflet у всередині Mat Dialog */
+app-select-delivery-map-dialog ::ng-deep .leaflet-container {
+  font-family: inherit;
+}
+
+/* --- src/app/pages/admin/admin-confirm-delete-dialog/admin-confirm-delete-dialog.component.scss --- */
+app-admin-confirm-delete-dialog {
+  display: block;
+}
+
+.auth-modal-container .modal-title,
+.auth-modal-container .modal-desc {
+  width: 100%;
+  text-align: center;
+  text-wrap: balance;
+}
+
+/* --- src/app/pages/admin/admin/products/product-detail/product-detail.scss --- */
+/* Дві кнопки залишку — однакова ширина (орієнтир — перша, «Застосувати зміну»). */
+.stock-action-btn {
+  box-sizing: border-box;
+  width: 13rem;
+  min-width: 13rem;
+  max-width: 13rem;
+  flex: 0 0 auto;
+}
+
+/*
+ * Таблиця атрибутів: grab після Material (див. products.scss).
+ */
+app-admin-product-detail ::ng-deep {
+  .horizontal-drag-scroll-host {
+    cursor: grab !important;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &.horizontal-drag-scroll--dragging {
+      cursor: grabbing !important;
+    }
+
+    td,
+    th,
+    .mat-mdc-cell,
+    .mat-mdc-header-cell {
+      cursor: inherit !important;
+    }
+
+    button,
+    a[href],
+    a[routerLink],
+    [mat-icon-button],
+    .mat-mdc-icon-button {
+      cursor: pointer !important;
+    }
+  }
+}
+
+/* Number: повна ширина зони вводу + вирівнювання; спінери Chrome не «висять» по центру вузького infix */
+.product-number-field {
+  width: 100%;
+  min-width: 0;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper,
+    .mat-mdc-form-field-flex {
+      width: 100%;
+    }
+
+    .mat-mdc-form-field-infix {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    input.mat-mdc-input-element[type='number'] {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      text-align: right;
+      -moz-appearance: textfield;
+    }
+
+    input[type='number']::-webkit-outer-spin-button,
+    input[type='number']::-webkit-inner-spin-button {
+      -webkit-appearance: inner-spin-button;
+      opacity: 1;
+      margin-left: 4px;
+    }
+  }
+}
+
+/* --- src/app/pages/admin/admin/products/products.scss --- */
+/*
+ * Курсор grab після завантаження mat-table: стилі Material підключаються пізніше за глобальні,
+ * тому правила тут з ::ng-deep і після рендеру таблиці лишаються чинними.
+ */
+app-admin-products ::ng-deep {
+  .horizontal-drag-scroll-host {
+    cursor: grab !important;
+    user-select: none;
+    -webkit-user-select: none;
+
+    &.horizontal-drag-scroll--dragging {
+      cursor: grabbing !important;
+    }
+
+    .mat-mdc-cell,
+    .mat-mdc-header-cell,
+    .mat-mdc-footer-cell,
+    td,
+    th,
+    .mdc-data-table__cell,
+    .mdc-data-table__header-cell {
+      cursor: inherit !important;
+    }
+
+    button,
+    a[href],
+    a[routerLink],
+    [mat-icon-button],
+    .mat-mdc-icon-button,
+    .mat-mdc-button-base {
+      cursor: pointer !important;
+    }
+  }
+}
+
+/* У flex-рядку MDC-поле без min-width:0 залишає вузьку «infix»-зону — текст і плейсхолдер зліва. */
+.attr-filter-values-field {
+  width: 100%;
+  min-width: 0;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      width: 100%;
+    }
+
+    .mat-mdc-form-field-flex {
+      width: 100%;
+      min-width: 0;
+    }
+
+    .mat-mdc-form-field-infix {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+
+    input.mat-mdc-input-element {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+    }
+  }
+}
+
+/* --- src/app/pages/admin/admin/promotions/promotion-coupon-assignments/promotion-coupon-assignments.component.scss --- */
+app-promotion-coupon-assignments {
+  display: block;
+}
+
+/* --- src/app/pages/admin/admin/promotions/promotion-delete-dialog/promotion-delete-dialog.component.scss --- */
+app-promotion-delete-dialog {
+  display: block;
+  max-width: 100%;
+}
+
+.promotion-delete-dialog {
+  min-width: min(620px, 92vw);
+  max-width: min(700px, 96vw);
+}
+
+/* --- src/app/pages/admin/admin/promotions/promotion-entity-ids-picker/promotion-entity-ids-picker.component.scss --- */
+app-promotion-entity-ids-picker {
+  display: block;
+  width: 100%;
+}
+
+/* --- src/app/pages/admin/admin/promotions/promotion-form-dialog/promotion-form-dialog.component.scss --- */
+app-promotion-form-dialog {
+  display: block;
+}
+
+/* --- src/app/pages/admin/admin/promotions/promotions.scss --- */
+app-admin-promotions {
+  display: block;
+}
+
+/* --- src/app/pages/admin/admin/reviews/reviews.scss --- */
+.admin-reviews__comment--clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.admin-reviews__comment-toggle {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  color: var(--color-on-surface-variant, rgba(0, 0, 0, 0.6));
+  text-decoration: none;
+
+  &:hover,
+  &:focus-visible {
+    color: var(--color-on-surface-variant, rgba(0, 0, 0, 0.6));
+    text-decoration: none;
+  }
+}
+
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+/* --- src/app/pages/admin/admin/statistics/statistics.scss --- */
+app-admin-statistics {
+  display: block;
+}
+
+.stats-card {
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 50%, transparent);
+}
+
+.stats-card--muted {
+  background: color-mix(in srgb, var(--mat-sys-surface-container-high) 55%, transparent);
+  color: var(--mat-sys-on-surface);
+}
+
+.stats-card h3 {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  margin: 0 0 6px;
+}
+
+.stats-card p {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.stats-card__sub {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  opacity: 0.88;
+  font-weight: 500;
+}
+
+.admin-stats__chart-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
+  height: 260px;
+}
+
+.admin-stats__chart-wrap--tall {
+  height: 300px;
+}
+
+.admin-stats__chart-wrap--top {
+  height: min(420px, 55vh);
+}
+
+.admin-stats__chart-wrap--donut {
+  height: 260px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+.admin-stats__chart-wrap--promo {
+  height: min(360px, 50vh);
+}
+
+.admin-stats__inline-field {
+  width: 8rem;
+}
+
+.admin-stats__date-field {
+  width: min(100%, 11rem);
+}
+
+.admin-stats__top-field {
+  width: 5.5rem;
+}
+
+.admin-stats__table-wrap {
+  width: 100%;
+  max-height: min(50vh, 420px);
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 45%, transparent);
+}
+
+.admin-stats__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.admin-stats__table th,
+.admin-stats__table td {
+  padding: 0.5rem 0.65rem;
+  vertical-align: top;
+  border-bottom: 1px solid color-mix(in srgb, var(--mat-sys-outline-variant) 35%, transparent);
+}
+
+.admin-stats__table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: color-mix(in srgb, var(--mat-sys-surface-container) 92%, transparent);
+  font-weight: 600;
+  text-align: left;
+}
+
+/* --- src/app/pages/cart/cart.scss --- */
+app-cart {
+  display: block;
+  width: 100%;
+}
+
+/* Колір плашки — глобальні класи .app-promo-badge у styles.scss */
+
+.cart-page__unit-price-sale {
+  color: var(--mat-sys-error);
+}
+
+.cart-page__summary {
+  box-sizing: border-box;
+}
+
+/* Підсумки на всю ширину картки; симетричні відступи. */
+.cart-page__price-summary {
+  padding-block: 0.875rem;
+  padding-inline: 1rem;
+
+  @media (min-width: 600px) {
+    padding-block: 1.125rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+/* --- src/app/pages/catalog/catalog.scss --- */
+app-catalog-page {
+  display: block;
+}
+
+/* --- src/app/pages/checkout/checkout.scss --- */
+app-checkout {
+  display: block;
+}
+
+/* --- src/app/pages/comparison/comparison.scss --- */
+app-comparison {
+  display: block;
+  width: 100%;
+}
+
+/** Чергування фону рядків атрибутів за групою (таблиця порівняння). */
+.comparison-attr-stripe-a > td {
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-high) 38%, transparent);
+}
+
+.comparison-attr-stripe-b > td {
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container) 52%, transparent);
+}
+
+.comparison-attr-group-header.comparison-attr-stripe-a > td,
+.comparison-attr-group-header.comparison-attr-stripe-b > td {
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-highest) 55%, transparent);
+}
+
+.comparison-bool-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1.25rem;
+}
+
+/** Рядок кнопок фільтра може переноситись без обрізання. */
+.comparison-attr-filter {
+  flex-wrap: wrap;
+}
+
+.comparison-attr-filter .mat-button-toggle-appearance-standard {
+  flex: 0 1 auto;
+}
+
+/* --- src/app/pages/contacts/contacts.component.scss --- */
+app-contacts {
+  display: block;
+}
+
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+/* --- src/app/pages/favorites/favorites.scss --- */
+app-favorites {
+  display: block;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+.favorites-page {
+  box-sizing: border-box;
+}
+
+.favorites-row {
+  box-sizing: border-box;
+}
+
+::ng-deep .favorites-remove-btn.mat-mdc-outlined-button {
+  color: color-mix(in srgb, var(--mat-sys-error) 92%, var(--mat-sys-on-surface));
+  border-color: color-mix(in srgb, var(--mat-sys-error) 55%, var(--mat-sys-outline));
+}
+
+::ng-deep .favorites-remove-btn.mat-mdc-outlined-button .mat-icon {
+  color: color-mix(in srgb, var(--mat-sys-error) 88%, var(--mat-sys-on-surface));
+}
+
+::ng-deep .favorites-remove-btn.mat-mdc-outlined-button:hover {
+  background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+}
+
+/* --- src/app/pages/forgot-password/forgot-password.scss --- */
+.forgot-password-page {
+  .icon-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+/* --- src/app/pages/home/brand-strip/brand-strip.component.scss --- */
+app-home-brand-strip {
+  display: block;
+  width: 100%;
+  max-width: none;
+}
+
+/* --- src/app/pages/home/carousel/carousel.scss --- */
+/** Висота як при ширині в’юпорту 1330px (21:9), далі не росте. */
+
+
+
+.carousel-frame {
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  /* Якщо зображення не підвантажились або aspect-ratio не застосувався — блок не зникає по висоті */
+  min-height: clamp(10rem, 30vw, calc(1330px * 9 / 21));
+}
+
+@media (min-width: 1330px) {
+  .carousel-frame {
+    aspect-ratio: auto;
+    height: calc(1330px * 9 / 21);
+    max-height: calc(1330px * 9 / 21);
+  }
+}
+
+.carousel-slide {
+  text-decoration: none;
+  color: inherit;
+}
+
+.carousel-slide__img {
+  z-index: 0;
+}
+
+.carousel-slide__overlay {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.carousel-slide__title {
+  display: block;
+  max-width: min(92%, 40rem);
+  margin: 0;
+  text-align: center;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  overflow-wrap: anywhere;
+  hyphens: auto;
+  color: #fff;
+  font-size: clamp(2.125rem, 7vw, 4rem);
+  /* Читабельність на фото: м’які тіні замість text-stroke */
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.95),
+    0 2px 6px rgb(0 0 0 / 0.65),
+    0 4px 20px rgb(0 0 0 / 0.45);
+}
+
+.carousel-nav-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  mat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+    margin: 0;
+  }
+}
+
+/* --- src/app/pages/home/home-catalog-sidebar/home-catalog-sidebar.component.scss --- */
+.home-catalog-sidebar__details summary {
+  list-style: none;
+}
+
+.home-catalog-sidebar__details summary::-webkit-details-marker {
+  display: none;
+}
+
+/* --- src/app/pages/home/latest-products-strip/latest-products-strip.component.scss --- */
+.home-latest-products {
+  animation: fadeIn 0.35s ease;
+}
+
+.home-latest-products__toggle {
+  letter-spacing: 0.02em;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- src/app/pages/internal-server-error/internal-server-error.scss --- */
+app-internal-server-error {
+  display: block;
+}
+
+/* --- src/app/pages/not-found/not-found.scss --- */
+.notfound{
+
+text-align:center;
+margin-top:100px;
+
+}
+
+.notfound h1{
+
+font-size:80px;
+color:#2563eb;
+
+}
+
+/* --- src/app/pages/order-checkout/order-checkout.scss --- */
+/* Як на сторінці /contacts — `contacts-form` у contacts.component.scss */
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+/* --- src/app/pages/order-detail/order-detail.scss --- */
+/* Іконки в «Залишити / Показати відгук» — без обрізання гліфа (особливо visibility). */
+app-order-detail ::ng-deep .order-detail__review-link-icon.mat-icon {
+  overflow: visible;
+}
+
+app-order-detail ::ng-deep .order-detail__review-link-icon.mat-icon svg {
+  overflow: visible;
+}
+
+/* --- src/app/pages/order-detail/order-item-review-dialog/order-item-review-dialog.component.scss --- */
+app-order-item-review-dialog {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+app-order-item-review-dialog ::ng-deep .order-item-review-dialog__content.mat-mdc-dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--mat-sys-outline) 55%, transparent)
+    color-mix(in srgb, var(--mat-sys-surface-container-highest) 35%, transparent);
+}
+
+app-order-item-review-dialog ::ng-deep app-product-detail-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+app-order-item-review-dialog ::ng-deep .order-item-review-dialog__content.mat-mdc-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+app-order-item-review-dialog ::ng-deep .order-item-review-dialog__content.mat-mdc-dialog-content::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 35%, transparent);
+  border-radius: 999px;
+}
+
+app-order-item-review-dialog ::ng-deep .order-item-review-dialog__content.mat-mdc-dialog-content::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--mat-sys-outline) 55%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* --- src/app/pages/products/product-card/product-card.component.scss --- */
+app-product-card {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Як іконки в адмінці: легкий підйом і тінь при наведенні */
+.product-card--interactive {
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 0.2s ease;
+  will-change: transform;
+  border-radius: 1rem;
+}
+
+.product-card--interactive:hover {
+  transform: scale(1.03);
+  box-shadow: 0 3px 1px -2px rgba(0,0,0,.2), 0 2px 2px 0 rgba(0,0,0,.14), 0 1px 5px 0 rgba(0,0,0,.12);
+}
+
+.product-card--interactive:focus-within {
+  transform: scale(1.02);
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+}
+
+.product-card__main-btn {
+  border-radius: 1rem;
+  border: 0;
+  background: transparent;
+  margin: 0;
+  appearance: none;
+}
+
+.product-card__star {
+  overflow: visible;
+  margin-top: 1px;
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 28%, transparent);
+}
+
+.product-card__star--fill {
+  color: var(--mat-sys-primary);
+}
+
+.product-card__fav {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.product-card__fav:hover {
+  transform: scale(1.08);
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-highest) 92%, transparent);
+}
+
+.product-card__fav-icon--on {
+  color: var(--mat-sys-error);
+}
+
+.product-card__cart {
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.product-card__cart:hover:not(:disabled) {
+  transform: scale(1.08);
+  background-color: color-mix(in srgb, var(--mat-sys-surface-container-highest) 92%, transparent);
+}
+
+.product-card__cart:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.product-card__cart-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 4px;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.125rem;
+  border-radius: 999px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  text-align: center;
+  pointer-events: none;
+}
+
+/* Квадратна зона зображення; трохи вище за старий 4:3 за рахунок квадрата в сітці */
+.product-card__media {
+  aspect-ratio: 1 / 1;
+  max-width: 100%;
+  min-height: 0;
+}
+
+/* Вертикальна прокрутка лише коли контент вищий за видиму ширину блоку (портретні фото тощо) */
+.product-card__media-scroll {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.product-card__img {
+  display: block;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+/* Рейтинг: достатньо висоти й міжзіркового інтервалу */
+.product-card__rating {
+  min-height: 2.125rem;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  column-gap: 0.35rem;
+}
+
+.product-card__price-sale {
+  color: var(--mat-sys-error);
+}
+
+/* --- src/app/pages/products/product-commerce-toolbar/product-commerce-toolbar.component.scss --- */
+app-product-commerce-toolbar {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/* --- src/app/pages/products/product-detail-tabs/product-detail-tabs.component.scss --- */
+app-product-detail-tabs {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
+/* Як у /admin/reviews: прозорий фон полів, лінія outline-variant */
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}
+
+.product-quick-view__content app-product-detail-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  height: 100%;
+}
+
+.product-detail-tabs__root {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.product-detail-tabs--dialog.product-detail-tabs__root {
+  flex: 1 1 auto;
+  min-height: 0;
+  gap: 0.75rem;
+}
+
+/* Quick view на вузькому екрані: квадратне фото */
+@media (max-width: 767.98px) {
+  .product-detail-tabs--dialog .product-detail-tabs__media-outer.product-detail-tabs__media--square {
+    width: min(100%, 280px);
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    margin-left: auto;
+    margin-right: auto;
+    flex: none;
+    align-self: center;
+  }
+}
+
+@media (min-width: 768px) {
+  .product-detail-tabs__root {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .product-detail-tabs__root--compact .product-detail-tabs__media-outer {
+    flex: 0 0 min(38%, 220px);
+    max-width: min(38%, 220px);
+  }
+
+  .product-detail-tabs--dialog.product-detail-tabs__root {
+    align-items: stretch;
+    min-height: 0;
+    flex: 1 1 auto;
+    height: 100%;
+  }
+
+  .product-detail-tabs--dialog .product-detail-tabs__media-outer {
+    align-self: stretch;
+  }
+
+  .product-detail-tabs--dialog .product-detail-tabs__media-outer.product-detail-tabs__media--square {
+    flex: 0 0 clamp(200px, 36vw, 380px);
+    width: clamp(200px, 36vw, 380px);
+    max-width: min(42%, 380px);
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .product-detail-tabs__media-outer {
+    flex: 0 0 min(40%, 280px);
+    max-width: min(40%, 280px);
+  }
+
+  .product-detail-tabs__tabs-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .product-detail-tabs--dialog .product-detail-tabs__tabs-wrap {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.product-detail-tabs__media-outer {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Для сторінки конкретного товару: медіа-картка щонайменше квадратна. */
+.product-detail-tabs__root--square-media .product-detail-tabs__media-outer {
+  aspect-ratio: 1 / 1;
+}
+
+.product-detail-tabs__root--square-media .product-detail-tabs__media {
+  height: 100%;
+}
+
+.product-detail-tabs__root--square-media .product-detail-tabs__img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+
+.product-detail-tabs__media {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: transparent;
+}
+
+.product-detail-tabs__media-inner {
+  width: 100%;
+}
+
+.product-detail-tabs__img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: min(52vh, 360px);
+  object-fit: contain;
+  vertical-align: middle;
+}
+
+.product-detail-tabs__img-open-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.product-detail-tabs__video-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.product-detail-tabs__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: min(52vh, 360px);
+  object-fit: contain;
+  background: #000;
+}
+
+.product-detail-tabs__enlarge-media-btn {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 2;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 88%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.2);
+}
+
+.product-detail-tabs__gallery-thumbs {
+  max-width: 100%;
+}
+
+.product-detail-tabs__nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 85%, transparent);
+  color: var(--mat-sys-on-surface);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.18);
+  z-index: 2;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.product-detail-tabs__nav-btn--prev {
+  left: 0.4rem;
+}
+
+.product-detail-tabs__nav-btn--next {
+  right: 0.4rem;
+}
+
+.product-detail-tabs__media-outer:hover .product-detail-tabs__nav-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.product-detail-tabs__thumb-btn {
+  position: relative;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--mat-sys-outline) 35%, transparent);
+  background: color-mix(in srgb, var(--mat-sys-surface-container) 40%, transparent);
+}
+
+.product-detail-tabs__thumb-btn--active {
+  border-color: color-mix(in srgb, var(--mat-sys-primary) 75%, transparent);
+}
+
+.product-detail-tabs__thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.product-detail-tabs__thumb-video-badge {
+  position: absolute;
+  inset: auto 0.2rem 0.2rem auto;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, #000 70%, transparent);
+  color: #fff;
+
+  mat-icon {
+    width: 0.85rem;
+    height: 0.85rem;
+    font-size: 0.85rem;
+    line-height: 0.85rem;
+  }
+}
+
+.product-detail-tabs__lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgb(0 0 0 / 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.product-detail-tabs__lightbox-inner {
+  max-width: min(96vw, 1200px);
+  max-height: min(92vh, 880px);
+  width: auto;
+}
+
+.product-detail-tabs__lightbox-img {
+  display: block;
+  max-width: min(96vw, 1200px);
+  max-height: min(92vh, 880px);
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.product-detail-tabs__lightbox-video {
+  display: block;
+  width: 100%;
+  max-height: min(92vh, 880px);
+  max-width: min(96vw, 1200px);
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+.product-detail-tabs__lightbox-close {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.45);
+  color: #fff;
+}
+
+.product-detail-tabs__lightbox-nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+  z-index: 1001;
+  opacity: 0.55;
+  pointer-events: auto;
+  transition: opacity 0.18s ease;
+}
+
+.product-detail-tabs__lightbox:hover .product-detail-tabs__lightbox-nav {
+  opacity: 1;
+}
+
+.product-detail-tabs__lightbox-nav--prev {
+  left: 0.75rem;
+}
+
+.product-detail-tabs__lightbox-nav--next {
+  right: 0.75rem;
+}
+
+.product-detail-tabs--dialog .product-detail-tabs__img {
+  max-height: min(32vh, 220px);
+}
+
+.product-detail-tabs--dialog .product-detail-tabs__video {
+  max-height: min(32vh, 220px);
+}
+
+/* Quick view / квадратна зона: кнопка без висоти ламає height:100% у <img> (циклічне обчислення → 0px). */
+.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__media {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__img-open-btn {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-detail-tabs__media-outer.product-detail-tabs__media--square .product-detail-tabs__img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.product-detail-tabs__rating-row--roomy {
+  gap: 0.375rem;
+}
+
+@media (min-width: 640px) {
+  .product-detail-tabs__rating-row--roomy {
+    gap: 0.5rem;
+  }
+}
+
+.product-detail-tabs__tabs-wrap {
+  width: 100%;
+  min-width: 0;
+}
+
+::ng-deep .product-detail-tabs__group.mat-mdc-tab-group {
+  max-width: 100%;
+}
+
+::ng-deep .product-detail-tabs__group .mat-mdc-tab-body-content {
+  overflow-x: hidden;
+  min-width: 0;
+}
+
+::ng-deep .product-detail-tabs__group--dialog.mat-mdc-tab-group {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+::ng-deep .product-detail-tabs__group--dialog .mat-mdc-tab-body-wrapper {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+::ng-deep .product-detail-tabs__group--dialog .mat-mdc-tab-body-content {
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-detail-tabs__panel {
+  padding: 0.75rem 0 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.product-detail-tabs__panel--reviews {
+  padding-top: 0.5rem;
+}
+
+.product-detail-tabs__reviews-filter-form {
+  margin-bottom: 0.15rem;
+}
+
+/* Список відгуків не розтягує картку/сторінку — прокрутка всередині блоку. */
+.product-detail-tabs__reviews-list-scroll {
+  max-height: min(62vh, 36rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.product-detail-tabs--dialog .product-detail-tabs__reviews-list-scroll {
+  max-height: min(42vh, 22rem);
+}
+
+.product-detail-tabs__policy-icon-wrap {
+  width: 2.75rem;
+  height: 2.75rem;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+.product-detail-tabs__policy-icon {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  font-size: 1.5rem !important;
+  line-height: 1.5rem !important;
+  overflow: visible;
+}
+
+.product-detail-tabs__review-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.35rem;
+  min-width: 0;
+}
+
+.product-detail-tabs__review-stars-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.45rem;
+  row-gap: 0.2rem;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-top: 1px;
+  overflow: visible;
+}
+
+.product-detail-tabs__review-star-icon {
+  width: 1.375rem !important;
+  height: 1.375rem !important;
+  font-size: 1.375rem !important;
+  line-height: 1.375rem !important;
+  overflow: visible !important;
+}
+
+.product-detail-tabs__review-datetime {
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 0.75rem;
+  line-height: 1.25;
+  color: color-mix(in srgb, var(--mat-sys-on-surface) 58%, transparent);
+  white-space: nowrap;
+  align-self: flex-start;
+  margin-top: 2px;
+}
+
+.product-detail-tabs__attrs {
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.04);
+}
+
+.product-detail-tabs__price-sale {
+  color: var(--mat-sys-error);
+}
+
+/* --- src/app/pages/products/product-page/product-page.scss --- */
+app-product-page {
+  display: block;
+}
+
+/* Мінімальна висота зовнішньої картки: не менше половини її ширини. */
+.product-page__card {
+  aspect-ratio: 2 / 1;
+}
+
+/* Як у home `carousel` — кнопки навігації. */
+.product-rec-carousel .carousel-nav-btn {
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+
+  mat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+    margin: 0;
+  }
+}
+
+.product-rec-carousel__viewport {
+  container-type: inline-size;
+}
+
+.product-rec-carousel__track {
+  will-change: transform;
+}
+
+/* Картка трохи збільшується при наведенні (ручна прокрутка / кнопки без автопрокрутки). */
+.product-rec-carousel__item {
+  position: relative;
+  transition: transform 0.28s ease;
+  transform-origin: center center;
+
+  &:hover {
+    transform: scale(1.04);
+    z-index: 2;
+  }
+}
+
+/* --- src/app/pages/products/product-quick-view-dialog/product-quick-view-dialog.component.scss --- */
+app-product-quick-view-dialog {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  max-height: 100%;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+app-product-quick-view-dialog ::ng-deep .product-quick-view__content.mat-mdc-dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--mat-sys-outline) 55%, transparent)
+    color-mix(in srgb, var(--mat-sys-surface-container-highest) 35%, transparent);
+}
+
+app-product-quick-view-dialog ::ng-deep app-product-detail-tabs {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+/* Chromium/WebKit scrollbar */
+app-product-quick-view-dialog ::ng-deep .product-quick-view__content.mat-mdc-dialog-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+app-product-quick-view-dialog ::ng-deep .product-quick-view__content.mat-mdc-dialog-content::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--mat-sys-surface-container-highest) 35%, transparent);
+  border-radius: 999px;
+}
+
+app-product-quick-view-dialog ::ng-deep .product-quick-view__content.mat-mdc-dialog-content::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--mat-sys-outline) 55%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+app-product-quick-view-dialog ::ng-deep .product-quick-view__content.mat-mdc-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--mat-sys-outline) 75%, transparent);
+}
+
+/* --- src/app/pages/products/products.scss --- */
+.products-page {
+  background: transparent;
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* --- src/app/pages/promotions/promotions.scss --- */
+app-promotions-page {
+  display: block;
+}
+
+/* --- src/app/shared/components/order-item-review-form/order-item-review-form.component.scss --- */
+app-order-item-review-form {
+  display: block;
+}
+
+.contacts-form {
+  width: 100%;
+
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      background-color: transparent !important;
+    }
+
+    .mat-mdc-form-field-focus-overlay {
+      background-color: transparent !important;
+    }
+
+    .mdc-line-ripple::before,
+    .mdc-line-ripple::after {
+      border-bottom-color: var(--color-outline-variant, currentColor);
+    }
+
+    .mat-mdc-form-field-subscript-wrapper {
+      margin-top: 0.25rem;
+    }
+  }
+}
+

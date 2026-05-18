@@ -40,8 +40,7 @@ const BRAND_ICON_POOL = [
   selector: 'app-home-brand-strip',
   standalone: true,
   imports: [CommonModule, RouterLink, TranslateModule, MatIconModule, MatButtonModule],
-  templateUrl: './brand-strip.component.html',
-  styleUrl: './brand-strip.component.scss',
+  templateUrl: './brand-strip.component.html',
 })
 export class HomeBrandStripComponent implements OnInit {
   private brandsApi = inject(BrandService);

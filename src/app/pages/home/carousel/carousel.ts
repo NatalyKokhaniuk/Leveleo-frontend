@@ -33,8 +33,7 @@ export type HomeCarouselSlide =
   selector: 'app-carousel',
   standalone: true,
   imports: [CommonModule, RouterLink, TranslateModule, MatIconModule, MatProgressSpinnerModule],
-  templateUrl: './carousel.html',
-  styleUrl: './carousel.scss',
+  templateUrl: './carousel.html',
 })
 export class CarouselComponent implements OnInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);

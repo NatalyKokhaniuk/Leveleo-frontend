@@ -21,8 +21,7 @@ export interface AttributeGroupDeleteDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './attribute-group-delete-dialog.component.html',
-  styleUrl: './attribute-group-delete-dialog.component.scss',
+  templateUrl: './attribute-group-delete-dialog.component.html',
 })
 export class AttributeGroupDeleteDialogComponent {
   data = inject<AttributeGroupDeleteDialogData>(MAT_DIALOG_DATA);

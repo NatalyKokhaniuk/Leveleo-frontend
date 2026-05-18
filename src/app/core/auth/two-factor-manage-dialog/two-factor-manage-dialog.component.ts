@@ -27,13 +27,13 @@ export type TwoFactorManageDialogResult =
     TranslateModule,
   ],
   template: `
-    <h2 mat-dialog-title>{{ '2FA_MANAGE.TITLE' | translate }}</h2>
+    <h2 mat-dialog-title>{{ 'TWO_FA_MANAGE.TITLE' | translate }}</h2>
 
     <mat-dialog-content class="flex flex-col gap-4 pt-2">
       <div class="flex items-center gap-2 text-sm" style="color: var(--color-success)">
         <mat-icon>check_circle</mat-icon>
         <span>
-          {{ '2FA_MANAGE.ACTIVE_METHOD' | translate }}:
+          {{ 'TWO_FA_MANAGE.ACTIVE_METHOD' | translate }}:
           <strong>{{ methodLabel() | translate }}</strong>
         </span>
       </div>
@@ -46,17 +46,17 @@ export type TwoFactorManageDialogResult =
         <mat-icon style="color: var(--color-text-secondary)">key</mat-icon>
         <div class="flex-1">
           <p class="font-medium text-sm" style="color: var(--color-text)">
-            {{ '2FA_MANAGE.BACKUP_CODES' | translate }}
+            {{ 'TWO_FA_MANAGE.BACKUP_CODES' | translate }}
           </p>
           <p class="text-xs mt-0.5" style="color: var(--color-text-secondary)">
-            {{ '2FA_MANAGE.BACKUP_CODES_DESC' | translate }}
+            {{ 'TWO_FA_MANAGE.BACKUP_CODES_DESC' | translate }}
           </p>
         </div>
         <button matButton type="button" [disabled]="isLoading()" (click)="viewBackupCodes()">
           @if (isLoading() && loadingAction() === 'backup') {
             <mat-spinner diameter="18"></mat-spinner>
           } @else {
-            {{ '2FA_MANAGE.VIEW_CODES' | translate }}
+            {{ 'TWO_FA_MANAGE.VIEW_CODES' | translate }}
           }
         </button>
       </div>
@@ -69,14 +69,14 @@ export type TwoFactorManageDialogResult =
         <mat-icon style="color: var(--color-text-secondary)">swap_horiz</mat-icon>
         <div class="flex-1">
           <p class="font-medium text-sm" style="color: var(--color-text)">
-            {{ '2FA_MANAGE.SWITCH_METHOD' | translate }}
+            {{ 'TWO_FA_MANAGE.SWITCH_METHOD' | translate }}
           </p>
           <p class="text-xs mt-0.5" style="color: var(--color-text-secondary)">
-            {{ '2FA_MANAGE.SWITCH_METHOD_DESC' | translate }}
+            {{ 'TWO_FA_MANAGE.SWITCH_METHOD_DESC' | translate }}
           </p>
         </div>
         <button matButton type="button" [disabled]="isLoading()" (click)="switchMethod()">
-          {{ '2FA_MANAGE.SWITCH' | translate }}
+          {{ 'TWO_FA_MANAGE.SWITCH' | translate }}
         </button>
       </div>
 
@@ -88,10 +88,10 @@ export type TwoFactorManageDialogResult =
         <mat-icon style="color: var(--color-error)">no_encryption</mat-icon>
         <div class="flex-1">
           <p class="font-medium text-sm" style="color: var(--color-text)">
-            {{ '2FA_MANAGE.DISABLE' | translate }}
+            {{ 'TWO_FA_MANAGE.DISABLE' | translate }}
           </p>
           <p class="text-xs mt-0.5" style="color: var(--color-text-secondary)">
-            {{ '2FA_MANAGE.DISABLE_DESC' | translate }}
+            {{ 'TWO_FA_MANAGE.DISABLE_DESC' | translate }}
           </p>
         </div>
         <button
@@ -104,7 +104,7 @@ export type TwoFactorManageDialogResult =
           @if (isLoading() && loadingAction() === 'disable') {
             <mat-spinner diameter="18"></mat-spinner>
           } @else {
-            {{ '2FA_MANAGE.DISABLE_BTN' | translate }}
+            {{ 'TWO_FA_MANAGE.DISABLE_BTN' | translate }}
           }
         </button>
       </div>
@@ -133,9 +133,9 @@ export class TwoFactorManageDialogComponent {
 
   methodLabel(): string {
     const labels: Record<TwoFactorMethod, string> = {
-      Email: '2FA_SETUP.METHOD_EMAIL',
-      Sms: '2FA_SETUP.METHOD_SMS',
-      Totp: '2FA_SETUP.METHOD_TOTP',
+      Email: 'TWO_FA_SETUP.METHOD_EMAIL',
+      Sms: 'TWO_FA_SETUP.METHOD_SMS',
+      Totp: 'TWO_FA_SETUP.METHOD_TOTP',
     };
     return labels[this.data.currentMethod] ?? this.data.currentMethod;
   }

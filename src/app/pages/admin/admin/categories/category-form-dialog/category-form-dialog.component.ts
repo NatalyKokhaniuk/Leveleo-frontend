@@ -45,8 +45,7 @@ export interface CategoryFormDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './category-form-dialog.component.html',
-  styleUrl: './category-form-dialog.component.scss',
+  templateUrl: './category-form-dialog.component.html',
 })
 export class CategoryFormDialogComponent implements OnInit, OnDestroy {
   data = inject<CategoryFormDialogData>(MAT_DIALOG_DATA);

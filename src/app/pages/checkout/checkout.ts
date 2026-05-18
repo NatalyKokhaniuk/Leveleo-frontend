@@ -12,8 +12,7 @@ import { OrderService } from '../../features/orders/order.service';
   selector: 'app-checkout',
   standalone: true,
   imports: [TranslateModule, RouterLink, MatButtonModule, MatFormFieldModule, MatInputModule],
-  templateUrl: './checkout.html',
-  styleUrl: './checkout.scss',
+  templateUrl: './checkout.html',
 })
 export class CheckoutPage implements OnInit {
   private orders = inject(OrderService);

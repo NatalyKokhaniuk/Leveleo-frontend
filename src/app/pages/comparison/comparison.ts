@@ -77,8 +77,7 @@ export type ComparisonAttrFilterMode = 'all' | 'matching' | 'different' | 'allFi
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
-  templateUrl: './comparison.html',
-  styleUrl: './comparison.scss',
+  templateUrl: './comparison.html',
 })
 export class ComparisonPage implements OnInit {
   private auth = inject(AuthService);

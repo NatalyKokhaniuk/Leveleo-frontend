@@ -16,8 +16,7 @@ import { AuthService } from '../services/auth.service';
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './email-unconfirmed-dialog.component.html',
-  styleUrl: './email-unconfirmed-dialog.component.scss',
+  templateUrl: './email-unconfirmed-dialog.component.html',
 })
 export class EmailUnconfirmedDialogComponent implements OnInit {
   private data = inject(MAT_DIALOG_DATA);

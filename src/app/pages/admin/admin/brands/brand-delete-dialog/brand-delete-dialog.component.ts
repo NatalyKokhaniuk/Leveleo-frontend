@@ -21,8 +21,7 @@ export interface BrandDeleteDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './brand-delete-dialog.component.html',
-  styleUrl: './brand-delete-dialog.component.scss',
+  templateUrl: './brand-delete-dialog.component.html',
 })
 export class BrandDeleteDialogComponent {
   data = inject<BrandDeleteDialogData>(MAT_DIALOG_DATA);

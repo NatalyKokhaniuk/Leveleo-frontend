@@ -30,8 +30,7 @@ export interface BackupCodesLoginDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './backup-codes-login-dialog.component.html',
-  styleUrl: './backup-codes-login-dialog.component.scss',
+  templateUrl: './backup-codes-login-dialog.component.html',
 })
 export class BackupCodesLoginDialogComponent {
   private auth = inject(AuthService);

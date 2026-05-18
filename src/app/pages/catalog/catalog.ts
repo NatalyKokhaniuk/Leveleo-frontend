@@ -6,7 +6,6 @@ import { HomeCatalogSidebarComponent } from '../home/home-catalog-sidebar/home-c
   selector: 'app-catalog-page',
   standalone: true,
   imports: [TranslateModule, HomeCatalogSidebarComponent],
-  templateUrl: './catalog.html',
-  styleUrl: './catalog.scss',
+  templateUrl: './catalog.html',
 })
 export class CatalogPage {}

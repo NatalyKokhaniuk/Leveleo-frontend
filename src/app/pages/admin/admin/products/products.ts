@@ -67,8 +67,7 @@ import { ProductDeleteDialogComponent } from './product-delete-dialog/product-de
     MediaImageThumbComponent,
     HorizontalDragScrollDirective,
   ],
-  templateUrl: './products.html',
-  styleUrl: './products.scss',
+  templateUrl: './products.html',
 })
 export class AdminProductsComponent implements OnInit, OnDestroy {
   private productService = inject(ProductService);

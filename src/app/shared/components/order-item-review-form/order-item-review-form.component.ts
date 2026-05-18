@@ -24,8 +24,7 @@ import { ReviewDto } from '../../../features/reviews/review.types';
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './order-item-review-form.component.html',
-  styleUrl: './order-item-review-form.component.scss',
+  templateUrl: './order-item-review-form.component.html',
 })
 export class OrderItemReviewFormComponent implements OnInit {
   private reviews = inject(ReviewService);

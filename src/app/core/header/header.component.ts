@@ -48,8 +48,7 @@ import { UserMenuComponent } from './user-menu/user-menu.component';
     MatBadgeModule,
     MatSnackBarModule,
   ],
-  templateUrl: './header.component.html',
-  styleUrl: './header.component.scss',
+  templateUrl: './header.component.html',
 })
 export class HeaderComponent {
   themeService = inject(ThemeService);

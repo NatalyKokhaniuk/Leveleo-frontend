@@ -22,8 +22,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
     MatIconModule,
     MatProgressSpinnerModule,
   ],
-  templateUrl: './forgot-password.html',
-  styleUrl: './forgot-password.scss',
+  templateUrl: './forgot-password.html',
 })
 export class ForgotPasswordPage {
   private fb = inject(FormBuilder);

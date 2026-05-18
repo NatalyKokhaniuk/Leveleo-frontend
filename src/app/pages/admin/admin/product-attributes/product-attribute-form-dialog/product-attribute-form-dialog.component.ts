@@ -46,8 +46,7 @@ export interface ProductAttributeFormDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './product-attribute-form-dialog.component.html',
-  styleUrl: './product-attribute-form-dialog.component.scss',
+  templateUrl: './product-attribute-form-dialog.component.html',
 })
 export class ProductAttributeFormDialogComponent {
   data = inject<ProductAttributeFormDialogData>(MAT_DIALOG_DATA);

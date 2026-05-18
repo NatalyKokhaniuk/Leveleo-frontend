@@ -66,8 +66,7 @@ type ProductMediaItem = {
     RouterLink,
     OrderItemReviewFormComponent,
   ],
-  templateUrl: './product-detail-tabs.component.html',
-  styleUrl: './product-detail-tabs.component.scss',
+  templateUrl: './product-detail-tabs.component.html',
 })
 export class ProductDetailTabsComponent implements OnInit, OnChanges {
   private mediaUrlCache = inject(MediaUrlCacheService);

@@ -1,10 +1,10 @@
-<h2 mat-dialog-title>{{ '2FA_SETUP.TITLE' | translate }}</h2>
+<h2 mat-dialog-title>{{ 'TWO_FA_SETUP.TITLE' | translate }}</h2>
 
 <mat-dialog-content class="flex flex-col gap-5 pt-2 min-w-80">
   <!-- ══ КРОК 1: Вибір методу ══ -->
   @if (step() === 'method') {
     <p class="text-sm" style="color: var(--color-text-secondary)">
-      {{ '2FA_SETUP.CHOOSE_METHOD' | translate }}
+      {{ 'TWO_FA_SETUP.CHOOSE_METHOD' | translate }}
     </p>
 
     <mat-radio-group [formControl]="$any(methodForm.get('method'))" class="flex flex-col gap-3">
@@ -49,7 +49,7 @@
     <!-- TOTP: QR + секрет -->
     @if (selectedMethod() === 'Totp') {
       <p class="text-sm" style="color: var(--color-text-secondary)">
-        {{ '2FA_SETUP.TOTP_SCAN_DESC' | translate }}
+        {{ 'TWO_FA_SETUP.TOTP_SCAN_DESC' | translate }}
       </p>
 
       @if (totpQrUrl(); as qrUrl) {
@@ -66,7 +66,7 @@
               </code>
               <button
                 matIconButton
-                [matTooltip]="'2FA_SETUP.COPY_SECRET' | translate"
+                [matTooltip]="'TWO_FA_SETUP.COPY_SECRET' | translate"
                 (click)="copySecret()"
               >
                 <mat-icon class="text-base">{{
@@ -79,25 +79,25 @@
       }
 
       <p class="text-sm" style="color: var(--color-text-secondary)">
-        {{ '2FA_SETUP.TOTP_ENTER_CODE' | translate }}
+        {{ 'TWO_FA_SETUP.TOTP_ENTER_CODE' | translate }}
       </p>
     }
 
     <!-- Email / SMS: підказка -->
     @if (selectedMethod() === 'Email') {
       <p class="text-sm" style="color: var(--color-text-secondary)">
-        {{ 'AUTH.2FA_DESC_EMAIL' | translate }}
+        {{ 'AUTH.TWO_FA_DESC_EMAIL' | translate }}
       </p>
     }
     @if (selectedMethod() === 'Sms') {
       <p class="text-sm" style="color: var(--color-text-secondary)">
-        {{ 'AUTH.2FA_DESC_SMS' | translate }}
+        {{ 'AUTH.TWO_FA_DESC_SMS' | translate }}
       </p>
     }
 
     <!-- Поле для коду -->
     <mat-form-field class="w-full">
-      <mat-label>{{ 'AUTH.2FA_CODE' | translate }}</mat-label>
+      <mat-label>{{ 'AUTH.TWO_FA_CODE' | translate }}</mat-label>
       <input
         matInput
         [formControl]="$any(codeForm.get('code'))"
@@ -120,7 +120,7 @@
   @if (step() === 'backup') {
     <div class="flex items-center gap-2" style="color: var(--color-success)">
       <mat-icon>check_circle</mat-icon>
-      <span class="font-medium text-sm">{{ '2FA_SETUP.SUCCESS' | translate }}</span>
+      <span class="font-medium text-sm">{{ 'TWO_FA_SETUP.SUCCESS' | translate }}</span>
     </div>
 
     <p class="text-sm" style="color: var(--color-text-secondary)">
@@ -162,7 +162,7 @@
       @if (isLoading()) {
         <mat-spinner diameter="18"></mat-spinner>
       } @else {
-        {{ '2FA_SETUP.NEXT' | translate }}
+        {{ 'TWO_FA_SETUP.NEXT' | translate }}
       }
     </button>
   }
@@ -181,7 +181,7 @@
       @if (isLoading()) {
         <mat-spinner diameter="18"></mat-spinner>
       } @else {
-        {{ 'AUTH.2FA_VERIFY' | translate }}
+        {{ 'AUTH.TWO_FA_VERIFY' | translate }}
       }
     </button>
   }

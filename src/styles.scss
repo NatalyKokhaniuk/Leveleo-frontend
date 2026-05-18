@@ -2,6 +2,9 @@
 @use '@angular/material' as mat;
 @use '../_theme-colors.scss' as my-theme;
 
+@import './styles/auth-modal-shared.css';
+@import './styles/global-components.css';
+
 html {
   @include mat.theme(
     (

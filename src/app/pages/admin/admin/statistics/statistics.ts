@@ -78,8 +78,7 @@ function cssColor(varName: string, fallback: string): string {
     MatSlideToggleModule,
     RouterLink,
   ],
-  templateUrl: './statistics.html',
-  styleUrl: './statistics.scss',
+  templateUrl: './statistics.html',
 })
 export class AdminStatisticsComponent implements OnInit, OnDestroy {
   private api = inject(StatisticsService);

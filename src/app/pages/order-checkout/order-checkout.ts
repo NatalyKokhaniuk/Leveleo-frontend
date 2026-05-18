@@ -42,8 +42,7 @@ import { ShoppingCartDto } from '../../features/shopping-cart/shopping-cart.type
     MatProgressSpinnerModule,
     MatRadioModule,
   ],
-  templateUrl: './order-checkout.html',
-  styleUrl: './order-checkout.scss',
+  templateUrl: './order-checkout.html',
 })
 export class OrderCheckoutPage implements OnInit {
   private auth = inject(AuthService);

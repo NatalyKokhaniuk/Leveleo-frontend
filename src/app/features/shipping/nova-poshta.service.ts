@@ -4,10 +4,10 @@ import { catchError, map, switchMap, tap } from 'rxjs/operators';
 import { ApiService } from '../../core/services/api.service';
 import {
   DeliveryPointDto,
-  DeliveryPointsQueryParams,
+  DeliveryPointsQueryParamsDto,
   DeliveryPointKind,
   NpSettlementDirectoryDto,
-  NpSettlementOption,
+  NpSettlementOptionDto,
   NpSettlementsPageDto,
   NpStreetDto,
   NpWarehouseDto,
@@ -38,12 +38,12 @@ export class NovaPoshtaService {
   /** Захист від нескінченного циклу, якщо `hasMore` некоректний. */
   private readonly maxSettlementPages = 500;
   /** Кеш повного довідника в межах сесії (щоб не тягнути тисячі записів при кожному відкритті форми). */
-  private fullSettlementsCache: NpSettlementOption[] | null = null;
+  private fullSettlementsCache: NpSettlementOptionDto[] | null = null;
 
   /**
    * Онлайн-пошук міст (`searchSettlements` на стороні НП).
    */
-  searchCities(query: string, limit = this.defaultSearchLimit): Observable<NpSettlementOption[]> {
+  searchCities(query: string, limit = this.defaultSearchLimit): Observable<NpSettlementOptionDto[]> {
     const q = query.trim();
     if (q.length < 1) {
       return of([]);
@@ -80,14 +80,14 @@ export class NovaPoshtaService {
    * Усі сторінки довідника `settlements?page=&find=` (порожній find — повний довідник).
    * Результат кешується до перезавантаження сторінки; передайте `forceRefresh` після оновлення НП на бекенді.
    */
-  loadAllSettlementsDirectory(forceRefresh = false): Observable<NpSettlementOption[]> {
+  loadAllSettlementsDirectory(forceRefresh = false): Observable<NpSettlementOptionDto[]> {
     if (!forceRefresh && this.fullSettlementsCache !== null) {
       return of(this.fullSettlementsCache);
     }
     const fetchAccumulated = (
       page: number,
-      acc: NpSettlementOption[],
-    ): Observable<NpSettlementOption[]> => {
+      acc: NpSettlementOptionDto[],
+    ): Observable<NpSettlementOptionDto[]> => {
       if (page > this.maxSettlementPages) {
         console.warn('[NovaPoshta] loadAllSettlementsDirectory: max pages limit');
         return of(dedupeByRef(acc));
@@ -204,7 +204,7 @@ export class NovaPoshtaService {
    */
   getDeliveryPoints(
     settlementRef: string,
-    params: DeliveryPointsQueryParams = {},
+    params: DeliveryPointsQueryParamsDto = {},
   ): Observable<DeliveryPointDto[]> {
     const ref = settlementRef.trim();
     if (!ref) return of([]);
@@ -269,9 +269,9 @@ function bool(v: unknown, fallback: boolean): boolean {
   return typeof v === 'boolean' ? v : fallback;
 }
 
-function dedupeByRef(items: NpSettlementOption[]): NpSettlementOption[] {
+function dedupeByRef(items: NpSettlementOptionDto[]): NpSettlementOptionDto[] {
   const seen = new Set<string>();
-  const out: NpSettlementOption[] = [];
+  const out: NpSettlementOptionDto[] = [];
   for (const x of items) {
     if (seen.has(x.ref)) continue;
     seen.add(x.ref);
@@ -369,9 +369,9 @@ function flattenAddressRows(raw: unknown[]): unknown[] {
   return out;
 }
 
-function normalizeSettlements(data: unknown): NpSettlementOption[] {
+function normalizeSettlements(data: unknown): NpSettlementOptionDto[] {
   const raw = flattenAddressRows(extractSettlementArrays(data));
-  const out: NpSettlementOption[] = [];
+  const out: NpSettlementOptionDto[] = [];
   for (const x of raw) {
     const opt = rowToSettlementOption(x);
     if (opt) out.push(opt);
@@ -379,7 +379,7 @@ function normalizeSettlements(data: unknown): NpSettlementOption[] {
   return out;
 }
 
-function rowToSettlementOption(x: unknown): NpSettlementOption | null {
+function rowToSettlementOption(x: unknown): NpSettlementOptionDto | null {
   if (!x || typeof x !== 'object') return null;
   const r = x as Record<string, unknown>;
   /**

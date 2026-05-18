@@ -25,7 +25,7 @@ import {
 } from '../../features/categories/category-display-i18n';
 import { DocumentTitleService } from '../../core/services/document-title.service';
 import { MediaUrlCacheService } from '../../core/services/media-url-cache.service';
-import { ProductCatalogStateService } from '../../features/products/product-catalog.state';
+import { ProductCatalogStateService } from '../../features/products/product-catalog-state.service';
 import { defaultProductFilter } from '../../features/products/product-filter.encode';
 import { ProductResponseDto, ProductSortBy } from '../../features/products/product.types';
 import { ProductCardComponent } from './product-card/product-card.component';
@@ -68,7 +68,6 @@ function parseOptionalFloat(s: string): number | null {
     ProductCardComponent,
   ],
   templateUrl: './products.html',
-  styleUrl: './products.scss',
 })
 export class Products implements OnInit {
   private catalogState = inject(ProductCatalogStateService);

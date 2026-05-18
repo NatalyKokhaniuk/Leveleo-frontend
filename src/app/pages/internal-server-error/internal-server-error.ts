@@ -7,7 +7,6 @@ import { TranslateModule } from '@ngx-translate/core';
   selector: 'app-internal-server-error',
   standalone: true,
   imports: [RouterLink, MatButtonModule, TranslateModule],
-  templateUrl: './internal-server-error.html',
-  styleUrl: './internal-server-error.scss',
+  templateUrl: './internal-server-error.html',
 })
 export class InternalServerErrorPage {}

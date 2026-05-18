@@ -72,7 +72,7 @@ export interface ShoppingCartItemDto {
 }
 
 /** Рядок кошика на UI: товар + пер-юніт ціни з ShoppingCartItemDto (джерело істини — GET /me). */
-export interface CartLineView {
+export interface CartLineViewDto {
   product: ProductResponseDto;
   /** Кількість у кошику («заплановані» одиниці). */
   quantityInCart: number;

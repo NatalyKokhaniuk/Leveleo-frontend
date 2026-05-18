@@ -50,8 +50,7 @@ export type OrderItemReviewUi =
     OrderStatusLabelPipe,
     PaymentStatusLabelPipe,
   ],
-  templateUrl: './order-detail.html',
-  styleUrl: './order-detail.scss',
+  templateUrl: './order-detail.html',
 })
 export class OrderDetailPage implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);

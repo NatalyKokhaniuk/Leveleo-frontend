@@ -38,8 +38,7 @@ export interface AttributeGroupFormDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './attribute-group-form-dialog.component.html',
-  styleUrl: './attribute-group-form-dialog.component.scss',
+  templateUrl: './attribute-group-form-dialog.component.html',
 })
 export class AttributeGroupFormDialogComponent {
   data = inject<AttributeGroupFormDialogData>(MAT_DIALOG_DATA);

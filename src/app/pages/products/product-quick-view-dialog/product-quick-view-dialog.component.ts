@@ -31,8 +31,7 @@ export interface ProductQuickViewDialogData {
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
-  templateUrl: './product-quick-view-dialog.component.html',
-  styleUrl: './product-quick-view-dialog.component.scss',
+  templateUrl: './product-quick-view-dialog.component.html',
 })
 export class ProductQuickViewDialogComponent implements OnInit {
   data = inject<ProductQuickViewDialogData>(MAT_DIALOG_DATA);

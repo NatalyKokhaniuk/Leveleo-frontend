@@ -24,8 +24,7 @@ import { HomeLatestProductsStripComponent } from './latest-products-strip/latest
     HomeLatestProductsStripComponent,
     QuickLinksComponent,
   ],
-  templateUrl: './home.html',
-  styleUrl: './home.scss',
+  templateUrl: './home.html',
 })
 export class Home implements OnInit {
   private authHandler = inject(AuthHandlerService);

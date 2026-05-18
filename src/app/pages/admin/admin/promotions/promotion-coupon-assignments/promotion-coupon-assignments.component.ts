@@ -28,8 +28,7 @@ import type { PromotionCouponAssignmentDto } from '../../../../../features/promo
     MatIconModule,
     MatProgressSpinnerModule,
   ],
-  templateUrl: './promotion-coupon-assignments.component.html',
-  styleUrl: './promotion-coupon-assignments.component.scss',
+  templateUrl: './promotion-coupon-assignments.component.html',
 })
 export class PromotionCouponAssignmentsComponent implements OnInit {
   /** Активна лише для адміна (батьківський шаблон передає лише тоді). */

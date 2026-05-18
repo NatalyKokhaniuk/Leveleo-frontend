@@ -56,8 +56,7 @@ type PromotionSortKey =
     HorizontalDragScrollDirective,
     MediaImageThumbComponent,
   ],
-  templateUrl: './promotions.html',
-  styleUrl: './promotions.scss',
+  templateUrl: './promotions.html',
 })
 export class AdminPromotionsComponent {
   private api = inject(PromotionService);

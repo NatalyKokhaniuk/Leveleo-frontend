@@ -21,8 +21,7 @@ export interface ProductAttributeDeleteDialogData {
     MatProgressSpinnerModule,
     TranslateModule,
   ],
-  templateUrl: './product-attribute-delete-dialog.component.html',
-  styleUrl: './product-attribute-delete-dialog.component.scss',
+  templateUrl: './product-attribute-delete-dialog.component.html',
 })
 export class ProductAttributeDeleteDialogComponent {
   data = inject<ProductAttributeDeleteDialogData>(MAT_DIALOG_DATA);
