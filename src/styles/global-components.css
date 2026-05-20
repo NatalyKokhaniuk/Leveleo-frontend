@@ -646,6 +646,19 @@ app-favorites {
   background-color: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
 }
 
+::ng-deep .favorites-clear-all-btn.mat-mdc-outlined-button,
+::ng-deep .comparison-clear-all-btn.mat-mdc-outlined-button,
+::ng-deep .cart-clear-all-btn.mat-mdc-outlined-button {
+  color: color-mix(in srgb, var(--mat-sys-error) 92%, var(--mat-sys-on-surface));
+  border-color: color-mix(in srgb, var(--mat-sys-error) 55%, var(--mat-sys-outline));
+}
+
+::ng-deep .favorites-clear-all-btn.mat-mdc-outlined-button .mat-icon,
+::ng-deep .comparison-clear-all-btn.mat-mdc-outlined-button .mat-icon,
+::ng-deep .cart-clear-all-btn.mat-mdc-outlined-button .mat-icon {
+  color: color-mix(in srgb, var(--mat-sys-error) 88%, var(--mat-sys-on-surface));
+}
+
 /* --- src/app/pages/forgot-password/forgot-password.scss --- */
 .forgot-password-page {
   .icon-wrapper {

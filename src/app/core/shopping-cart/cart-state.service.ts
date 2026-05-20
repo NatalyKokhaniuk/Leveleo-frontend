@@ -69,6 +69,13 @@ export class CartStateService {
     return this.cartApi.removeItem(productId).pipe(switchMap(() => this.reloadFromServer()));
   }
 
+  clearCart(): Observable<void> {
+    if (!this.auth.isAuthenticated()) {
+      return of(void 0);
+    }
+    return this.cartApi.clear().pipe(switchMap(() => this.reloadFromServer()));
+  }
+
   /** Оновити бейдж у хедері з уже завантаженого GET /ShoppingCart/me. */
   syncFromCartDto(cart: ShoppingCartDto): void {
     this.applyDto(cart);

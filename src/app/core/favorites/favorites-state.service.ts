@@ -110,6 +110,26 @@ export class FavoritesStateService {
     return this.toggleFavorite(productId);
   }
 
+  clearAllFavorites(): Observable<void> {
+    if (!this.auth.isAuthenticated()) {
+      writeFavoriteIds(new Set());
+      this._ids.set(new Set());
+      return of(void 0);
+    }
+    const ids = [...this._ids()];
+    if (ids.length === 0) {
+      return of(void 0);
+    }
+    return forkJoin(
+      ids.map((id) =>
+        this.relations.removeFromFavorites(id).pipe(catchError(() => of(null))),
+      ),
+    ).pipe(
+      tap(() => this._ids.set(new Set())),
+      map(() => void 0),
+    );
+  }
+
   private mergeLocalIntoServerAndReload(): Observable<void> {
     return this.relations.getMyFavorites().pipe(
       switchMap((products) => {

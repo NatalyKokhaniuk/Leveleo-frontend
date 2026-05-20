@@ -1,5 +1,5 @@
 import { inject, Injectable, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
+import { Observable, forkJoin, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { UserProductRelationsService } from '../../features/user-product-relations/user-product-relations.service';
 import { ProductResponseDto } from '../../features/products/product.types';
@@ -63,6 +63,24 @@ export class ComparisonStateService {
       ),
       map(() => void 0),
       catchError(() => of(void 0)),
+    );
+  }
+
+  clearAllComparison(): Observable<void> {
+    if (!this.auth.isAuthenticated()) {
+      return of(void 0);
+    }
+    const ids = [...this._ids()];
+    if (ids.length === 0) {
+      return of(void 0);
+    }
+    return forkJoin(
+      ids.map((id) =>
+        this.relations.removeFromComparison(id).pipe(catchError(() => of(null))),
+      ),
+    ).pipe(
+      tap(() => this._ids.set(new Set())),
+      map(() => void 0),
     );
   }
 }

@@ -9,7 +9,7 @@
     </p>
     <div class="modal-actions">
       <button matButton="filled" color="warn" class="w-full" type="button" (click)="ref.close(true)">
-        {{ 'ADMIN.TABLE.DELETE' | translate }}
+        {{ confirmButtonKey() | translate }}
       </button>
       <button matButton class="w-full" type="button" (click)="ref.close(false)">
         {{ 'AUTH.CANCEL' | translate }}

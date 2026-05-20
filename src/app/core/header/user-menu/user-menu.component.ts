@@ -14,7 +14,8 @@ import { catchError, of, switchMap } from 'rxjs';
   selector: 'app-user-menu',
   standalone: true,
   imports: [MatMenuModule, MatButtonModule, MatIconModule, TranslateModule, MatDivider],
-  templateUrl: './user-menu.component.html',
+  templateUrl: './user-menu.component.html',
+
 })
 export class UserMenuComponent {
   private auth = inject(AuthService);

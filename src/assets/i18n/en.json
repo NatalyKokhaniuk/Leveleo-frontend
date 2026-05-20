@@ -107,7 +107,10 @@
     "EMPTY": "You have not added any products to favourites yet.",
     "LOAD_ERROR": "Could not load favourites. Please try again later.",
     "REMOVE": "Remove from favourites",
-    "CLEAR_ALL": "Clear favourites"
+    "CLEAR_ALL": "Clear favourites",
+    "CLEAR_ALL_CONFIRM_TITLE": "Clear favourites?",
+    "CLEAR_ALL_CONFIRM_MESSAGE": "All products will be removed from your favourites.",
+    "CLEAR_ALL_ERROR": "Could not clear favourites. Please try again later."
   },
   "COMPARISON": {
     "TITLE": "Comparison",
@@ -117,6 +120,9 @@
     "LOAD_ERROR": "Could not load comparison. Please try again later.",
     "REMOVE": "Remove from comparison",
     "CLEAR_ALL": "Clear comparison",
+    "CLEAR_ALL_CONFIRM_TITLE": "Clear comparison?",
+    "CLEAR_ALL_CONFIRM_MESSAGE": "All products will be removed from your comparison list.",
+    "CLEAR_ALL_ERROR": "Could not clear comparison. Please try again later.",
     "GUEST_ONLY": "Sign in or register to compare products.",
     "PRICE": "Price",
     "BRAND": "Brand",
@@ -146,6 +152,9 @@
     "DESCRIPTION": "Items you added to your cart.",
     "BACK_TO_PRODUCTS": "Back to product selection",
     "CLEAR_ALL": "Clear cart",
+    "CLEAR_ALL_CONFIRM_TITLE": "Clear cart?",
+    "CLEAR_ALL_CONFIRM_MESSAGE": "All items and any applied coupon will be removed from your cart.",
+    "CLEAR_ALL_ERROR": "Could not clear the cart. Please try again later.",
     "EMPTY": "Your cart is empty.",
     "REMOVED_MISSING_TITLE": "Products are no longer in the catalog and were removed from your cart:",
     "REMOVED_MISSING_DISMISS": "Dismiss message",

@@ -11,7 +11,8 @@ import { CartStateService } from '../../../core/shopping-cart/cart-state.service
   selector: 'app-product-commerce-toolbar',
   standalone: true,
   imports: [MatButtonModule, MatIconModule, TranslateModule],
-  templateUrl: './product-commerce-toolbar.component.html',
+  templateUrl: './product-commerce-toolbar.component.html',
+
 })
 export class ProductCommerceToolbarComponent {
   productId = input.required<string>();

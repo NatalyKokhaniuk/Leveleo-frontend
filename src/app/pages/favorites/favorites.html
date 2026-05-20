@@ -1,6 +1,21 @@
 <main class="favorites-page pt-28 px-4 md:px-10 max-w-5xl mx-auto flex flex-col gap-8 pb-16 min-w-0 w-full overflow-x-hidden">
   <header class="flex flex-col gap-2 min-w-0">
-    <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left">{{ 'FAVORITES.TITLE' | translate }}</h1>
+    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 min-w-0">
+      <h1 class="modal-title text-2xl md:text-3xl font-fixel text-left m-0">{{ 'FAVORITES.TITLE' | translate }}</h1>
+      @if (!loading() && !loadError() && items().length > 0) {
+        <button
+          mat-stroked-button
+          type="button"
+          color="warn"
+          class="favorites-clear-all-btn shrink-0 self-start"
+          (click)="clearAll()"
+          [disabled]="clearingAll()"
+        >
+          <mat-icon class="!mr-1">delete_sweep</mat-icon>
+          {{ 'FAVORITES.CLEAR_ALL' | translate }}
+        </button>
+      }
+    </div>
     <p class="modal-desc text-left max-w-2xl">{{ 'FAVORITES.DESCRIPTION' | translate }}</p>
     <a
       routerLink="/products"

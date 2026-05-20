@@ -2,9 +2,11 @@ import { NgTemplateOutlet } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatButtonToggleChange, MatButtonToggleGroup, MatButtonToggle } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, forkJoin, of } from 'rxjs';
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -36,6 +38,10 @@ import { AttributeGroupService } from '../../features/attribute-groups/attribute
 import { AttributeGroupResponseDto } from '../../features/attribute-groups/attribute-group.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
+import {
+  AdminConfirmDeleteDialogComponent,
+  AdminConfirmDeleteDialogData,
+} from '../admin/admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
 
 const UNGROUPED_ATTRIBUTE_KEY = '__ungrouped__';
 
@@ -77,7 +83,8 @@ export type ComparisonAttrFilterMode = 'all' | 'matching' | 'different' | 'allFi
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
-  templateUrl: './comparison.html',
+  templateUrl: './comparison.html',
+
 })
 export class ComparisonPage implements OnInit {
   private auth = inject(AuthService);
@@ -90,9 +97,12 @@ export class ComparisonPage implements OnInit {
   private attributeValues = inject(ProductAttributeValueService);
   private mediaUrlCache = inject(MediaUrlCacheService);
   private translate = inject(TranslateService);
+  private dialog = inject(MatDialog);
+  private snack = inject(MatSnackBar);
 
   loading = signal(false);
   loadError = signal(false);
+  clearingAll = signal(false);
   items = signal<ProductResponseDto[]>([]);
   categoryNames = signal<Map<string, string>>(new Map());
   brandCatalog = signal<BrandResponseDto[]>([]);
@@ -321,6 +331,40 @@ export class ComparisonPage implements OnInit {
   clearCategoryCompare(): void {
     this.activeCategoryId.set(null);
     this.attrFilterMode.set('all');
+  }
+
+  clearAll(): void {
+    if (this.items().length === 0 || this.clearingAll()) {
+      return;
+    }
+    const data: AdminConfirmDeleteDialogData = {
+      titleKey: 'COMPARISON.CLEAR_ALL_CONFIRM_TITLE',
+      messageKey: 'COMPARISON.CLEAR_ALL_CONFIRM_MESSAGE',
+      confirmButtonKey: 'COMPARISON.CLEAR_ALL',
+    };
+    this.dialog
+      .open(AdminConfirmDeleteDialogComponent, { data, width: '400px' })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.clearingAll.set(true);
+        this.comparison.clearAllComparison().subscribe({
+          next: () => {
+            this.items.set([]);
+            this.valuesByProduct.set(new Map());
+            this.imageUrls.set(new Map());
+            this.activeCategoryId.set(null);
+            this.attrFilterMode.set('all');
+            this.clearingAll.set(false);
+          },
+          error: () => {
+            this.clearingAll.set(false);
+            this.snack.open(this.translate.instant('COMPARISON.CLEAR_ALL_ERROR'), undefined, {
+              duration: 4000,
+            });
+          },
+        });
+      });
   }
 
   onAttrFilterChange(e: MatButtonToggleChange): void {

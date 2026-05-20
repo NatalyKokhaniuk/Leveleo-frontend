@@ -10,13 +10,15 @@ export interface AdminConfirmDeleteDialogData {
   /** Defaults to ADMIN.CONFIRM_DELETE.MESSAGE */
   messageKey?: string;
   messageParams?: Record<string, string | number | undefined>;
+  /** Defaults to ADMIN.TABLE.DELETE */
+  confirmButtonKey?: string;
 }
 
 @Component({
   selector: 'app-admin-confirm-delete-dialog',
   standalone: true,
   imports: [MatDialogModule, MatButtonModule, MatIconModule, TranslateModule],
-  templateUrl: './admin-confirm-delete-dialog.component.html',
+  templateUrl: './admin-confirm-delete-dialog.component.html',
 })
 export class AdminConfirmDeleteDialogComponent {
   ref = inject(MatDialogRef<AdminConfirmDeleteDialogComponent, boolean>);
@@ -36,5 +38,9 @@ export class AdminConfirmDeleteDialogComponent {
 
   messageParams(): Record<string, string | number | undefined> {
     return this.data.messageParams ?? {};
+  }
+
+  confirmButtonKey(): string {
+    return this.data.confirmButtonKey ?? 'ADMIN.TABLE.DELETE';
   }
 }

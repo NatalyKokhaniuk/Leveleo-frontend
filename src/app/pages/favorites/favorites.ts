@@ -1,8 +1,10 @@
 import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateModule } from '@ngx-translate/core';
 import { TranslateService } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
@@ -21,6 +23,10 @@ import {
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
 import { ProductDetailTabsComponent } from '../products/product-detail-tabs/product-detail-tabs.component';
+import {
+  AdminConfirmDeleteDialogComponent,
+  AdminConfirmDeleteDialogData,
+} from '../admin/admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
 
 @Component({
   selector: 'app-favorites',
@@ -34,14 +40,18 @@ import { ProductDetailTabsComponent } from '../products/product-detail-tabs/prod
     ProductDetailTabsComponent,
     ProductCommerceToolbarComponent,
   ],
-  templateUrl: './favorites.html',
+  templateUrl: './favorites.html',
+
 })
 export class FavoritesPage implements OnInit, OnDestroy {
   private favorites = inject(FavoritesStateService);
   private translate = inject(TranslateService);
+  private dialog = inject(MatDialog);
+  private snack = inject(MatSnackBar);
 
   loading = signal(true);
   loadError = signal(false);
+  clearingAll = signal(false);
   items = signal<ProductResponseDto[]>([]);
 
   ngOnInit(): void {
@@ -84,6 +94,36 @@ export class FavoritesPage implements OnInit, OnDestroy {
     this.favorites.removeFavorite(id).subscribe(() => {
       this.items.update((rows) => rows.filter((p) => p.id !== id));
     });
+  }
+
+  clearAll(): void {
+    if (this.items().length === 0 || this.clearingAll()) {
+      return;
+    }
+    const data: AdminConfirmDeleteDialogData = {
+      titleKey: 'FAVORITES.CLEAR_ALL_CONFIRM_TITLE',
+      messageKey: 'FAVORITES.CLEAR_ALL_CONFIRM_MESSAGE',
+      confirmButtonKey: 'FAVORITES.CLEAR_ALL',
+    };
+    this.dialog
+      .open(AdminConfirmDeleteDialogComponent, { data, width: '400px' })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.clearingAll.set(true);
+        this.favorites.clearAllFavorites().subscribe({
+          next: () => {
+            this.items.set([]);
+            this.clearingAll.set(false);
+          },
+          error: () => {
+            this.clearingAll.set(false);
+            this.snack.open(this.translate.instant('FAVORITES.CLEAR_ALL_ERROR'), undefined, {
+              duration: 4000,
+            });
+          },
+        });
+      });
   }
 
   productName(p: ProductResponseDto): string {

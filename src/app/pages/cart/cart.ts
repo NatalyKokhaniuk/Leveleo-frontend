@@ -7,6 +7,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
 import { TranslateModule } from '@ngx-translate/core';
@@ -44,6 +45,10 @@ import { ProductService } from '../../features/products/product.service';
 import { isCatalogPurchaseBlocked } from '../../features/products/product-catalog-display';
 import { ProductResponseDto } from '../../features/products/product.types';
 import { ProductCommerceToolbarComponent } from '../products/product-commerce-toolbar/product-commerce-toolbar.component';
+import {
+  AdminConfirmDeleteDialogComponent,
+  AdminConfirmDeleteDialogData,
+} from '../admin/admin-confirm-delete-dialog/admin-confirm-delete-dialog.component';
 
 @Component({
   selector: 'app-cart',
@@ -72,9 +77,11 @@ export class CartPage implements OnInit {
   private brandsApi = inject(BrandService);
   private snack = inject(MatSnackBar);
   private translate = inject(TranslateService);
+  private dialog = inject(MatDialog);
 
   loading = signal(true);
   loadError = signal(false);
+  clearingAll = signal(false);
   /** Порядок як у відповіді кошика; ціни з рядка GET /me + quantityApplyingToTotals / totalPrice. */
   lines = signal<CartLineViewDto[]>([]);
   cartTotals = signal<{
@@ -101,6 +108,8 @@ export class CartPage implements OnInit {
   visibleLines = computed(() => {
     return this.lines().filter((row) => row.quantityInCart > 0);
   });
+
+  hasCartLines = computed(() => this.lines().some((row) => row.quantityInCart > 0));
   displayedTotal = computed(() => {
     const totals = this.cartTotals();
     if (!totals) return 0;
@@ -500,6 +509,42 @@ export class CartPage implements OnInit {
 
   dismissUnavailableNotice(): void {
     this.unavailableProductNotice.set([]);
+  }
+
+  clearAll(): void {
+    if (!this.hasCartLines() || this.clearingAll()) {
+      return;
+    }
+    const data: AdminConfirmDeleteDialogData = {
+      titleKey: 'CART.CLEAR_ALL_CONFIRM_TITLE',
+      messageKey: 'CART.CLEAR_ALL_CONFIRM_MESSAGE',
+      confirmButtonKey: 'CART.CLEAR_ALL',
+    };
+    this.dialog
+      .open(AdminConfirmDeleteDialogComponent, { data, width: '400px' })
+      .afterClosed()
+      .subscribe((ok) => {
+        if (!ok) return;
+        this.clearingAll.set(true);
+        this.cartState.clearCart().subscribe({
+          next: () => {
+            this.lines.set([]);
+            this.cartTotals.set(null);
+            this.couponCode.set('');
+            this.unavailableProductNotice.set([]);
+            this.removedMissingCatalogNotice.set([]);
+            this.removedCartItemsNotice.set([]);
+            this.imageUrls.set(new Map());
+            this.clearingAll.set(false);
+          },
+          error: () => {
+            this.clearingAll.set(false);
+            this.snack.open(this.translate.instant('CART.CLEAR_ALL_ERROR'), undefined, {
+              duration: 4000,
+            });
+          },
+        });
+      });
   }
 
   private readCartSnapshotFromSession(): Record<string, string> {
