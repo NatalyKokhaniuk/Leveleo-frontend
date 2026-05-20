@@ -496,6 +496,9 @@
       "PRESET_MONTH": "This month",
       "APPLY_RANGE": "Apply",
       "ORDER_STATUS_DIST": "Orders by status",
+      "ORDER_STATUS_SECTION": "Orders by status",
+      "ORDERS_COUNT_SUFFIX": "orders",
+      "SALES_SHIPPED_COMPLETED_HINT": "Only orders with status Shipped and Completed are included.",
       "FILTER_CATEGORY": "Category",
       "FILTER_BRAND": "Brand",
       "FILTER_ALL": "All",
@@ -545,7 +548,10 @@
       "STOCK_BUCKET_OUT": "No available stock",
       "STOCK_BUCKET_LOW": "Low stock",
       "STOCK_BUCKET_OK": "Above threshold",
-      "COL_THRESHOLD": "Low-stock threshold"
+      "COL_THRESHOLD": "Low-stock threshold",
+      "SUBSCRIBERS": "Newsletter subscribers",
+      "COL_MONTH": "Month",
+      "COL_DATE": "Date"
     },
     "TASKS": "Tasks",
     "BRANDS": "Brands",

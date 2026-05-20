@@ -1,135 +1,85 @@
 <main class="admin-stats pt-28 px-4 md:px-10 max-w-7xl mx-auto pb-16 flex flex-col gap-6">
   <header class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
     <div class="flex flex-col gap-2">
-      <a
-        routerLink="/admin"
-        class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit"
-      >
+      <a routerLink="/admin" class="inline-flex items-center gap-1 text-primary text-sm font-medium hover:underline w-fit">
         <mat-icon class="text-lg w-5 h-5">arrow_back</mat-icon>
         {{ 'ADMIN.BACK' | translate }}
       </a>
-      <h1 class="text-2xl md:text-3xl font-bold text-primary m-0">
-        {{ 'ADMIN.STATISTICS' | translate }}
-      </h1>
-      <p class="opacity-80 m-0">{{ 'ADMIN.STATS.DESCRIPTION' | translate }}</p>
-      <p class="text-xs text-on-surface/60 m-0 max-w-3xl">{{ 'ADMIN.STATS.UTC_RANGE_HINT' | translate }}</p>
+      <h1 class="text-2xl md:text-3xl font-bold text-primary m-0">{{ 'ADMIN.STATISTICS' | translate }}</h1>
     </div>
-    <div class="flex items-center gap-2 shrink-0">
-      @if (partialBusy()) {
-        <mat-spinner diameter="28"></mat-spinner>
-      }
-      <button matButton="outlined" type="button" (click)="reloadAll()" [disabled]="loading() || partialBusy()">
-        <mat-icon class="!w-5 !h-5 !text-[1.25rem]">refresh</mat-icon>
-        {{ 'ADMIN.STATS.RELOAD' | translate }}
-      </button>
-    </div>
+    <button matButton="outlined" type="button" (click)="reload()" [disabled]="loading()">
+      <mat-icon>refresh</mat-icon>
+      {{ 'ADMIN.STATS.RELOAD' | translate }}
+    </button>
   </header>
 
   @if (loading()) {
-    <div class="flex justify-center py-16">
-      <mat-spinner diameter="48"></mat-spinner>
-    </div>
+    <div class="flex justify-center py-16"><mat-spinner diameter="48"></mat-spinner></div>
   } @else {
     @if (loadError()) {
-      <p class="rounded-xl border border-error/40 bg-error-container/30 text-on-error-container px-4 py-3 m-0">
-        {{ 'ADMIN.STATS.LOAD_ERROR' | translate }}
-      </p>
+      <p class="rounded-xl border border-error/40 bg-error-container/30 px-4 py-3 m-0">{{ 'ADMIN.STATS.LOAD_ERROR' | translate }}</p>
     }
+
     @if (dashboard(); as d) {
-      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-        <article class="stats-card bg-[var(--mat-sys-primary-container)] text-[var(--mat-sys-on-primary-container)]">
+      <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <article class="stats-card stats-card--muted">
           <h3>{{ 'ADMIN.STATS.TOTAL_ORDERS' | translate }}</h3>
           <p>{{ d.totalOrders }}</p>
         </article>
-        <article class="stats-card bg-[var(--mat-sys-tertiary-container)] text-[var(--mat-sys-on-tertiary-container)]">
+        <article class="stats-card stats-card--muted">
           <h3>{{ 'ADMIN.STATS.TOTAL_REVENUE' | translate }}</h3>
           <p>{{ d.totalRevenue | number: '1.2-2' }}</p>
         </article>
-        <article class="stats-card bg-[var(--mat-sys-secondary-container)] text-[var(--mat-sys-on-secondary-container)]">
+        <article class="stats-card stats-card--muted">
           <h3>{{ 'ADMIN.STATS.TODAY_ORDERS' | translate }}</h3>
           <p>{{ d.todayOrders }}</p>
           <span class="stats-card__sub">{{ 'ADMIN.STATS.TODAY_REVENUE' | translate }}: {{ d.todayRevenue | number: '1.2-2' }}</span>
         </article>
-        <article class="stats-card bg-[var(--mat-sys-error-container)] text-[var(--mat-sys-on-error-container)]">
-          <h3>{{ 'ADMIN.STATS.LOW_STOCK' | translate }}</h3>
-          <p>{{ d.lowStockCount }}</p>
-          <span class="stats-card__sub">{{ 'ADMIN.STATS.OUT_OF_STOCK' | translate }}: {{ d.outOfStockCount }}</span>
+        <article class="stats-card stats-card--muted">
+          <h3>{{ 'ADMIN.STATS.SUBSCRIBERS' | translate }}</h3>
+          <p>{{ subscribersCount() ?? '—' }}</p>
         </article>
       </section>
 
-      <section class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-        <article class="stats-card stats-card--muted">
-          <h3>{{ 'ADMIN.STATS.PENDING_ORDERS' | translate }}</h3>
-          <p>{{ d.pendingOrders }}</p>
-        </article>
-        <article class="stats-card stats-card--muted">
-          <h3>{{ 'ADMIN.STATS.PROCESSING_ORDERS' | translate }}</h3>
-          <p>{{ d.processingOrders }}</p>
-        </article>
-        <article class="stats-card stats-card--muted">
-          <h3>{{ 'ADMIN.STATS.SHIPPED_ORDERS' | translate }}</h3>
-          <p>{{ d.shippedOrders }}</p>
-        </article>
-        <article class="stats-card stats-card--muted">
-          <h3>{{ 'ADMIN.STATS.COMPLETED_ORDERS' | translate }}</h3>
-          <p>{{ d.completedOrders }}</p>
-        </article>
+      <section class="flex flex-col gap-3">
+        <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.ORDER_STATUS_SECTION' | translate }}</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <article class="stats-card stats-card--muted">
+            <h3>{{ 'ADMIN.STATS.PENDING_ORDERS' | translate }}</h3>
+            <p>{{ d.pendingOrders }}</p>
+            <span class="stats-card__sub">{{ 'ADMIN.STATS.ORDERS_COUNT_SUFFIX' | translate }}</span>
+          </article>
+          <article class="stats-card stats-card--muted">
+            <h3>{{ 'ADMIN.STATS.PROCESSING_ORDERS' | translate }}</h3>
+            <p>{{ d.processingOrders }}</p>
+            <span class="stats-card__sub">{{ 'ADMIN.STATS.ORDERS_COUNT_SUFFIX' | translate }}</span>
+          </article>
+          <article class="stats-card stats-card--muted">
+            <h3>{{ 'ADMIN.STATS.SHIPPED_ORDERS' | translate }}</h3>
+            <p>{{ d.shippedOrders }}</p>
+            <span class="stats-card__sub">{{ 'ADMIN.STATS.ORDERS_COUNT_SUFFIX' | translate }}</span>
+          </article>
+          <article class="stats-card stats-card--muted">
+            <h3>{{ 'ADMIN.STATS.COMPLETED_ORDERS' | translate }}</h3>
+            <p>{{ d.completedOrders }}</p>
+            <span class="stats-card__sub">{{ 'ADMIN.STATS.ORDERS_COUNT_SUFFIX' | translate }}</span>
+          </article>
+        </div>
       </section>
 
-      @if (d.pendingOrders + d.processingOrders + d.shippedOrders + d.completedOrders > 0) {
-        <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-3">
-          <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.ORDER_STATUS_DIST' | translate }}</h2>
-          <div class="admin-stats__chart-wrap admin-stats__chart-wrap--donut">
-            <canvas #orderStatusCanvas></canvas>
-          </div>
-        </section>
-      }
-
-      <div class="flex flex-wrap gap-3 items-center">
-        <a matButton="filled" routerLink="/admin/reviews" class="!no-underline">
-          {{ 'ADMIN.STATS.PENDING_REVIEWS' | translate }} ({{ d.pendingReviewsCount }})
-        </a>
-      </div>
-
-      @if (d.lowStockProducts.length || d.outOfStockProducts.length) {
-        <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6">
-          <h2 class="text-lg font-semibold m-0 mb-3">{{ 'ADMIN.STATS.ALERTS' | translate }}</h2>
-          <div class="grid md:grid-cols-2 gap-4">
-            @if (d.lowStockProducts.length) {
-              <div>
-                <h3 class="text-sm font-medium m-0 mb-2 text-on-surface/80">{{ 'ADMIN.STATS.LOW_STOCK_LIST' | translate }}</h3>
-                <ul class="m-0 p-0 list-none space-y-1 text-sm">
-                  @for (p of d.lowStockProducts; track p.id) {
-                    <li class="flex justify-between gap-2 min-w-0">
-                      <a [routerLink]="['/admin/products', p.id]" class="text-primary hover:underline truncate min-w-0">{{ p.name }}</a>
-                      <span class="shrink-0 text-on-surface/70">{{ p.stockQuantity }}</span>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-            @if (d.outOfStockProducts.length) {
-              <div>
-                <h3 class="text-sm font-medium m-0 mb-2 text-on-surface/80">{{ 'ADMIN.STATS.OUT_OF_STOCK_LIST' | translate }}</h3>
-                <ul class="m-0 p-0 list-none space-y-1 text-sm">
-                  @for (p of d.outOfStockProducts; track p.id) {
-                    <li class="flex justify-between gap-2 min-w-0">
-                      <a [routerLink]="['/admin/products', p.id]" class="text-primary hover:underline truncate min-w-0">{{ p.name }}</a>
-                      <span class="shrink-0 text-on-surface/70">{{ p.stockQuantity }}</span>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-          </div>
-        </section>
-      }
+      <p class="m-0">
+        <a matButton="outlined" routerLink="/admin/reviews">{{ 'ADMIN.STATS.PENDING_REVIEWS' | translate }} ({{ d.pendingReviewsCount }})</a>
+        · {{ 'ADMIN.STATS.LOW_STOCK' | translate }}: {{ d.lowStockCount }} · {{ 'ADMIN.STATS.OUT_OF_STOCK' | translate }}: {{ d.outOfStockCount }}
+      </p>
     }
 
-    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.MONTHLY_SALES' | translate }}</h2>
-        <mat-form-field appearance="outline" class="admin-stats__inline-field" subscriptSizing="dynamic">
+    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5 flex flex-col gap-3">
+      <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+        <div class="flex flex-col gap-1 min-w-0">
+          <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.MONTHLY_SALES' | translate }}</h2>
+          <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.SALES_SHIPPED_COMPLETED_HINT' | translate }}</p>
+        </div>
+        <mat-form-field class="w-full sm:max-w-[14rem] contacts-form">
           <mat-label>{{ 'ADMIN.STATS.YEAR' | translate }}</mat-label>
           <mat-select [value]="selectedYear()" (selectionChange)="onYearChange($event.value)">
             @for (y of yearOptions(); track y) {
@@ -139,110 +89,23 @@
         </mat-form-field>
       </div>
       @if (monthly().length === 0) {
-        <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
+        <p class="text-sm opacity-70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
       } @else {
-        <div class="admin-stats__chart-wrap">
-          <canvas #monthlyCanvas></canvas>
-        </div>
-      }
-    </section>
-
-    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
-      <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.DAILY_SALES' | translate }}</h2>
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-sm text-on-surface/80 mr-1">{{ 'ADMIN.STATS.DATE_PRESETS' | translate }}</span>
-        <button matButton="outlined" type="button" (click)="applyDailyPreset('7d')" [disabled]="partialBusy()">
-          {{ 'ADMIN.STATS.PRESET_7D' | translate }}
-        </button>
-        <button matButton="outlined" type="button" (click)="applyDailyPreset('30d')" [disabled]="partialBusy()">
-          {{ 'ADMIN.STATS.PRESET_30D' | translate }}
-        </button>
-        <button matButton="outlined" type="button" (click)="applyDailyPreset('month')" [disabled]="partialBusy()">
-          {{ 'ADMIN.STATS.PRESET_MONTH' | translate }}
-        </button>
-      </div>
-      <div class="flex flex-wrap items-end gap-3">
-        <mat-form-field appearance="outline" class="admin-stats__date-field" subscriptSizing="dynamic">
-          <mat-label>{{ 'ADMIN.STATS.DATE_FROM' | translate }}</mat-label>
-          <input matInput type="date" [value]="dailyStartYmd()" (change)="setDailyStart($event)" />
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="admin-stats__date-field" subscriptSizing="dynamic">
-          <mat-label>{{ 'ADMIN.STATS.DATE_TO' | translate }}</mat-label>
-          <input matInput type="date" [value]="dailyEndYmd()" (change)="setDailyEnd($event)" />
-        </mat-form-field>
-        <button matButton="filled" type="button" (click)="applyDailyRange()" [disabled]="partialBusy()">
-          {{ 'ADMIN.STATS.APPLY_RANGE' | translate }}
-        </button>
-      </div>
-      @if (daily().length === 0) {
-        <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
-      } @else {
-        <div class="admin-stats__chart-wrap admin-stats__chart-wrap--tall">
-          <canvas #dailyCanvas></canvas>
-        </div>
-      }
-    </section>
-
-    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.TOP_SELLING' | translate }}</h2>
-        <div class="flex flex-wrap items-end gap-2">
-          <mat-form-field appearance="outline" class="admin-stats__filter-field min-w-[10rem]" subscriptSizing="dynamic">
-            <mat-label>{{ 'ADMIN.STATS.FILTER_CATEGORY' | translate }}</mat-label>
-            <mat-select [value]="topCategoryId()" (selectionChange)="topCategoryId.set($event.value)">
-              <mat-option value="">{{ 'ADMIN.STATS.FILTER_ALL' | translate }}</mat-option>
-              @for (c of filterCategories(); track c.id) {
-                <mat-option [value]="c.id">{{ c.fullPath }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="admin-stats__filter-field min-w-[9rem]" subscriptSizing="dynamic">
-            <mat-label>{{ 'ADMIN.STATS.FILTER_BRAND' | translate }}</mat-label>
-            <mat-select [value]="topBrandId()" (selectionChange)="topBrandId.set($event.value)">
-              <mat-option value="">{{ 'ADMIN.STATS.FILTER_ALL' | translate }}</mat-option>
-              @for (b of filterBrands(); track b.id) {
-                <mat-option [value]="b.id">{{ b.name }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline" class="admin-stats__top-field" subscriptSizing="dynamic">
-            <mat-label>{{ 'ADMIN.STATS.TOP_N' | translate }}</mat-label>
-            <input matInput type="number" min="3" max="50" [value]="topCount()" (change)="setTopCount($event)" />
-          </mat-form-field>
-          <button matButton="filled" type="button" (click)="applyTopFilters()" [disabled]="partialBusy()">
-            {{ 'ADMIN.STATS.APPLY_FILTERS_TOP' | translate }}
-          </button>
-        </div>
-      </div>
-      @if (topSelling().length === 0) {
-        <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
-      } @else {
-        <div class="admin-stats__chart-wrap admin-stats__chart-wrap--top">
-          <canvas #topSellingCanvas></canvas>
-        </div>
-        <div class="admin-stats__table-wrap mt-4">
+        <div class="admin-stats__table-wrap">
           <table class="admin-stats__table">
             <thead>
               <tr>
-                <th>{{ 'ADMIN.STATS.COL_PRODUCT' | translate }}</th>
-                <th class="text-right">{{ 'ADMIN.STATS.COL_UNITS' | translate }}</th>
-                <th class="text-right">{{ 'ADMIN.STATS.COL_REVENUE' | translate }}</th>
-                <th class="text-right">{{ 'ADMIN.STATS.COL_AVG_PRICE' | translate }}</th>
-                <th class="text-right">{{ 'ADMIN.STATS.COL_STOCK' | translate }}</th>
+                <th>{{ 'ADMIN.STATS.COL_MONTH' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.CHART_ORDERS' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.CHART_REVENUE' | translate }}</th>
               </tr>
             </thead>
             <tbody>
-              @for (r of topSelling(); track r.productId) {
+              @for (r of monthly(); track r.year + '-' + r.month) {
                 <tr>
-                  <td class="min-w-0 max-w-[14rem]">
-                    <a [routerLink]="['/admin/products', r.productId]" class="text-primary hover:underline truncate block">{{
-                      r.productName
-                    }}</a>
-                  </td>
-                  <td class="text-right tabular-nums">{{ r.unitsSold }}</td>
+                  <td>{{ r.monthName || r.month + '/' + r.year }}</td>
+                  <td class="text-right tabular-nums">{{ r.ordersCount }}</td>
                   <td class="text-right tabular-nums">{{ r.totalRevenue | number: '1.2-2' }}</td>
-                  <td class="text-right tabular-nums">{{ r.averagePrice | number: '1.4-4' }}</td>
-                  <td class="text-right tabular-nums">{{ r.currentStock }}</td>
                 </tr>
               }
             </tbody>
@@ -251,26 +114,51 @@
       }
     </section>
 
-    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.STOCK_STATUS' | translate }}</h2>
-        <button matButton="outlined" type="button" (click)="refreshStock()" [disabled]="partialBusy()">
-          {{ 'ADMIN.STATS.REFRESH_STOCK' | translate }}
-        </button>
-      </div>
-      @if (stockStatus().length === 0) {
-        <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
-      } @else {
-        <div class="admin-stats__chart-wrap admin-stats__chart-wrap--donut">
-          <canvas #stockCanvas></canvas>
+    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5 flex flex-col gap-3">
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="flex flex-col gap-1 mr-auto min-w-0">
+          <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.DAILY_SALES' | translate }}</h2>
+          <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.SALES_SHIPPED_COMPLETED_HINT' | translate }}</p>
         </div>
-        <div class="admin-stats__table-wrap mt-4">
+        <button matButton="outlined" type="button" (click)="applyDailyPreset('7d')">{{ 'ADMIN.STATS.PRESET_7D' | translate }}</button>
+        <button matButton="outlined" type="button" (click)="applyDailyPreset('30d')">{{ 'ADMIN.STATS.PRESET_30D' | translate }}</button>
+      </div>
+      @if (daily().length === 0) {
+        <p class="text-sm opacity-70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
+      } @else {
+        <div class="admin-stats__table-wrap max-h-64 overflow-auto">
+          <table class="admin-stats__table">
+            <thead>
+              <tr>
+                <th>{{ 'ADMIN.STATS.COL_DATE' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.CHART_ORDERS' | translate }}</th>
+                <th class="text-right">{{ 'ADMIN.STATS.CHART_REVENUE' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of daily(); track r.date) {
+                <tr>
+                  <td>{{ r.date }}</td>
+                  <td class="text-right tabular-nums">{{ r.ordersCount }}</td>
+                  <td class="text-right tabular-nums">{{ r.totalRevenue | number: '1.2-2' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-5 flex flex-col gap-3">
+      <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.STOCK_STATUS' | translate }}</h2>
+      @if (stockStatus().length === 0) {
+        <p class="text-sm opacity-70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
+      } @else {
+        <div class="admin-stats__table-wrap max-h-72 overflow-auto">
           <table class="admin-stats__table">
             <thead>
               <tr>
                 <th>{{ 'ADMIN.STATS.COL_PRODUCT' | translate }}</th>
-                <th class="text-right">{{ 'ADMIN.STATS.COL_STOCK_CURRENT' | translate }}</th>
-                <th class="text-right">{{ 'ADMIN.STATS.COL_RESERVED' | translate }}</th>
                 <th class="text-right">{{ 'ADMIN.STATS.COL_AVAILABLE' | translate }}</th>
                 <th class="text-center">{{ 'ADMIN.STATS.COL_LOW_FLAG' | translate }}</th>
               </tr>
@@ -278,13 +166,7 @@
             <tbody>
               @for (r of stockStatus(); track r.productId) {
                 <tr>
-                  <td class="min-w-0 max-w-[14rem]">
-                    <a [routerLink]="['/admin/products', r.productId]" class="text-primary hover:underline truncate block">{{
-                      r.productName
-                    }}</a>
-                  </td>
-                  <td class="text-right tabular-nums">{{ r.currentStock }}</td>
-                  <td class="text-right tabular-nums">{{ r.reservedQuantity }}</td>
+                  <td><a [routerLink]="['/admin/products', r.productId]" class="text-primary hover:underline">{{ r.productName }}</a></td>
                   <td class="text-right tabular-nums">{{ r.availableStock }}</td>
                   <td class="text-center">{{ r.isLowStock ? ('ADMIN.STATS.SHORT_YES' | translate) : '—' }}</td>
                 </tr>
@@ -295,60 +177,5 @@
       }
     </section>
 
-    @if (promotionStatsEnabled) {
-      <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6 flex flex-col gap-4">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-          <h2 class="text-lg font-semibold m-0">{{ 'ADMIN.STATS.PROMOTIONS' | translate }}</h2>
-          <mat-slide-toggle [checked]="promoActiveOnly()" (change)="onPromoActiveToggle($event.checked)">
-            {{ 'ADMIN.STATS.PROMO_ACTIVE_ONLY' | translate }}
-          </mat-slide-toggle>
-        </div>
-        <p class="text-xs text-on-surface/65 m-0 max-w-4xl">{{ 'ADMIN.STATS.PROMO_METRICS_NOTE' | translate }}</p>
-        @if (promotions().length === 0) {
-          <p class="text-sm text-on-surface/70 m-0">{{ 'ADMIN.STATS.CHART_EMPTY' | translate }}</p>
-        } @else {
-          <div class="admin-stats__chart-wrap admin-stats__chart-wrap--promo">
-            <canvas #promotionsCanvas></canvas>
-          </div>
-          <p class="text-xs text-on-surface/60 m-0">{{ 'ADMIN.STATS.PROMO_SORT_HINT' | translate }}</p>
-          <div class="admin-stats__table-wrap mt-2">
-            <table class="admin-stats__table">
-              <thead>
-                <tr>
-                  <th>{{ 'ADMIN.STATS.COL_PROMOTION' | translate }}</th>
-                  <th class="text-center">{{ 'ADMIN.STATS.COL_NOW_ACTIVE' | translate }}</th>
-                  <th class="text-right">{{ 'ADMIN.STATS.COL_PROMO_REVENUE' | translate }}</th>
-                  <th class="text-right">{{ 'ADMIN.STATS.COL_PROMO_ORDERS' | translate }}</th>
-                  <th class="text-right">{{ 'ADMIN.STATS.COL_DISCOUNT_SUM' | translate }}</th>
-                  <th class="text-right">{{ 'ADMIN.STATS.COL_UNIQUE_BUYERS' | translate }}</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (p of promotions(); track p.promotionId) {
-                  <tr>
-                    <td class="max-w-[14rem]">
-                      <div class="font-medium">{{ p.promotionName }}</div>
-                      @if (p.summary) {
-                        <div class="text-xs text-on-surface/65 mt-0.5 whitespace-normal">{{ p.summary }}</div>
-                      }
-                    </td>
-                    <td class="text-center">{{ p.isActive ? ('ADMIN.STATS.SHORT_YES' | translate) : '—' }}</td>
-                    <td class="text-right tabular-nums">{{ p.totalRevenueWithPromotion | number: '1.2-2' }}</td>
-                    <td class="text-right tabular-nums">{{ p.ordersWithPromotion }}</td>
-                    <td class="text-right tabular-nums">{{ p.totalDiscountGiven | number: '1.2-2' }}</td>
-                    <td class="text-right tabular-nums">{{ p.uniqueCustomers }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        }
-      </section>
-    } @else {
-      <section class="rounded-2xl border border-outline-variant/25 bg-surface-container p-4 md:p-6">
-        <h2 class="text-lg font-semibold m-0 mb-2">{{ 'ADMIN.STATS.PROMOTIONS' | translate }}</h2>
-        <p class="text-sm text-on-surface/80 m-0">{{ 'ADMIN.STATS.PROMO_DISABLED_HINT' | translate }}</p>
-      </section>
-    }
   }
 </main>

@@ -1,6 +1,4 @@
-/**
- * DTO під GET /api/admin/Statistics/* (camelCase як у ASP.NET Core).
- */
+/** DTO для GET /api/admin/statistics/* */
 
 export interface DashboardStatsDto {
   totalOrders: number;
@@ -26,14 +24,12 @@ export interface PendingReviewDto {
   createdAt: string;
 }
 
-/** Активний товар у сповіщенні про залишок: { id, name, stockQuantity }. */
 export interface StockAlertProductDto {
   id: string;
   name: string;
   stockQuantity: number;
 }
 
-/** Місячний звіт: лише Completed, рік UTC; лише місяці з даними. monthName — uk-UA. */
 export interface MonthlySalesReportDto {
   year: number;
   month: number;
@@ -43,7 +39,6 @@ export interface MonthlySalesReportDto {
   averageOrderValue: number;
 }
 
-/** Денний звіт: Completed, діапазон по createdAt UTC; date зазвичай YYYY-MM-DD. */
 export interface DailySalesReportDto {
   date: string;
   ordersCount: number;
@@ -51,32 +46,6 @@ export interface DailySalesReportDto {
   averageOrderValue: number;
 }
 
-/** Query до top-selling як SalesReportFilterDto + top (flat у query-string). */
-export interface SalesReportFilterDto {
-  startDate?: string;
-  endDate?: string;
-  categoryId?: string;
-  brandId?: string;
-  top?: number;
-}
-
-/**
- * Продуктовий топ: completed замовлення, групування по товару.
- * averagePrice = totalRevenue / unitsSold (округлення на бекенді, часто до 4 знаків).
- */
-export interface ProductSalesStatsDto {
-  productId: string;
-  productName: string;
-  productSlug: string;
-  unitsSold: number;
-  totalRevenue: number;
-  averagePrice: number;
-  currentStock: number;
-}
-
-/**
- * Залишки й резерв: лише активні товари, сорт availableStock ↑.
- */
 export interface ProductStockHistoryDto {
   productId: string;
   productName: string;
@@ -85,22 +54,4 @@ export interface ProductStockHistoryDto {
   availableStock: number;
   isLowStock: boolean;
   lowStockThreshold: number;
-}
-
-/**
- * Рядок промо-статистики; порядок з бекенду — за totalRevenueWithPromotion ↓.
- * Для cart-level акцій без знімка в замовленні числові поля можуть бути 0 — бекенд може дати пояснення в `summary`.
- */
-export interface PromotionStatsDto {
-  promotionId: string;
-  promotionName: string;
-  isActive: boolean;
-  startDate: string | null;
-  endDate: string | null;
-  ordersWithPromotion: number;
-  totalDiscountGiven: number;
-  totalRevenueWithPromotion: number;
-  uniqueCustomers: number;
-  /** Текст від API (узгодженість звіту, саммарі по рядку). */
-  summary?: string | null;
 }

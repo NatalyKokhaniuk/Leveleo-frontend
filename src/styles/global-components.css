@@ -517,6 +517,25 @@ app-admin-statistics {
   text-align: left;
 }
 
+.admin-stats__table th.text-right,
+.admin-stats__table td.text-right {
+  text-align: right;
+}
+
+.admin-stats__table th.text-center,
+.admin-stats__table td.text-center {
+  text-align: center;
+}
+
+.admin-stats__table {
+  table-layout: fixed;
+}
+
+.admin-stats__table th:first-child,
+.admin-stats__table td:first-child {
+  width: 42%;
+}
+
 /* --- src/app/pages/cart/cart.scss --- */
 app-cart {
   display: block;

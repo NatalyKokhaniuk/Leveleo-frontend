@@ -23,6 +23,11 @@ export class NewsletterService {
     return this.api.get<ActiveSubscriberDto[]>('/newsletter/subscribers');
   }
 
+  /** GET /api/newsletter/stats/subscribers-count — Admin */
+  getSubscribersCount(): Observable<{ count: number }> {
+    return this.api.get<{ count: number }>('/newsletter/stats/subscribers-count');
+  }
+
   /**
    * Публічна відписка: POST /api/newsletter/unsubscribe (email + unsubscribeToken).
    */

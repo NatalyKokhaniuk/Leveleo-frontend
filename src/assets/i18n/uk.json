@@ -885,6 +885,9 @@
       "PRESET_MONTH": "Поточний місяць",
       "APPLY_RANGE": "Застосувати",
       "ORDER_STATUS_DIST": "Замовлення за статусом",
+      "ORDER_STATUS_SECTION": "Замовлення за статусом",
+      "ORDERS_COUNT_SUFFIX": "замовлення",
+      "SALES_SHIPPED_COMPLETED_HINT": "Ураховано лише замовлення зі статусами «Відправлені» та «Завершені».",
       "FILTER_CATEGORY": "Категорія",
       "FILTER_BRAND": "Бренд",
       "FILTER_ALL": "Усі",
@@ -934,7 +937,10 @@
       "STOCK_BUCKET_OUT": "Без доступного залишку",
       "STOCK_BUCKET_LOW": "Низький залишок",
       "STOCK_BUCKET_OK": "Понад поріг",
-      "COL_THRESHOLD": "Поріг «низький залишок»"
+      "COL_THRESHOLD": "Поріг «низький залишок»",
+      "SUBSCRIBERS": "Підписники розсилки",
+      "COL_MONTH": "Місяць",
+      "COL_DATE": "Дата"
     },
     "TASKS": "Завдання",
     "BRANDS": "Бренди",
